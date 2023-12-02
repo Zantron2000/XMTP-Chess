@@ -6,6 +6,8 @@ import './App.css'
 import SSXWatchProvider from './components/SSXWatchProvider';
 import SSXLogin from './components/middleware/SSXLogin';
 import XMTPLogin from './components/middleware/XMTPLogin';
+import Tester from './components/Tester';
+import { XMTPProvider } from '@xmtp/react-sdk';
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const metadata = {
@@ -27,11 +29,13 @@ function App() {
   return (
     <WagmiConfig config={wagmiConfig}>
       <SSXWatchProvider>
-        <SSXLogin>
-          <XMTPLogin>
-            <div>Hi</div>
-          </XMTPLogin>
-        </SSXLogin>
+        <XMTPProvider>
+          <SSXLogin>
+            <XMTPLogin>
+              <Tester />
+            </XMTPLogin>
+          </SSXLogin>
+        </XMTPProvider>
       </SSXWatchProvider>
     </WagmiConfig>
   )
