@@ -1,13 +1,27 @@
-import { useSSX } from "@spruceid/ssx-react"
-import { useWeb3Modal } from "@web3modal/wagmi/react"
+import { Client, useClient } from "@xmtp/react-sdk";
+import { useWalletClient } from "wagmi";
+import { useState } from "react";
 
-function SSXLogin({ children }) {
-    const { ssx } = useSSX();
-    const { open } = useWeb3Modal();
+function XMTPLogin({ children }) {
+    const { client, initialize } = useClient();
+    const { data: wallet } = useWalletClient();
+    const [ready, setReady] = useState(false);
+
+    const connect = async () => {
+        const options = { env: import.meta.env.VITE_XMTP_ENV };
+        const keys = await Client.getKeys(wallet, {
+            ...options,
+            skipContactPublishing: true,
+            persistConversations: false,
+        });
+
+        await initialize({ keys, options, signer: wallet })
+        setReady(true)
+    }
 
     return (
         <>
-            {ssx?.session() ? children : (
+            {ready ? children : (
                 <div className="min-w-screen min-h-screen bg-[#4a752c] flex justify-center items-center">
                     <div className="min-w-[90vw] min-h-[90vh] bg-[#578a34] rounded-lg">
                         <div className="w-full p-8 flex items-center justify-between flex-col">
@@ -15,13 +29,13 @@ function SSXLogin({ children }) {
                                 <h1 className="text-black text-3xl">Play chess with your friends</h1>
                             </div>
                             <div className="text-lg">
-                                <div>To start, please connect your wallet</div>
+                                <div>Now let's initialize your XMTP account</div>
                                 <div className="flex justify-center">
                                     <button
                                         className="bg-[#236E19] text-white rounded-lg px-4 py-2 mt-4 w-full"
-                                        onClick={open}
+                                        onClick={connect}
                                     >
-                                        Connect Wallet
+                                        Connect to XMTP
                                     </button>
                                 </div>
                             </div>
@@ -33,4 +47,4 @@ function SSXLogin({ children }) {
     )
 }
 
-export default SSXLogin
+export default XMTPLogin

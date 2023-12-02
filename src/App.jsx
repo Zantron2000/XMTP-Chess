@@ -5,6 +5,7 @@ import { WagmiConfig } from "wagmi";
 import './App.css'
 import SSXWatchProvider from './components/SSXWatchProvider';
 import SSXLogin from './components/middleware/SSXLogin';
+import XMTPLogin from './components/middleware/XMTPLogin';
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const metadata = {
@@ -27,7 +28,9 @@ function App() {
     <WagmiConfig config={wagmiConfig}>
       <SSXWatchProvider>
         <SSXLogin>
-          <div>Hi</div>
+          <XMTPLogin>
+            <div>Hi</div>
+          </XMTPLogin>
         </SSXLogin>
       </SSXWatchProvider>
     </WagmiConfig>
