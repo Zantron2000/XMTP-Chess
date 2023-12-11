@@ -22,4 +22,4 @@ export const isAlly = (piece1, piece2) => piece1[0] === piece2[0];
 
 export const isIdentical = (piece1, piece2) => piece1 === piece2;
 
-export const isMatchingPiece = (piece, ...pieces) => pieces.includes(piece);
+export const isMatchingPiece = (piece, ...pieces) => pieces.includes(piece[1]);

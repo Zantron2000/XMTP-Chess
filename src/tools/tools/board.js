@@ -1,13 +1,37 @@
 import { PIECE_VALUES, DIRECTION_VECTORS } from "../enums";
-import { isEnemy, isMatchingPiece } from "./piece";
+import { isEnemy, isMatchingPiece, isIdentical, isKing, isPawn, isWhite, isKnight } from "./piece";
 
+/**
+ * Checks to see if a board space is empty
+ * 
+ * @param {String[][]} board The board in array format
+ * @param {Number[]} pos The position of the space
+ * @returns {Boolean} True if the space is empty, false otherwise
+ */
 export const isEmpty = (board, [row, col]) => board[row][col] === PIECE_VALUES.EMPTY;
 
+/**
+ * Checks to see if a given position is in range of the board
+ * 
+ * @param {Number[]} pos The position to check
+ * @returns {Boolean} True if the position is in range, false otherwise
+ */
 export const isInRange = ([row, col]) => row >= 0 && row <= 7 && col >= 0 && col <= 7;
 
+/**
+ * Looks for the closet piece in a given direction, starting at the given position.
+ * It ignores the given piece, and will return null if no piece is found.
+ * 
+ * @param {String[][]} board The board in array format
+ * @param {Number[]} pos The position of the space to start at
+ * @param {Number[]} direction The direction to search in
+ * @param {String} piece The piece to ignore
+ * @returns {Number[] | null} The position of the nearest piece, or null if no piece is found
+ */
 export const findNearestPiece = (board, [row, col], direction, piece) => {
-    const [rowDir, colDir] = DIRECTION_VECTORS[direction];
+    const [rowDir, colDir] = direction;
     let [r, c] = [row + rowDir, col + colDir];
+
     while (isInRange([r, c])) {
         if (!isEmpty(board, [r, c]) && !isIdentical(board[r][c], piece)) {
             return [r, c];
@@ -20,6 +44,14 @@ export const findNearestPiece = (board, [row, col], direction, piece) => {
     return null;
 }
 
+/**
+ * Checks to see if a given piece exists on the board and is occupied by an enemy piece
+ * 
+ * @param {Number[] | null} coords The coordinates on the board to check
+ * @param {String[]} board The board to check
+ * @param {String} piece The piece that could be in danger
+ * @returns {Boolean} True if the piece is possibly danger, false otherwise
+ */
 const isPotentialDanger = (coords, board, piece) => {
     if (coords) {
         const [row, col] = coords;
@@ -50,6 +82,8 @@ const isHorozontalSafe = (board, [row, col], piece) => {
             return false;
         }
     }
+
+    return true;
 }
 
 const isVerticalSafe = (board, [row, col], piece) => {
@@ -75,16 +109,18 @@ const isVerticalSafe = (board, [row, col], piece) => {
             return false;
         }
     }
+
+    return true;
 }
 
 const isPawnSafe = (board, [row, col], piece) => {
     const pawnAttacks = isWhite(piece) ? [DIRECTION_VECTORS.NORTH_EAST, DIRECTION_VECTORS.NORTH_WEST] : [DIRECTION_VECTORS.SOUTH_EAST, DIRECTION_VECTORS.SOUTH_WEST];
 
     return !pawnAttacks.some((direction) => {
-        const [rowDir, colDir] = DIRECTION_VECTORS[direction];
+        const [rowDir, colDir] = direction;
         const [r, c] = [row + rowDir, col + colDir];
 
-        if (isInRange([r, c])) {
+        if (isInRange([r, c]) && !isEmpty(board, [r, c])) {
             const pawn = board[r][c];
             return isEnemy(piece, pawn) && isPawn(pawn);
         }
