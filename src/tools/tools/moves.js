@@ -1,5 +1,5 @@
-import { isWhite } from "./tools/piece";
-import { isSafe, isInRange, isEmpty } from "./tools/board";
+import { isWhite, isEnemy } from "./piece";
+import { isSafe, isInRange, isEmpty } from "./board";
 
 /**
  * Generates possible moves for a pawn. Pawns can move forward one space,
@@ -36,6 +36,8 @@ const generateBlackPawnMoves = (board, row, col, piece) => {
             moves.push(`${capture[0]}${capture[1]}C`);
         }
     });
+
+    return moves;
 };
 
 /**
@@ -70,8 +72,19 @@ const generateWhitePawnMoves = (board, row, col, piece) => {
             moves.push(`${capture[0]}${capture[1]}C`);
         }
     });
+
+    return moves;
 };
 
+/**
+ * Generates possible moves for a pawn. Pawns can move forward one space,
+ * or two spaces if it is the first move. Pawns can also capture diagonally.
+ * 
+ * @param {String[][]} board The board in array format
+ * @param {Number[]} position The position of the pawn
+ * @param {String} piece The piece representation of the pawn
+ * @returns {String[]} An array of possible moves
+ */
 export const generatePawnMoves = (board, [row, col], piece) => {
     if (isWhite(piece)) {
         return generateWhitePawnMoves(board, row, col, piece);
@@ -85,12 +98,11 @@ export const generatePawnMoves = (board, [row, col], piece) => {
  * any number of spaces. Rooks cannot jump over pieces.
  * 
  * @param {String[][]} board The board in array format
- * @param {Number} row The row of the rook
- * @param {Number} col The column of the rook
+ * @param {Number[]} position The position of the rook
  * @param {String} piece The piece representation of the rook
  * @returns {String[]} An array of possible moves
  */
-export const generateRookMoves = (board, row, col, piece) => {
+export const generateRookMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const north = [row - 1, col];
@@ -137,12 +149,11 @@ export const generateRookMoves = (board, row, col, piece) => {
  * two spaces in one direction and one space in another direction.
  * 
  * @param {String[][]} board The board in array format
- * @param {Number} row The row of the knight
- * @param {Number} col The column of the knight
+ * @param {Number[]} position The position of the rook
  * @param {String} piece The piece representation of the knight
  * @returns {String[]} An array of possible moves
  */
-export const generateKnightMoves = (board, row, col, piece) => {
+export const generateKnightMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const possibleMoves = [
@@ -170,12 +181,11 @@ export const generateKnightMoves = (board, row, col, piece) => {
  * any number of spaces. Bishops cannot jump over pieces.
  * 
  * @param {String[][]} board The board in array format
- * @param {Number} row The row of the bishop
- * @param {Number} col The column of the bishop
+ * @param {Number[]} position The position of the bishop
  * @param {String} piece The piece representation of the bishop
  * @returns {String[]} An array of possible moves
  */
-export const generateBishopMoves = (board, row, col, piece) => {
+export const generateBishopMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const northEast = [row - 1, col + 1];
@@ -226,16 +236,15 @@ export const generateBishopMoves = (board, row, col, piece) => {
  * or diagonally any number of spaces. Queens cannot jump over pieces.
  * 
  * @param {String[][]} board The board in array format
- * @param {Number} row The row of the queen
- * @param {Number} col The column of the queen
+ * @param {Number[]} position The position of the queen
  * @param {String} piece The piece representation of the queen
  * @returns {String[]} An array of possible moves
  */
-export const generateQueenMoves = (board, row, col, piece) => {
+export const generateQueenMoves = (board, position, piece) => {
     const moves = [];
 
-    moves.push(...generateRookMoves(board, row, col, piece));
-    moves.push(...generateBishopMoves(board, row, col, piece));
+    moves.push(...generateRookMoves(board, position, piece));
+    moves.push(...generateBishopMoves(board, position, piece));
 
     return moves;
 };
