@@ -1,22 +1,5 @@
-import { PIECE_VALUES, PIECE_REPRESENTATION, PIECE_ORDER } from "./enums";
-
-const BOARD_SIZE = 8;
-
-/**
- * Creates an empty board with no pieces.
- * 
- * @returns {String[][]} The empty board
- */
-const createInitialBoard = () => {
-    const board = [];
-    for (let i = 0; i < BOARD_SIZE; i++) {
-        board.push([]);
-        for (let j = 0; j < BOARD_SIZE; j++) {
-            board[i].push('');
-        }
-    }
-    return board;
-};
+import { PIECE_VALUES, PIECE_REPRESENTATION, PIECE_ORDER } from "../enums";
+import { createEmptyBoard } from "./board";
 
 /**
  * Translate a board in string format to an array of pieces.
@@ -37,8 +20,8 @@ const createInitialBoard = () => {
  * @param {String} stringBoard The board in string format
  * @returns {String[][]} The board in array format
  */
-const translateMessageBoard = (stringBoard) => {
-    const board = createInitialBoard();
+export const translateMessageBoard = (stringBoard) => {
+    const board = createEmptyBoard();
     const boardString = stringBoard.substring(5);
 
     Object.entries(PIECE_ORDER).forEach(([piece, index]) => {
@@ -71,7 +54,7 @@ const translateMessageBoard = (stringBoard) => {
  * @param {String} stringBoard The board in string format
  * @returns {Boolean} True if the board is in the correct format, false otherwise
  */
-const validateBoardMessage = (stringBoard) => {
+export const validateBoardMessage = (stringBoard) => {
     const boardString = stringBoard.substring(5);
     if (stringBoard.length !== 134) {
         return false;
@@ -106,7 +89,7 @@ const validateBoardMessage = (stringBoard) => {
  * @param {String[][]} board The board in array format
  * @returns {String} The board in string format
  */
-const createMessageBoard = (hash, board) => {
+export const createMessageBoard = (hash, board) => {
     const flatBoard = Array(32);
 
     board.forEach((row, rowIndex) => {
@@ -118,4 +101,16 @@ const createMessageBoard = (hash, board) => {
     });
 
     return `${hash}-${flatBoard.join('')}`;
+};
+
+const extractMessageContent = (message) => {
+    const [hash, ...content] = message.split('-');
+    return [hash, content.join('-')];
+}
+
+export const validateLastMoveMessage = (lastUserMove, lastEnemyMove) => {
+    const userContent = extractMessageContent(lastUserMove);
+    const enemyContent = extractMessageContent(lastEnemyMove);
+
+
 };

@@ -1,5 +1,7 @@
-import { PIECE_VALUES, DIRECTION_VECTORS } from "../enums";
+import { PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS } from "../enums";
 import { isEnemy, isMatchingPiece, isIdentical, isKing, isPawn, isWhite, isKnight } from "./piece";
+
+const BOARD_SIZE = 8;
 
 /**
  * Checks to see if a board space is empty
@@ -219,3 +221,48 @@ export const isSafe = (board, [row, col], piece) => {
         }
     });
 };
+
+/**
+ * Creates an empty board with no pieces.
+ * 
+ * @returns {String[][]} The empty board
+ */
+export const createEmptyBoard = () => {
+    const board = [];
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        board.push([]);
+        for (let j = 0; j < BOARD_SIZE; j++) {
+            board[i].push('');
+        }
+    }
+    return board;
+};
+
+export const createInitialBoard = () => {
+    const board = createEmptyBoard();
+
+    board[0][0] = PIECE_COLORS.BLACK + PIECE_VALUES.ROOK + '1';
+    board[0][1] = PIECE_COLORS.BLACK + PIECE_VALUES.KNIGHT + '1';
+    board[0][2] = PIECE_COLORS.BLACK + PIECE_VALUES.BISHOP + '1';
+    board[0][3] = PIECE_COLORS.BLACK + PIECE_VALUES.QUEEN + '1';
+    board[0][4] = PIECE_COLORS.BLACK + PIECE_VALUES.KING + '1';
+    board[0][5] = PIECE_COLORS.BLACK + PIECE_VALUES.BISHOP + '2';
+    board[0][6] = PIECE_COLORS.BLACK + PIECE_VALUES.KNIGHT + '2';
+    board[0][7] = PIECE_COLORS.BLACK + PIECE_VALUES.ROOK + '2';
+
+    board[7][0] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK + '1';
+    board[7][1] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT + '1';
+    board[7][2] = PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP + '1';
+    board[7][3] = PIECE_COLORS.WHITE + PIECE_VALUES.QUEEN + '1';
+    board[7][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KING + '1';
+    board[7][5] = PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP + '2';
+    board[7][6] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT + '2';
+    board[7][7] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK + '2';
+
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        board[1][i] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + (i + 1);
+        board[6][i] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + (i + 1);
+    }
+
+    return board;
+}

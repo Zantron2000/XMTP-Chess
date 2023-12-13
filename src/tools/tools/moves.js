@@ -1,5 +1,6 @@
-import { isWhite, isEnemy } from "./piece";
+import { isWhite, isEnemy, isBishop, isKing, isKnight, isQueen, isRook, isPawn } from "./piece";
 import { isSafe, isInRange, isEmpty } from "./board";
+import { PIECE_VALUES } from "../enums";
 
 /**
  * Generates possible moves for a pawn. Pawns can move forward one space,
@@ -85,7 +86,7 @@ const generateWhitePawnMoves = (board, row, col, piece) => {
  * @param {String} piece The piece representation of the pawn
  * @returns {String[]} An array of possible moves
  */
-export const generatePawnMoves = (board, [row, col], piece) => {
+const generatePawnMoves = (board, [row, col], piece) => {
     if (isWhite(piece)) {
         return generateWhitePawnMoves(board, row, col, piece);
     } else {
@@ -102,7 +103,7 @@ export const generatePawnMoves = (board, [row, col], piece) => {
  * @param {String} piece The piece representation of the rook
  * @returns {String[]} An array of possible moves
  */
-export const generateRookMoves = (board, [row, col], piece) => {
+const generateRookMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const north = [row - 1, col];
@@ -153,7 +154,7 @@ export const generateRookMoves = (board, [row, col], piece) => {
  * @param {String} piece The piece representation of the knight
  * @returns {String[]} An array of possible moves
  */
-export const generateKnightMoves = (board, [row, col], piece) => {
+const generateKnightMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const possibleMoves = [
@@ -185,7 +186,7 @@ export const generateKnightMoves = (board, [row, col], piece) => {
  * @param {String} piece The piece representation of the bishop
  * @returns {String[]} An array of possible moves
  */
-export const generateBishopMoves = (board, [row, col], piece) => {
+const generateBishopMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const northEast = [row - 1, col + 1];
@@ -240,7 +241,7 @@ export const generateBishopMoves = (board, [row, col], piece) => {
  * @param {String} piece The piece representation of the queen
  * @returns {String[]} An array of possible moves
  */
-export const generateQueenMoves = (board, position, piece) => {
+const generateQueenMoves = (board, position, piece) => {
     const moves = [];
 
     moves.push(...generateRookMoves(board, position, piece));
@@ -249,7 +250,7 @@ export const generateQueenMoves = (board, position, piece) => {
     return moves;
 };
 
-export const generateKingMoves = (board, [row, col], piece) => {
+const generateKingMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const possibleMoves = [
@@ -270,4 +271,34 @@ export const generateKingMoves = (board, [row, col], piece) => {
     });
 
     return moves;
+}
+
+export const generateMoves = (board, position, piece) => {
+    if (isPawn(piece)) {
+        return generatePawnMoves(board, position, piece);
+    } else if (isRook(piece)) {
+        return generateRookMoves(board, position, piece);
+    } else if (isKnight(piece)) {
+        return generateKnightMoves(board, position, piece);
+    } else if (isBishop(piece)) {
+        return generateBishopMoves(board, position, piece);
+    } else if (isQueen(piece)) {
+        return generateQueenMoves(board, position, piece);
+    } else if (isKing(piece)) {
+        return generateKingMoves(board, position, piece);
+    } else {
+        return [];
+    }
+}
+
+export const validateMove = (board, piece, [oldRow, oldCol], [newRow, newCol]) => {
+    board[newRow][newCol] = PIECE_VALUES.EMPTY;
+    board[oldRow][oldCol] = piece;
+
+    const moves = generateMoves(board, [newRow, newCol], piece);
+
+    board[oldRow][oldCol] = PIECE_VALUES.EMPTY;
+    board[newRow][newCol] = piece;
+
+    return moves.includes(`${newRow}${newCol}M`);
 }
