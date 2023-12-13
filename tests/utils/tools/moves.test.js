@@ -1,4 +1,4 @@
-import { createInitialBoard } from "../../tools"
+import { createTestBoard } from "../../tools"
 
 import {
     generateMoves,
@@ -8,7 +8,7 @@ import { PIECE_COLORS, PIECE_VALUES } from "../../../src/tools/enums";
 describe('Tests the generateMoves function', () => {
     describe('Tests the generatePawnMoves function', () => {
         it('Should generate two moves for a white pawn in the starting position', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
 
             for (let col = 0; col < 8; col++) {
                 board[1][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -30,7 +30,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate one move for pawns not in the starting position', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
 
             for (let col = 0; col < 8; col++) {
                 board[2][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -50,7 +50,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate captures for pawns that have enemies in their front diagonals', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
 
             for (let col = 0; col < 8; col++) {
                 board[3][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -86,7 +86,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate captures for pawns that have enemies in their back diagonals', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
 
             for (let col = 0; col < 8; col++) {
                 board[3][col] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -106,7 +106,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate all combinations of moves for a pawn if possible', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
 
             board[1][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[2][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -133,7 +133,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate moves for pawns that are blocked by other pieces', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
 
             board[1][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[2][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -149,7 +149,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate moves for pawns that are at the edge of the board', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
 
             board[0][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
             board[0][7] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -170,7 +170,7 @@ describe('Tests the generateMoves function', () => {
 
     describe('Tests the generateRookMoves function', () => {
         it('Should generate all possible movements for a rook', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK;
 
             const rookMoves = generateMoves(board, [4, 4], PIECE_COLORS.WHITE + PIECE_VALUES.ROOK);
@@ -193,7 +193,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate moves for rooks that are blocked by other pieces', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK;
             board[4][5] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
             board[5][4] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -206,7 +206,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate captures for rooks that have enemies in their path', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK;
             board[4][6] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[6][4] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -227,7 +227,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate captures for any pieces that are not in the path of the rook', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK;
             board[3][3] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[3][5] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -246,7 +246,7 @@ describe('Tests the generateMoves function', () => {
 
     describe('Tests the generateKnightMoves function', () => {
         it('Should generate all possible movements for a knight', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT;
 
             const knightMoves = generateMoves(board, [4, 4], PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT);
@@ -263,7 +263,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate all possible captures for a knight', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT;
             board[2][3] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[2][5] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -288,7 +288,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate moves for knights that are blocked by other pieces', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT;
             board[2][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
             board[2][5] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -305,7 +305,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate moves outside of the board', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[0][0] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT;
             board[0][7] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT;
             board[7][0] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT;
@@ -336,7 +336,7 @@ describe('Tests the generateMoves function', () => {
 
     describe('Tests the generateBishopMoves function', () => {
         it('Should generate all possible movements for a bishop', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP;
 
             const bishopMoves = generateMoves(board, [4, 4], PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP);
@@ -358,7 +358,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate moves for bishops that are blocked by ally pieces', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP;
             board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
             board[3][5] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -371,7 +371,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate captures for bishops that have enemies in their path', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP;
             board[2][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[2][6] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -394,7 +394,7 @@ describe('Tests the generateMoves function', () => {
 
     describe('Tests the generateQueenMoves function', () => {
         it('Should generate all possible movements for a queen', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.QUEEN;
 
             const queenMoves = generateMoves(board, [4, 4], PIECE_COLORS.WHITE + PIECE_VALUES.QUEEN);
@@ -430,7 +430,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate moves for queens that are blocked by ally pieces', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.QUEEN;
             board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
             board[3][5] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -447,7 +447,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate captures for queens that have enemies in their path', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.QUEEN;
             board[2][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[2][6] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
@@ -482,7 +482,7 @@ describe('Tests the generateMoves function', () => {
 
     describe('Tests the generateKingMoves function', () => {
         it('Should generate all possible movements for a king', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KING;
 
             const kingMoves = generateMoves(board, [4, 4], PIECE_COLORS.WHITE + PIECE_VALUES.KING);
@@ -499,7 +499,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate all possible horizontal and vertical captures for a king', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KING;
             board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
             board[3][5] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
@@ -520,7 +520,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should generate all possible diagonal captures for a king', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KING;
             board[3][3] = PIECE_COLORS.BLACK + PIECE_VALUES.KNIGHT;
             board[3][5] = PIECE_COLORS.BLACK + PIECE_VALUES.KNIGHT;
@@ -541,7 +541,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate any moves for a king that are dangerous', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KING;
             board[0][3] = PIECE_COLORS.BLACK + PIECE_VALUES.QUEEN;
             board[0][5] = PIECE_COLORS.BLACK + PIECE_VALUES.QUEEN;
@@ -554,7 +554,7 @@ describe('Tests the generateMoves function', () => {
         });
 
         it('Should not generate any captures for a king that are dangerous', () => {
-            const board = createInitialBoard();
+            const board = createTestBoard();
             board[4][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KING;
             board[0][3] = PIECE_COLORS.BLACK + PIECE_VALUES.QUEEN;
             board[0][5] = PIECE_COLORS.BLACK + PIECE_VALUES.QUEEN;

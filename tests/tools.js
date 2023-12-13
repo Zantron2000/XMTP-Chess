@@ -5,7 +5,7 @@ const BOARD_SIZE = 8;
  * 
  * @returns {String[][]} The empty board
  */
-export const createInitialBoard = () => {
+export const createTestBoard = () => {
     const board = [];
     for (let i = 0; i < BOARD_SIZE; i++) {
         board.push([]);
