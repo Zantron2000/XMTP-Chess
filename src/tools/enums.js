@@ -48,6 +48,11 @@ export const PIECE_ORDER = {
     BP8: 31,
 };
 
+export const PIECE_POSITIONS = Object.entries(PIECE_ORDER).reduce((acc, [piece, index]) => {
+    acc[index] = piece;
+    return acc;
+}, {});
+
 export const PIECE_COLORS = {
     WHITE: 'W',
     BLACK: 'B',
