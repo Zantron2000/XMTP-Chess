@@ -2,6 +2,7 @@ import { createTestBoard } from "../../tools"
 
 import {
     generateMoves,
+    validateMove,
 } from "../../../src/tools/tools/moves";
 import { PIECE_COLORS, PIECE_VALUES } from "../../../src/tools/enums";
 

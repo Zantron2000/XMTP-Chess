@@ -110,3 +110,14 @@ export const isIdentical = (piece1, piece2) => piece1 === piece2;
  * @returns {Boolean} True if the piece is one of the provided pieces, false otherwise
  */
 export const isMatchingPiece = (piece, ...pieces) => pieces.includes(piece[1]);
+
+export const getImageClass = (piece) => {
+    const color = isWhite(piece) ? "white" : "black";
+    const type = Object.entries(PIECE_VALUES).find(([, value]) => value === piece[1]);
+
+    if (color && type) {
+        return `${color}_${type[0].toLowerCase()}`;
+    }
+
+    return "";
+}
