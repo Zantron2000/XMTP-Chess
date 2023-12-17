@@ -1,11 +1,14 @@
 import { useConversations } from "@xmtp/react-sdk"
 import { useEffect, useState } from "react";
+import { isAddress } from "viem";
 
 import Footer from "../Footer"
 import Header from "../Header"
 import GameCard from "../GameCard";
+import SearchCard from "../SearchCard";
 
 function GameList() {
+    const [search, setSearch] = useState('')
     const { conversations: xmtpConversations, isLoaded } = useConversations();
     const [conversations, setConversations] = useState(xmtpConversations);
 
@@ -20,11 +23,12 @@ function GameList() {
             <div className="flex w-full justify-center">
                 <div className="px-8 py-4 max-w-[1296px] w-full">
                     <div className="grid grid-cols-[3fr_auto_auto] w-full">
-                        <div className="w-full flex justify-center items-center">
+                        <div className="w-full flex justify-center">
                             <input
-                                className="bg-input rounded-lg text-xl px-4 py-4 w-full"
+                                className={`bg-input rounded-lg text-xl px-4 py-4 w-full`}
                                 type="text"
                                 placeholder="Enter an ENS name or address..."
+                                onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
                         <div className="text-xl flex flex-col items-center px-4">
@@ -39,6 +43,7 @@ function GameList() {
                                 Play a Bot
                             </button>
                         </div>
+                        <SearchCard search={search} isValid={isAddress(search) || search.endsWith('.eth')} />
                     </div>
                     <div className="my-8 text-2xl">
                         <div className="my-4">Player List</div>
