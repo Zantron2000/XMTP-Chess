@@ -1,6 +1,7 @@
 import {
     isKing, isAlly, isBishop, isBlack, isEnemy, isIdentical,
     isKnight, isMatchingPiece, isPawn, isQueen, isRook, isWhite,
+    getImageClass,
 } from "../../../src/tools/tools/piece";
 import { PIECE_COLORS, PIECE_VALUES } from "../../../src/tools/enums";
 

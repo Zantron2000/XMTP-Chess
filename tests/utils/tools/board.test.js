@@ -1,9 +1,12 @@
 import { PIECE_VALUES, DIRECTION_VECTORS } from "../../../src/tools/enums";
 
 import {
-    isEmpty, findNearestPiece,
-    isInRange, isSafe,
-    createEmptyBoard, createInitialBoard,
+    isEmpty,
+    findNearestPiece,
+    isInRange,
+    isSafe,
+    createEmptyBoard,
+    createInitialBoard,
 } from "../../../src/tools/tools/board"
 
 describe('Tests the isEmpty function', () => {
@@ -1164,14 +1167,14 @@ describe('Tests the createInitialBoard function', () => {
         const empty = PIECE_VALUES.EMPTY;
 
         const expectedBoard = [
-            ['BR1', 'BN1', 'BB1', 'BQ', 'BK', 'BB2', 'BN2', 'BR2'],
-            ['BP1', 'BP2', 'BP3', 'BP4', 'BP5', 'BP6', 'BP7', 'BP8'],
-            [empty, empty, empty, empty, empty, empty, empty, empty],
-            [empty, empty, empty, empty, empty, empty, empty, empty],
-            [empty, empty, empty, empty, empty, empty, empty, empty],
-            [empty, empty, empty, empty, empty, empty, empty, empty],
-            ['WP1', 'WP2', 'WP3', 'WP4', 'WP5', 'WP6', 'WP7', 'WP8'],
             ['WR1', 'WN1', 'WB1', 'WQ', 'WK', 'WB2', 'WN2', 'WR2'],
+            ['WP1', 'WP2', 'WP3', 'WP4', 'WP5', 'WP6', 'WP7', 'WP8'],
+            [empty, empty, empty, empty, empty, empty, empty, empty],
+            [empty, empty, empty, empty, empty, empty, empty, empty],
+            [empty, empty, empty, empty, empty, empty, empty, empty],
+            [empty, empty, empty, empty, empty, empty, empty, empty],
+            ['BP1', 'BP2', 'BP3', 'BP4', 'BP5', 'BP6', 'BP7', 'BP8'],
+            ['BR1', 'BN1', 'BB1', 'BQ', 'BK', 'BB2', 'BN2', 'BR2'],
         ];
 
         expect(board.length).toBe(expectedBoard.length);

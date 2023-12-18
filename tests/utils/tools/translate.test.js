@@ -7,7 +7,7 @@ import {
     validateLastMoveMessage,
 } from "../../../src/tools/tools/translate";
 
-const createValidMoveMessage = () => '01234567XXXXXXXX'.repeat(4);
+const createValidMoveMessage = () => 'A1B2C3D4XXXXXXXX'.repeat(4);
 
 describe('Test thevalidateBoardMessage function', () => {
     it('Should return false if the hash is not 5 characters long', () => {
@@ -34,7 +34,7 @@ describe('Test thevalidateBoardMessage function', () => {
         expect(result).toBe(false);
     });
 
-    it('Should return false if a piece has a letter other than X', () => {
+    it('Should return false if a dead piece uses a letter other than X', () => {
         const message = `12345-${createValidMoveMessage().replace('X', 'Y')}`;
 
         const result = validateBoardMessage(message);
@@ -42,8 +42,16 @@ describe('Test thevalidateBoardMessage function', () => {
         expect(result).toBe(false);
     });
 
-    it('Should return false if a piece has a number other than 0-7', () => {
-        const message = `12345-${createValidMoveMessage().replace('0', '8')}`;
+    it('Should return false if a piece has a letter other than A-H', () => {
+        const message = `12345-${createValidMoveMessage().replace('A', 'I')}`;
+
+        const result = validateBoardMessage(message);
+
+        expect(result).toBe(false);
+    });
+
+    it('Should return false if a piece has a number other than 1-8', () => {
+        const message = `12345-${createValidMoveMessage().replace('1', '0')}`;
 
         const result = validateBoardMessage(message);
 
@@ -79,7 +87,7 @@ describe('Tests the translateMessageBoard function', () => {
     });
 
     it('Should translate a board message to a board', () => {
-        const message = `12345-0001020304050607101112131415161720212223242526273031323334353637`;
+        const message = `12345-A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A3B3C3D3E3F3G3H3A4B4C4D4E4F4G4H4`;
 
         const result = translateMessageBoard(message);
 
@@ -142,14 +150,14 @@ describe('Tests the createMessageBoard function', () => {
         const bpIndex = PIECE_ORDER[PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1'];
         const bkIndex = PIECE_ORDER[PIECE_COLORS.BLACK + PIECE_VALUES.KING];
 
-        expect(boardString.substring(wkIndex * 2, wkIndex * 2 + 2)).toBe('00');
-        expect(boardString.substring(wqIndex * 2, wqIndex * 2 + 2)).toBe('11');
-        expect(boardString.substring(wrIndex * 2, wrIndex * 2 + 2)).toBe('22');
-        expect(boardString.substring(wbIndex * 2, wbIndex * 2 + 2)).toBe('33');
-        expect(boardString.substring(wnIndex * 2, wnIndex * 2 + 2)).toBe('44');
-        expect(boardString.substring(wpIndex * 2, wpIndex * 2 + 2)).toBe('55');
-        expect(boardString.substring(bpIndex * 2, bpIndex * 2 + 2)).toBe('66');
-        expect(boardString.substring(bkIndex * 2, bkIndex * 2 + 2)).toBe('77');
+        expect(boardString.substring(wkIndex * 2, wkIndex * 2 + 2)).toBe('A1');
+        expect(boardString.substring(wqIndex * 2, wqIndex * 2 + 2)).toBe('B2');
+        expect(boardString.substring(wrIndex * 2, wrIndex * 2 + 2)).toBe('C3');
+        expect(boardString.substring(wbIndex * 2, wbIndex * 2 + 2)).toBe('D4');
+        expect(boardString.substring(wnIndex * 2, wnIndex * 2 + 2)).toBe('E5');
+        expect(boardString.substring(wpIndex * 2, wpIndex * 2 + 2)).toBe('F6');
+        expect(boardString.substring(bpIndex * 2, bpIndex * 2 + 2)).toBe('G7');
+        expect(boardString.substring(bkIndex * 2, bkIndex * 2 + 2)).toBe('H8');
     });
 });
 

@@ -12,21 +12,21 @@ describe('Tests the generateMoves function', () => {
             const board = createTestBoard();
 
             for (let col = 0; col < 8; col++) {
-                board[1][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
-                board[6][col] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+                board[1][col] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+                board[6][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             }
 
             for (let col = 0; col < 8; col++) {
-                const blackPawnMoves = generateMoves(board, [1, col], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
-                const whitePawnMoves = generateMoves(board, [6, col], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
-
-                expect(blackPawnMoves.length).toBe(2);
-                expect(blackPawnMoves).toContain(`2${col}M`);
-                expect(blackPawnMoves).toContain(`3${col}M`);
+                const whitePawnMoves = generateMoves(board, [1, col], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
+                const blackPawnMoves = generateMoves(board, [6, col], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
 
                 expect(whitePawnMoves.length).toBe(2);
-                expect(whitePawnMoves).toContain(`5${col}M`);
-                expect(whitePawnMoves).toContain(`4${col}M`);
+                expect(whitePawnMoves).toContain(`2${col}M`);
+                expect(whitePawnMoves).toContain(`3${col}M`);
+
+                expect(blackPawnMoves.length).toBe(2);
+                expect(blackPawnMoves).toContain(`5${col}M`);
+                expect(blackPawnMoves).toContain(`4${col}M`);
             }
         });
 
@@ -34,59 +34,23 @@ describe('Tests the generateMoves function', () => {
             const board = createTestBoard();
 
             for (let col = 0; col < 8; col++) {
-                board[2][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
-                board[5][col] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+                board[2][col] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+                board[5][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             }
 
             for (let col = 0; col < 8; col++) {
-                const blackPawnMoves = generateMoves(board, [2, col], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
-                const whitePawnMoves = generateMoves(board, [5, col], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
-
-                expect(blackPawnMoves.length).toBe(1);
-                expect(blackPawnMoves).toContain(`3${col}M`);
+                const whitePawnMoves = generateMoves(board, [2, col], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
+                const blackPawnMoves = generateMoves(board, [5, col], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
 
                 expect(whitePawnMoves.length).toBe(1);
-                expect(whitePawnMoves).toContain(`4${col}M`);
+                expect(whitePawnMoves).toContain(`3${col}M`);
+
+                expect(blackPawnMoves.length).toBe(1);
+                expect(blackPawnMoves).toContain(`4${col}M`);
             }
         });
 
         it('Should generate captures for pawns that have enemies in their front diagonals', () => {
-            const board = createTestBoard();
-
-            for (let col = 0; col < 8; col++) {
-                board[3][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
-                board[4][col] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
-            }
-
-            for (let col = 0; col < 8; col++) {
-                const blackPawnMoves = generateMoves(board, [3, col], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
-                const whitePawnMoves = generateMoves(board, [4, col], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
-
-                if (col === 0) {
-                    expect(blackPawnMoves.length).toBe(1);
-                    expect(blackPawnMoves).toContain(`4${col + 1}C`);
-
-                    expect(whitePawnMoves.length).toBe(1);
-                    expect(whitePawnMoves).toContain(`3${col + 1}C`);
-                } else if (col === 7) {
-                    expect(blackPawnMoves.length).toBe(1);
-                    expect(blackPawnMoves).toContain(`4${col - 1}C`);
-
-                    expect(whitePawnMoves.length).toBe(1);
-                    expect(whitePawnMoves).toContain(`3${col - 1}C`);
-                } else {
-                    expect(blackPawnMoves.length).toBe(2);
-                    expect(blackPawnMoves).toContain(`4${col + 1}C`);
-                    expect(blackPawnMoves).toContain(`4${col - 1}C`);
-
-                    expect(whitePawnMoves.length).toBe(2);
-                    expect(whitePawnMoves).toContain(`3${col + 1}C`);
-                    expect(whitePawnMoves).toContain(`3${col - 1}C`);
-                }
-            }
-        });
-
-        it('Should not generate captures for pawns that have enemies in their back diagonals', () => {
             const board = createTestBoard();
 
             for (let col = 0; col < 8; col++) {
@@ -98,52 +62,88 @@ describe('Tests the generateMoves function', () => {
                 const whitePawnMoves = generateMoves(board, [3, col], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
                 const blackPawnMoves = generateMoves(board, [4, col], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
 
-                expect(blackPawnMoves.length).toBe(1);
-                expect(blackPawnMoves).toContain(`5${col}M`);
+                if (col === 0) {
+                    expect(whitePawnMoves.length).toBe(1);
+                    expect(whitePawnMoves).toContain(`4${col + 1}C`);
+
+                    expect(blackPawnMoves.length).toBe(1);
+                    expect(blackPawnMoves).toContain(`3${col + 1}C`);
+                } else if (col === 7) {
+                    expect(whitePawnMoves.length).toBe(1);
+                    expect(whitePawnMoves).toContain(`4${col - 1}C`);
+
+                    expect(blackPawnMoves.length).toBe(1);
+                    expect(blackPawnMoves).toContain(`3${col - 1}C`);
+                } else {
+                    expect(whitePawnMoves.length).toBe(2);
+                    expect(whitePawnMoves).toContain(`4${col + 1}C`);
+                    expect(whitePawnMoves).toContain(`4${col - 1}C`);
+
+                    expect(blackPawnMoves.length).toBe(2);
+                    expect(blackPawnMoves).toContain(`3${col + 1}C`);
+                    expect(blackPawnMoves).toContain(`3${col - 1}C`);
+                }
+            }
+        });
+
+        it('Should not generate captures for pawns that have enemies in their back diagonals', () => {
+            const board = createTestBoard();
+
+            for (let col = 0; col < 8; col++) {
+                board[3][col] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
+                board[4][col] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+            }
+
+            for (let col = 0; col < 8; col++) {
+                const blackPawnMoves = generateMoves(board, [3, col], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
+                const whitePawnMoves = generateMoves(board, [4, col], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
 
                 expect(whitePawnMoves.length).toBe(1);
-                expect(whitePawnMoves).toContain(`2${col}M`);
+                expect(whitePawnMoves).toContain(`5${col}M`);
+
+                expect(blackPawnMoves.length).toBe(1);
+                expect(blackPawnMoves).toContain(`2${col}M`);
             }
         });
 
         it('Should generate all combinations of moves for a pawn if possible', () => {
             const board = createTestBoard();
 
-            board[1][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
-            board[2][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
-            board[2][2] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+            board[1][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+            board[2][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
+            board[2][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
 
-            board[6][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
-            board[5][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
-            board[5][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
+            board[6][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
+            board[5][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+            board[5][2] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
 
-            const blackPawnMoves = generateMoves(board, [1, 1], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
-            const whitePawnMoves = generateMoves(board, [6, 1], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
-
-            expect(blackPawnMoves.length).toBe(4);
-            expect(blackPawnMoves).toContain('21M');
-            expect(blackPawnMoves).toContain('31M');
-            expect(blackPawnMoves).toContain('20C');
-            expect(blackPawnMoves).toContain('22C');
+            const whitePawnMoves = generateMoves(board, [1, 1], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
+            const blackPawnMoves = generateMoves(board, [6, 1], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
 
             expect(whitePawnMoves.length).toBe(4);
-            expect(whitePawnMoves).toContain('51M');
-            expect(whitePawnMoves).toContain('41M');
-            expect(whitePawnMoves).toContain('50C');
-            expect(whitePawnMoves).toContain('52C');
+            expect(whitePawnMoves).toContain('21M');
+            expect(whitePawnMoves).toContain('31M');
+            expect(whitePawnMoves).toContain('20C');
+            expect(whitePawnMoves).toContain('22C');
+
+            expect(blackPawnMoves.length).toBe(4);
+            expect(blackPawnMoves).toContain('51M');
+            expect(blackPawnMoves).toContain('41M');
+            expect(blackPawnMoves).toContain('50C');
+            expect(blackPawnMoves).toContain('52C');
         });
 
         it('Should not generate moves for pawns that are blocked by other pieces', () => {
             const board = createTestBoard();
 
-            board[1][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
-            board[2][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+            board[1][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
+            board[2][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
 
-            board[6][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
-            board[5][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
+            board[6][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
+            board[5][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN;
 
-            const blackPawnMoves = generateMoves(board, [1, 1], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
-            const whitePawnMoves = generateMoves(board, [6, 1], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
+            const whitePawnMoves = generateMoves(board, [1, 1], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
+            const blackPawnMoves = generateMoves(board, [6, 1], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
 
             expect(blackPawnMoves.length).toBe(0);
             expect(whitePawnMoves.length).toBe(0);
@@ -157,10 +157,10 @@ describe('Tests the generateMoves function', () => {
             board[7][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
             board[7][7] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN;
 
-            const whitePawnMoves1 = generateMoves(board, [0, 0], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
-            const whitePawnMoves2 = generateMoves(board, [0, 7], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
-            const blackPawnMoves1 = generateMoves(board, [7, 0], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
-            const blackPawnMoves2 = generateMoves(board, [7, 7], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
+            const whitePawnMoves1 = generateMoves(board, [0, 0], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
+            const whitePawnMoves2 = generateMoves(board, [0, 7], PIECE_COLORS.BLACK + PIECE_VALUES.PAWN);
+            const blackPawnMoves1 = generateMoves(board, [7, 0], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
+            const blackPawnMoves2 = generateMoves(board, [7, 7], PIECE_COLORS.WHITE + PIECE_VALUES.PAWN);
 
             expect(blackPawnMoves1.length).toBe(0);
             expect(blackPawnMoves2.length).toBe(0);
