@@ -17,7 +17,6 @@ export const isChessMessage = (message, hash) => message.startsWith(hash + '-');
  * @param {String} message The message to check
  */
 export const isGameMessage = (message) => {
-    console.log(message)
     const [hash, boardString] = message.split('-');
 
     if (!hash || !boardString) {

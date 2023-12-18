@@ -1,6 +1,6 @@
 import { isWhite, isEnemy, isBishop, isKing, isKnight, isQueen, isRook, isPawn } from "./piece";
 import { isSafe, isInRange, isEmpty } from "./board";
-import { PIECE_VALUES } from "../enums";
+import { ACTION_TYPES, PIECE_VALUES } from "../enums";
 
 /**
  * Generates possible moves for a pawn. Pawns can move forward one space,
@@ -17,17 +17,17 @@ import { PIECE_VALUES } from "../enums";
  */
 const generateBlackPawnMoves = (board, row, col, piece) => {
     const moves = [];
-    const possibleMove = [row + 1, col];
-    const possibleSpecialMove = [row + 2, col];
+    const possibleMove = [row - 1, col];
+    const possibleSpecialMove = [row - 2, col];
     const possibleCaptures = [
-        [row + 1, col + 1],
-        [row + 1, col - 1],
+        [row - 1, col + 1],
+        [row - 1, col - 1],
     ];
 
     if (isInRange(possibleMove) && isEmpty(board, possibleMove)) {
         moves.push(`${possibleMove[0]}${possibleMove[1]}M`);
 
-        if (row === 1 && isEmpty(board, possibleSpecialMove)) {
+        if (row === 6 && isEmpty(board, possibleSpecialMove)) {
             moves.push(`${possibleSpecialMove[0]}${possibleSpecialMove[1]}M`);
         }
     }
@@ -53,17 +53,17 @@ const generateBlackPawnMoves = (board, row, col, piece) => {
  */
 const generateWhitePawnMoves = (board, row, col, piece) => {
     const moves = [];
-    const possibleMove = [row - 1, col];
-    const possibleSpecialMove = [row - 2, col];
+    const possibleMove = [row + 1, col];
+    const possibleSpecialMove = [row + 2, col];
     const possibleCaptures = [
-        [row - 1, col + 1],
-        [row - 1, col - 1],
+        [row + 1, col + 1],
+        [row + 1, col - 1],
     ];
 
     if (isInRange(possibleMove) && isEmpty(board, possibleMove)) {
         moves.push(`${possibleMove[0]}${possibleMove[1]}M`);
 
-        if (row === 6 && isEmpty(board, possibleSpecialMove)) {
+        if (row === 1 && isEmpty(board, possibleSpecialMove)) {
             moves.push(`${possibleSpecialMove[0]}${possibleSpecialMove[1]}M`);
         }
     }
@@ -301,4 +301,12 @@ export const validateMove = (board, piece, [oldRow, oldCol], [newRow, newCol]) =
     board[newRow][newCol] = piece;
 
     return moves.includes(`${newRow}${newCol}M`);
+}
+
+export const isMoveAction = (move) => {
+    return move.endsWith(ACTION_TYPES.MOVE);
+}
+
+export const isCaptureAction = (move) => {
+    return move.endsWith(ACTION_TYPES.CAPTURE);
 }

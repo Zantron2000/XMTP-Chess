@@ -1,4 +1,11 @@
-import { PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS } from "../enums";
+import {
+    PIECE_VALUES,
+    DIRECTION_VECTORS,
+    BOARD_ROW_LABELS,
+    BOARD_COL_LABELS,
+    INITIAL_BOARD_POSITIONS,
+    ROW_TO_INDEX, COL_TO_INDEX
+} from "../enums";
 import { isEnemy, isMatchingPiece, isIdentical, isKing, isPawn, isWhite, isKnight } from "./piece";
 
 const BOARD_SIZE = 8;
@@ -18,7 +25,7 @@ export const isEmpty = (board, [row, col]) => board[row][col] === PIECE_VALUES.E
  * @param {Number[]} pos The position to check
  * @returns {Boolean} True if the position is in range, false otherwise
  */
-export const isInRange = ([row, col]) => row >= 0 && row <= 7 && col >= 0 && col <= 7;
+export const isInRange = ([row, col]) => row >= 0 && row < BOARD_ROW_LABELS.length && col >= 0 && col < BOARD_COL_LABELS.length;
 
 /**
  * Looks for the closet piece in a given direction, starting at the given position.
@@ -241,28 +248,12 @@ export const createEmptyBoard = () => {
 export const createInitialBoard = () => {
     const board = createEmptyBoard();
 
-    board[0][0] = PIECE_COLORS.BLACK + PIECE_VALUES.ROOK + '1';
-    board[0][1] = PIECE_COLORS.BLACK + PIECE_VALUES.KNIGHT + '1';
-    board[0][2] = PIECE_COLORS.BLACK + PIECE_VALUES.BISHOP + '1';
-    board[0][3] = PIECE_COLORS.BLACK + PIECE_VALUES.QUEEN;
-    board[0][4] = PIECE_COLORS.BLACK + PIECE_VALUES.KING;
-    board[0][5] = PIECE_COLORS.BLACK + PIECE_VALUES.BISHOP + '2';
-    board[0][6] = PIECE_COLORS.BLACK + PIECE_VALUES.KNIGHT + '2';
-    board[0][7] = PIECE_COLORS.BLACK + PIECE_VALUES.ROOK + '2';
+    Object.entries(INITIAL_BOARD_POSITIONS).forEach(([piece, pos]) => {
+        const row = ROW_TO_INDEX[pos[1]];
+        const col = COL_TO_INDEX[pos[0]];
 
-    board[7][0] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK + '1';
-    board[7][1] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT + '1';
-    board[7][2] = PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP + '1';
-    board[7][3] = PIECE_COLORS.WHITE + PIECE_VALUES.QUEEN;
-    board[7][4] = PIECE_COLORS.WHITE + PIECE_VALUES.KING;
-    board[7][5] = PIECE_COLORS.WHITE + PIECE_VALUES.BISHOP + '2';
-    board[7][6] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT + '2';
-    board[7][7] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK + '2';
-
-    for (let i = 0; i < BOARD_SIZE; i++) {
-        board[1][i] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + (i + 1);
-        board[6][i] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + (i + 1);
-    }
+        board[row][col] = piece;
+    });
 
     return board;
 }

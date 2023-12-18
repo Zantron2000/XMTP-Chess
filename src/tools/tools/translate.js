@@ -1,4 +1,4 @@
-import { PIECE_ORDER, PIECE_POSITIONS, PIECE_VALUES } from "../enums";
+import { BOARD_COL_LABELS, BOARD_ROW_LABELS, COL_TO_INDEX, PIECE_ORDER, PIECE_POSITIONS, PIECE_VALUES, ROW_TO_INDEX } from "../enums";
 import { createEmptyBoard, createInitialBoard } from "./board";
 
 const extractMessageContent = (message) => {
@@ -7,24 +7,28 @@ const extractMessageContent = (message) => {
 }
 
 const extractCoords = (stringCoords) => {
-    const row = parseInt(stringCoords[0]);
-    const col = parseInt(stringCoords[1]);
+    const row = ROW_TO_INDEX[stringCoords[1]];
+    const col = COL_TO_INDEX[stringCoords[0]];
 
     return [row, col];
 };
+
+const translateCoordsToChessNotation = (row, col) => {
+    return `${BOARD_COL_LABELS[col]}${BOARD_ROW_LABELS[row]}`;
+}
 
 /**
  * Creates a string representation of a board.
  * A board is represented as the following format:
  * 
- * Hash-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ * Hash-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
  * 
  * Where:
  * - Hash: The hash of the board, this should be 5 characters long
  * - XX: The piece in the position XX, where the first X is the row and the second X is the column,
- *     the row and column should be between 0 and 7. The row and column should be numbers or the letter X,
+ *     the row should be between A-H and the column between 1-8 or they can be the letter X,
  *     which represents a dead piece, and in that case both the row and column should be X. There should be
- *     64 XX pairs, one for each piece in the board
+ *     32 XX pairs, one for each piece in the board
  * 
  * @param {String} hash The hash of the board
  * @param {String[][]} board The board in array format
@@ -36,7 +40,7 @@ export const createMessageBoard = (hash, board) => {
     board.forEach((row, rowIndex) => {
         row.forEach((piece, colIndex) => {
             if (piece !== PIECE_VALUES.EMPTY) {
-                flatBoard[PIECE_ORDER[piece]] = `${rowIndex}${colIndex}`;
+                flatBoard[PIECE_ORDER[piece]] = translateCoordsToChessNotation(rowIndex, colIndex);
             }
         });
     });
@@ -79,8 +83,7 @@ export const translateMessageBoard = (stringBoard) => {
         const piecePos = boardString.substring(pos, pos + 2);
 
         if (piecePos[0] !== 'X' && piecePos[1] !== 'X') {
-            const row = parseInt(piecePos[0]);
-            const col = parseInt(piecePos[1]);
+            const [row, col] = extractCoords(piecePos);
             board[row][col] = piece;
         }
     });
@@ -119,7 +122,7 @@ export const validateBoardMessage = (stringBoard) => {
         return false;
     }
 
-    if (!boardString.match(/^[0-7X]{64}$/)) {
+    if (!boardString.match(/^([A-HX][1-8X]){32}$/)) {
         return false;
     }
 
