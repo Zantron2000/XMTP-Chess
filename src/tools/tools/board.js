@@ -17,15 +17,24 @@ const BOARD_SIZE = 8;
  * @param {Number[]} pos The position of the space
  * @returns {Boolean} True if the space is empty, false otherwise
  */
-export const isEmpty = (board, [row, col]) => board[row][col] === PIECE_VALUES.EMPTY;
+export const isEmpty = (board, [row, col]) => !board[row][col] || board[row][col] === PIECE_VALUES.EMPTY;
 
 /**
  * Checks to see if a given position is in range of the board
  * 
  * @param {Number[]} pos The position to check
+ * @param {String[][]} board The board in array format
  * @returns {Boolean} True if the position is in range, false otherwise
  */
-export const isInRange = ([row, col]) => row >= 0 && row < BOARD_ROW_LABELS.length && col >= 0 && col < BOARD_COL_LABELS.length;
+export const isInRange = ([row, col], board) => {
+    if (0 <= row && row < board.length) {
+        if (0 <= col && col < board[row].length) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  * Looks for the closet piece in a given direction, starting at the given position.
@@ -41,7 +50,7 @@ export const findNearestPiece = (board, [row, col], direction, piece) => {
     const [rowDir, colDir] = direction;
     let [r, c] = [row + rowDir, col + colDir];
 
-    while (isInRange([r, c])) {
+    while (isInRange([r, c], board)) {
         if (!isEmpty(board, [r, c]) && !isIdentical(board[r][c], piece)) {
             return [r, c];
         }
@@ -129,7 +138,7 @@ const isPawnSafe = (board, [row, col], piece) => {
         const [rowDir, colDir] = direction;
         const [r, c] = [row + rowDir, col + colDir];
 
-        if (isInRange([r, c]) && !isEmpty(board, [r, c])) {
+        if (isInRange([r, c], board) && !isEmpty(board, [r, c])) {
             const pawn = board[r][c];
             return isEnemy(piece, pawn) && isPawn(pawn);
         }
@@ -222,7 +231,7 @@ export const isSafe = (board, [row, col], piece) => {
     ];
 
     return !knightMoves.some(([r, c]) => {
-        if (isInRange([r, c])) {
+        if (isInRange([r, c], board)) {
             const knight = board[r][c];
             return isEnemy(piece, knight) && isKnight(knight);
         }

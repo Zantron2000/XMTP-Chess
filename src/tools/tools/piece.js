@@ -52,7 +52,7 @@ export const isQueen = (piece) => piece[1] === PIECE_VALUES.QUEEN;
  * @param {String} piece The piece representation
  * @returns {Boolean} True if the piece is a king, false otherwise
  */
-export const isKing = (piece) => piece[1] === PIECE_VALUES.KING;
+export const isKing = (piece) => piece && piece[1] === PIECE_VALUES.KING;
 
 /**
  * Checks if a piece is white. It is white if the first character in the piece
@@ -61,7 +61,7 @@ export const isKing = (piece) => piece[1] === PIECE_VALUES.KING;
  * @param {String} piece The piece representation
  * @returns {Boolean} True if the piece is white, false otherwise
  */
-export const isWhite = (piece) => piece[0] === PIECE_COLORS.WHITE;
+export const isWhite = (piece) => piece && piece[0] === PIECE_COLORS.WHITE;
 
 /**
  * Checks if a piece is black. It is black if the first character in the piece
@@ -70,7 +70,7 @@ export const isWhite = (piece) => piece[0] === PIECE_COLORS.WHITE;
  * @param {String} piece The piece representation
  * @returns {Boolean} True if the piece is black, false otherwise
  */
-export const isBlack = (piece) => piece[0] === PIECE_COLORS.BLACK;
+export const isBlack = (piece) => piece && piece[0] === PIECE_COLORS.BLACK;
 
 /**
  * Checks if a piece is an enemy. Two pieces are enemies if they are not the
@@ -80,7 +80,7 @@ export const isBlack = (piece) => piece[0] === PIECE_COLORS.BLACK;
  * @param {String} piece2 The second piece representation
  * @returns {Boolean} True if the pieces are enemies, false otherwise
  */
-export const isEnemy = (piece1, piece2) => piece1[0] !== piece2[0];
+export const isEnemy = (piece1, piece2) => piece1 && piece2 && piece1[0] !== piece2[0];
 
 /**
  * Checks if a piece is an ally. Two pieces are allies if they are the same
@@ -90,7 +90,7 @@ export const isEnemy = (piece1, piece2) => piece1[0] !== piece2[0];
  * @param {String} piece2 The second piece representation
  * @returns {Boolean} True if the pieces are allies, false otherwise
  */
-export const isAlly = (piece1, piece2) => piece1[0] === piece2[0];
+export const isAlly = (piece1, piece2) => piece1 && piece2 && piece1[0] === piece2[0];
 
 /**
  * Checks if two pieces are identical. Two pieces are identical if they are

@@ -34,16 +34,20 @@ describe('Tests the isEmpty function', () => {
 
 describe('Tests the isInRange function', () => {
     it('Should return true if the space is in range', () => {
-        expect(isInRange([0, 0])).toBe(true);
-        expect(isInRange([7, 7])).toBe(true);
-        expect(isInRange([4, 4])).toBe(true);
+        const board = createEmptyBoard();
+
+        expect(isInRange([0, 0], board)).toBe(true);
+        expect(isInRange([7, 7], board)).toBe(true);
+        expect(isInRange([4, 4], board)).toBe(true);
     });
 
     it('Should return false if the space is not in range', () => {
-        expect(isInRange([-1, 0])).toBe(false);
-        expect(isInRange([0, -1])).toBe(false);
-        expect(isInRange([8, 0])).toBe(false);
-        expect(isInRange([0, 8])).toBe(false);
+        const board = createEmptyBoard();
+
+        expect(isInRange([-1, 0], board)).toBe(false);
+        expect(isInRange([0, -1], board)).toBe(false);
+        expect(isInRange([8, 0], board)).toBe(false);
+        expect(isInRange([0, 8], board)).toBe(false);
     });
 });
 

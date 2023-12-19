@@ -1,4 +1,4 @@
-import { isWhite, isEnemy, isBishop, isKing, isKnight, isQueen, isRook, isPawn } from "./piece";
+import { isWhite, isEnemy, isBishop, isKing, isKnight, isQueen, isRook, isPawn, isAlly } from "./piece";
 import { isSafe, isInRange, isEmpty } from "./board";
 import { ACTION_TYPES, PIECE_VALUES } from "../enums";
 
@@ -24,7 +24,7 @@ const generateBlackPawnMoves = (board, row, col, piece) => {
         [row - 1, col - 1],
     ];
 
-    if (isInRange(possibleMove) && isEmpty(board, possibleMove)) {
+    if (isInRange(possibleMove, board) && isEmpty(board, possibleMove)) {
         moves.push(`${possibleMove[0]}${possibleMove[1]}M`);
 
         if (row === 6 && isEmpty(board, possibleSpecialMove)) {
@@ -33,7 +33,7 @@ const generateBlackPawnMoves = (board, row, col, piece) => {
     }
 
     possibleCaptures.forEach((capture) => {
-        if (isInRange(capture) && !isEmpty(board, capture) && isEnemy(piece, board[capture[0]][capture[1]])) {
+        if (isInRange(capture, board) && !isEmpty(board, capture) && isEnemy(piece, board[capture[0]][capture[1]])) {
             moves.push(`${capture[0]}${capture[1]}C`);
         }
     });
@@ -60,7 +60,7 @@ const generateWhitePawnMoves = (board, row, col, piece) => {
         [row + 1, col - 1],
     ];
 
-    if (isInRange(possibleMove) && isEmpty(board, possibleMove)) {
+    if (isInRange(possibleMove, board) && isEmpty(board, possibleMove)) {
         moves.push(`${possibleMove[0]}${possibleMove[1]}M`);
 
         if (row === 1 && isEmpty(board, possibleSpecialMove)) {
@@ -69,7 +69,7 @@ const generateWhitePawnMoves = (board, row, col, piece) => {
     }
 
     possibleCaptures.forEach((capture) => {
-        if (isInRange(capture) && !isEmpty(board, capture) && isEnemy(piece, board[capture[0]][capture[1]])) {
+        if (isInRange(capture, board) && !isEmpty(board, capture) && isEnemy(piece, board[capture[0]][capture[1]])) {
             moves.push(`${capture[0]}${capture[1]}C`);
         }
     });
@@ -107,38 +107,38 @@ const generateRookMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const north = [row - 1, col];
-    while (isInRange(north) && isEmpty(board, north)) {
+    while (isInRange(north, board) && isEmpty(board, north)) {
         moves.push(`${north[0]}${north[1]}M`);
         north[0]--;
     }
-    if (isInRange(north) && isEnemy(piece, board[north[0]][north[1]])) {
+    if (isInRange(north, board) && isEnemy(piece, board[north[0]][north[1]])) {
         moves.push(`${north[0]}${north[1]}C`);
     }
 
     const south = [row + 1, col];
-    while (isInRange(south) && isEmpty(board, south)) {
+    while (isInRange(south, board) && isEmpty(board, south)) {
         moves.push(`${south[0]}${south[1]}M`);
         south[0]++;
     }
-    if (isInRange(south) && isEnemy(piece, board[south[0]][south[1]])) {
+    if (isInRange(south, board) && isEnemy(piece, board[south[0]][south[1]])) {
         moves.push(`${south[0]}${south[1]}C`);
     }
 
     const east = [row, col + 1];
-    while (isInRange(east) && isEmpty(board, east)) {
+    while (isInRange(east, board) && isEmpty(board, east)) {
         moves.push(`${east[0]}${east[1]}M`);
         east[1]++;
     }
-    if (isInRange(east) && isEnemy(piece, board[east[0]][east[1]])) {
+    if (isInRange(east, board) && isEnemy(piece, board[east[0]][east[1]])) {
         moves.push(`${east[0]}${east[1]}C`);
     }
 
     const west = [row, col - 1];
-    while (isInRange(west) && isEmpty(board, west)) {
+    while (isInRange(west, board) && isEmpty(board, west)) {
         moves.push(`${west[0]}${west[1]}M`);
         west[1]--;
     }
-    if (isInRange(west) && isEnemy(piece, board[west[0]][west[1]])) {
+    if (isInRange(west, board) && isEnemy(piece, board[west[0]][west[1]])) {
         moves.push(`${west[0]}${west[1]}C`);
     }
 
@@ -169,7 +169,7 @@ const generateKnightMoves = (board, [row, col], piece) => {
     ];
 
     possibleMoves.forEach((move) => {
-        if (isInRange(move) && (isEmpty(board, move) || isEnemy(piece, board[move[0]][move[1]]))) {
+        if (isInRange(move, board) && (isEmpty(board, move) || isEnemy(piece, board[move[0]][move[1]]))) {
             moves.push(`${move[0]}${move[1]}${isEmpty(board, move) ? 'M' : 'C'}`);
         }
     });
@@ -190,42 +190,42 @@ const generateBishopMoves = (board, [row, col], piece) => {
     const moves = [];
 
     const northEast = [row - 1, col + 1];
-    while (isInRange(northEast) && isEmpty(board, northEast)) {
+    while (isInRange(northEast, board) && isEmpty(board, northEast)) {
         moves.push(`${northEast[0]}${northEast[1]}M`);
         northEast[0]--;
         northEast[1]++;
     }
-    if (isInRange(northEast) && isEnemy(piece, board[northEast[0]][northEast[1]])) {
+    if (isInRange(northEast, board) && isEnemy(piece, board[northEast[0]][northEast[1]])) {
         moves.push(`${northEast[0]}${northEast[1]}C`);
     }
 
     const southEast = [row + 1, col + 1];
-    while (isInRange(southEast) && isEmpty(board, southEast)) {
+    while (isInRange(southEast, board) && isEmpty(board, southEast)) {
         moves.push(`${southEast[0]}${southEast[1]}M`);
         southEast[0]++;
         southEast[1]++;
     }
-    if (isInRange(southEast) && isEnemy(piece, board[southEast[0]][southEast[1]])) {
+    if (isInRange(southEast, board) && isEnemy(piece, board[southEast[0]][southEast[1]])) {
         moves.push(`${southEast[0]}${southEast[1]}C`);
     }
 
     const southWest = [row + 1, col - 1];
-    while (isInRange(southWest) && isEmpty(board, southWest)) {
+    while (isInRange(southWest, board) && isEmpty(board, southWest)) {
         moves.push(`${southWest[0]}${southWest[1]}M`);
         southWest[0]++;
         southWest[1]--;
     }
-    if (isInRange(southWest) && isEnemy(piece, board[southWest[0]][southWest[1]])) {
+    if (isInRange(southWest, board) && isEnemy(piece, board[southWest[0]][southWest[1]])) {
         moves.push(`${southWest[0]}${southWest[1]}C`);
     }
 
     const northWest = [row - 1, col - 1];
-    while (isInRange(northWest) && isEmpty(board, northWest)) {
+    while (isInRange(northWest, board) && isEmpty(board, northWest)) {
         moves.push(`${northWest[0]}${northWest[1]}M`);
         northWest[0]--;
         northWest[1]--;
     }
-    if (isInRange(northWest) && isEnemy(piece, board[northWest[0]][northWest[1]])) {
+    if (isInRange(northWest, board) && isEnemy(piece, board[northWest[0]][northWest[1]])) {
         moves.push(`${northWest[0]}${northWest[1]}C`);
     }
 
@@ -265,7 +265,7 @@ const generateKingMoves = (board, [row, col], piece) => {
     ];
 
     possibleMoves.forEach((move) => {
-        if (isInRange(move) && isSafe(board, move, piece) && (isEmpty(board, move) || isEnemy(piece, board[move[0]][move[1]]))) {
+        if (isInRange(move, board) && isSafe(board, move, piece) && !isAlly(piece, board[move[0]][move[1]])) {
             moves.push(`${move[0]}${move[1]}${isEmpty(board, move) ? 'M' : 'C'}`);
         }
     });
