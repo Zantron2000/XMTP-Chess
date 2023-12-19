@@ -11,24 +11,54 @@ class BoardManager {
         this.moves = moves;
     }
 
+    /**
+     * Returns the piece at the given position. If the position is out of bounds, returns null.
+     * @param {Number} x The row of the piece
+     * @param {Number} y The column of the piece
+     * @returns {String?} The piece at the given position, or null if the position is out of bounds
+     */
     getPieceAt(x, y) {
-        return this.board[x][y];
+        if (0 <= x && x < this.board.length) {
+            if (0 <= y && y < this.board[x].length) {
+                return this.board[x][y];
+            }
+        }
+
+        return null;
     }
 
-    generateMovesForPieceAt([x, y]) {
-        const piece = this.getPieceAt(x, y);
+    /**
+     * Generates the moves for the piece at the given position. If the position is out of bounds, returns an empty array.
+     * 
+     * @param {Number[]} pos The position of the piece
+     * @returns {String[]} The moves for the piece at the given position
+     */
+    generateMovesForPieceAt(pos) {
+        const piece = this.getPieceAt(...pos);
 
         if (piece !== null) {
-            return generateMoves(this.board, piece, x, y);
+            return generateMoves(this.board, pos, piece);
         }
 
         return [];
     }
 
+    /**
+     * Generates the moves for the piece at the given position. If the position is out of bounds, returns an empty array.
+     * 
+     * @param {Number[]} pos The position of the piece
+     * @return {Boolean} If the piece at the given position is selected
+     */
     isActivePiece([x, y]) {
         return this.selectedPiece[0] === x && this.selectedPiece[1] === y;
     }
 
+    /**
+     * Finds the action for the given position. If the position is out of bounds, returns undefined.
+     * 
+     * @param {Number[]} pos The position of the piece
+     * @returns {String | undefined} The action for the given position, or undefined if the position is out of bounds
+     */
     findAction([x, y]) {
         return this.moves.find(move => move.startsWith(`${x}${y}`));
     }
@@ -62,11 +92,11 @@ class BoardManager {
         return styles
     }
 
-    toggleActivePiece([x, y], setFunction) {
-        if (this.isActivePiece([x, y], this.selectedPiece)) {
+    toggleActivePiece(pos, setFunction) {
+        if (this.isActivePiece(pos, this.selectedPiece)) {
             setFunction(undefined);
         } else {
-            setFunction([x, y]);
+            setFunction(pos);
         }
     }
 
