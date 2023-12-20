@@ -31,6 +31,8 @@ export const PIECE_VALUES = {
 export const ACTION_TYPES = {
     MOVE: 'M',
     CAPTURE: 'C',
+    TRANSFORM: 'T',
+    SWAP: 'S',
 };
 
 export const PIECE_ORDER = {
@@ -114,6 +116,17 @@ export const ROW_TO_INDEX = {
     '8': 7
 };
 
+export const INDEX_TO_ROW = {
+    0: '1',
+    1: '2',
+    2: '3',
+    3: '4',
+    4: '5',
+    5: '6',
+    6: '7',
+    7: '8'
+};
+
 export const COL_TO_INDEX = {
     'A': 0,
     'B': 1,
@@ -124,6 +137,27 @@ export const COL_TO_INDEX = {
     'G': 6,
     'H': 7
 };
+
+export const INDEX_TO_COL = {
+    0: 'A',
+    1: 'B',
+    2: 'C',
+    3: 'D',
+    4: 'E',
+    5: 'F',
+    6: 'G',
+    7: 'H'
+};
+
+export const BOARD_SIZE = 8;
+
+export const GAME_STATUS = {
+    BLACK_TURN: 'B',
+    WHITE_TURN: 'W',
+    CHECKMATE: 'C',
+    STALEMATE: 'S',
+    CHEAT: 'I',
+}
 
 export const BOARD_ROW_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
