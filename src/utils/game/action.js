@@ -1,23 +1,22 @@
 import { ACTION_TYPES } from "../../tools/enums";
-import { CAPTURED_PIECE } from "../enum";
-import { getPieceAtChessCoords } from "./board";
-import { ownsPiece } from "./piece";
+import { CAPTURED_PIECE, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_VALUES } from "../enum";
+import { isPiece, ownsPiece } from "./piece";
 
-const findCapturedPiece = (diff, board) => {
-    const chessCoords = diff.find(([lastPos, currentPos]) => {
+const findCapturedPiece = (diff) => {
+    const entry = Object.entries(diff).find(([key, [lastPos, currentPos]]) => {
         return lastPos !== CAPTURED_PIECE && currentPos === CAPTURED_PIECE;
     });
 
-    if (!chessCoords) {
+    if (!entry) {
         return null;
     }
 
-    return getPieceAtChessCoords(board, chessCoords);
+    return entry[0];
 }
 
-const validateMove = (board, player, pieceHistory) => {
-    const [lastPos, currPos] = pieceHistory;
-    const piece = getPieceAtChessCoords(board, lastPos);
+const validateMove = (player, diff) => {
+    const piece = Object.keys(diff)[0];
+    const [lastPos, currPos] = diff[piece];
 
     if (!piece) {
         return {
@@ -41,11 +40,8 @@ const validateMove = (board, player, pieceHistory) => {
 
 const isDead = (chessPos) => chessPos === CAPTURED_PIECE;
 
-const validateCapture = (board, player, [lastCapPos, currCapPos], diff) => {
-    const [lastAlivePos, currAlivePos] = diff.find(([lastPos, currPos]) => currPos !== CAPTURED_PIECE);
-
-    const capturer = getPieceAtChessCoords(board, lastAlivePos);
-    const captured = getPieceAtChessCoords(board, lastCapPos);
+const validateCapture = (player, captured, diff) => {
+    const capturer = Object.keys(diff).find((key) => key !== captured);
 
     if (!captured) {
         return {
@@ -59,6 +55,9 @@ const validateCapture = (board, player, [lastCapPos, currCapPos], diff) => {
         };
     }
 
+    const [lastCapPos, currCapPos] = diff[captured];
+    const [lastAlivePos, currAlivePos] = diff[capturer];
+
     if (!ownsPiece(player, capturer)) {
         return {
             error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CAPTURE_WITH_OPPONENT_PIECE, player)
@@ -71,7 +70,13 @@ const validateCapture = (board, player, [lastCapPos, currCapPos], diff) => {
         };
     }
 
-    if (isDead(lastAlivePos) || isDead(currAlivePos)) {
+    if (isDead(lastAlivePos)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CAPTURE_WITH_DEAD_PIECE, player)
+        };
+    }
+
+    if (isDead(currAlivePos)) {
         return {
             error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CAPTURER_DIED, player)
         };
@@ -89,22 +94,23 @@ const validateCapture = (board, player, [lastCapPos, currCapPos], diff) => {
         };
     }
 
-    if (currAlivePos !== lastCapPos) {
+    if (currAlivePos.slice(-2) !== lastCapPos.slice(-2)) {
         return {
             error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CAPTURED_FAR_TARGET, player)
         };
     }
 
     const data = {
-        action: `${currCapPos.substring(0, 2)}${ACTION_TYPES.CAPTURE}`,
+        action: `${currAlivePos.slice(-2)}${ACTION_TYPES.CAPTURE}`,
         piecePos: lastAlivePos,
     }
 
     return { data }
 }
 
-const validateTransform = (board, player, [lastTrsPos, currTrsPos]) => {
-    const transformer = getPieceAtChessCoords(board, lastTrsPos);
+const validateTransform = (player, diff) => {
+    const transformer = Object.keys(diff)[0]
+    const [lastTrsPos, currTrsPos] = diff[transformer];
 
     if (!transformer) {
         return {
@@ -119,32 +125,77 @@ const validateTransform = (board, player, [lastTrsPos, currTrsPos]) => {
     }
 
     const data = {
-        action: `${currTrsPos.substring(0, 2)}${ACTION_TYPES.TRANSFORM}`,
+        action: `${currTrsPos.slice(-2)}${ACTION_TYPES.TRANSFORM}`,
         piecePos: lastTrsPos,
     }
 
     return { data }
 }
 
-// const validateCastle = (board, player, diff) => {
-// }
+const validateCastle = (player, diff) => {
+    const king = Object.keys(diff).find((piece) => isPiece(piece, PIECE_VALUES.KING));
+    const rook = Object.keys(diff).find((piece) => isPiece(piece, PIECE_VALUES.ROOK));
 
-export const validateAction = (board, { player, diff, castled }) => {
-    if (diff.length === 1) {
-        if (diff[0][1].length === 3) {
-            return validateTransform(board, player, diff[0]);
-        }
-
-        return validateMove(board, player, diff[0]);
+    if (!king) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CASTLED_NON_KING, player)
+        };
     }
 
-    const capturedPiece = findCapturedPiece(diff, board);
+    if (!rook) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CASTLED_NON_ROOK, player)
+        };
+    }
 
-    // if (castled) {
-    //     return validateCastle(board, player, diff);
-    // }
+    if (!ownsPiece(player, king) || !ownsPiece(player, rook)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CASTLED_ENEMY_PIECE, player)
+        };
+    }
+
+    const [lastKingPos, currKingPos] = diff[king];
+    const [lastRookPos, currRookPos] = diff[rook];
+
+    if (isDead(lastKingPos) || isDead(lastRookPos)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CASTLED_DEAD_PIECE, player)
+        };
+    }
+
+    if (isDead(currKingPos) || isDead(currRookPos)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CASTLED_PIECE_DIED, player)
+        };
+    }
+
+    return {
+        data: {
+            action: `${currKingPos.slice(-2)}${ACTION_TYPES.CASTLE}`,
+            piecePos: lastKingPos,
+        }
+    }
+}
+
+export const validateAction = ({ player, differences: diff, castled }) => {
+    if (castled) {
+        return validateCastle(player, diff);
+    }
+
+    const diffValues = Object.values(diff);
+
+    if (diffValues.length === 1) {
+        if (diffValues[0][1].length === 3) {
+            return validateTransform(player, diff);
+        }
+
+        return validateMove(player, diff);
+    }
+
+    const capturedPiece = findCapturedPiece(diff);
+
     if (capturedPiece) {
-        return validateCapture(board, player, capturedPiece, diff);
+        return validateCapture(player, capturedPiece, diff);
     }
 
     return {
@@ -152,6 +203,9 @@ export const validateAction = (board, { player, diff, castled }) => {
     };
 }
 
-export const convertToAction = ([x, y], action) => {
-    return `${y}${x}${action}`;
+export const convertToAction = ([rowIdx, colIdx], action) => {
+    const row = INDEX_TO_ROW[rowIdx];
+    const col = INDEX_TO_COL[colIdx];
+
+    return `${col}${row}${action}`;
 }
