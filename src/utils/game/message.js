@@ -1,5 +1,13 @@
+import { PIECE_ORDER } from "../../tools/enums";
 import { GAME_STATUS, GAME_VALIDATION_MESSAGES, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES } from "../enum";
 import { isPiece } from "./piece";
+
+const pieceOrder = Object.keys(PIECE_MESSAGE_ORDER).sort((a, b) => {
+    return PIECE_MESSAGE_ORDER[a] - PIECE_MESSAGE_ORDER[b];
+});
+const pawnTypes = PIECE_VALUES.QUEEN + PIECE_VALUES.ROOK + PIECE_VALUES.BISHOP + PIECE_VALUES.KNIGHT;
+const validRows = "ABCDEFGH";
+const validCols = "12345678";
 
 /**
  * Extracts individual details from a move
@@ -64,32 +72,9 @@ export const getNextTurn = (move) => {
     return PIECE_COLORS.isWhite(player) ? GAME_STATUS.BLACK_TURN : GAME_STATUS.WHITE_TURN;
 }
 
-/**
- * Gets all the differences in the board between the last move and the current move
- * 
- * @param {GameMessage} lastMove The last move made
- * @param {GameMessage} currentMove The current move made
- * @returns {[number, string, string][]} The differences between the last move and the current move. 
- */
-const getGameDifferences = (lastMove, currentMove) => {
-    const { board: lastBoard } = extractMoveDetails(lastMove);
-    const { board: currentBoard } = extractMoveDetails(currentMove);
-    const differences = [];
-
-    for (let i = 0; i < lastBoard.length && i < currentBoard.length; i += 2) {
-        const lastPos = lastBoard.substring(i, i + 2);
-        const currentPos = currentBoard.substring(i, i + 2);
-
-        if (lastPos !== currentPos) {
-            differences.push([
-                lastPos,
-                currentPos,
-            ])
-        }
-    }
-
-    return differences;
-}
+const validBoardLength = (board) => {
+    return 64 <= board.length && board.length <= 80;
+};
 
 const hasSameColor = ({ player: lastPlayer }, { player: currentPlayer }) => PIECE_COLORS.isAlly(lastPlayer, currentPlayer);
 
@@ -97,45 +82,90 @@ const hasReverseCastleEnable = ({ canCastle: lastCanCastle }, { canCastle: curre
     return (!lastCanCastle[0] && currentCanCastle[0]) || (!lastCanCastle[1] && currentCanCastle[1]);
 };
 
-const validBoardPattern = (board) => {
-    const pieceOrder = Object.keys(PIECE_MESSAGE_ORDER).sort((a, b) => {
-        return PIECE_MESSAGE_ORDER[a] - PIECE_MESSAGE_ORDER[b];
-    });
-    const pawnTypes = PIECE_VALUES.QUEEN + PIECE_VALUES.ROOK + PIECE_VALUES.BISHOP + PIECE_VALUES.KNIGHT;
-    const validRows = "ABCDEFGHX";
-    const validCols = "12345678X";
+const isTransformedPawnPos = (pawn) => {
+    const hasPawnType = pawnTypes.includes(pawn[0]);
+    const hasValidRow = validRows.includes(pawn[1]);
+    const hasValidCol = validCols.includes(pawn[2]);
 
-    if (64 <= board.length && board.length <= 80) {
-        let order = 0;
-        for (let i = 0; i < board.length; i += 2) {
-            if (isPiece(pieceOrder[0], PIECE_VALUES.PAWN)) {
-                const pawnSubstr = board.substring(i, i + 3);
-                const hasPawnType = pawnTypes.includes(pawnSubstr[0]);
-                const hasValidRow = validRows.includes(pawnSubstr[1]);
-                const hasValidCol = validCols.includes(pawnSubstr[2]);
+    return hasPawnType && hasValidRow && hasValidCol;
+}
 
-                if (hasPawnType && hasValidRow && hasValidCol) {
-                    order++;
-                    i += 1;
-                    continue;
-                }
-            }
-            const pieceSubstr = board.substring(i, i + 2);
-            const hasValidRow = validRows.includes(pieceSubstr[0]);
-            const hasValidCol = validCols.includes(pieceSubstr[1]);
+const isPiecePos = (piece) => {
+    const hasValidRow = validRows.includes(piece[0]);
+    const hasValidCol = validCols.includes(piece[1]);
+    const isDead = piece === 'XX'
 
-            if (!hasValidRow || !hasValidCol) {
+    return (hasValidRow && hasValidCol) || isDead;
+}
 
-            }
+const extractBoardInfo = (board, blame = '') => {
+    const piecePositions = {};
+    let pieceCount = 0;
+    let transformCount = 0;
 
-            order++;
-        }
-
-        return true;
+    if (!validBoardLength(board)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_BOARD_SIZE, blame)
+        };
     }
 
-    return false;
-};
+    for (let i = 0; i < board.length; i += 2) {
+        const piece = pieceOrder[pieceCount];
+
+        if (isPiece(piece, PIECE_VALUES.PAWN) && isTransformedPawnPos(board.substring(i, i + 3))) {
+            piecePositions[piece] = board.substring(i, i + 3);
+            pieceCount++;
+            transformCount++;
+            i += 1;
+        } else if (isPiecePos(board.substring(i, i + 2))) {
+            piecePositions[piece] = board.substring(i, i + 2);
+            pieceCount++;
+        } else {
+            return {
+                error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_PIECE_POS, blame)
+            };
+        }
+    }
+
+    if (pieceCount !== 32) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_PIECE_COUNT, blame)
+        };
+    }
+    if (transformCount > 16) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_TRANSFORM_COUNT, blame)
+        };
+    }
+
+    return { piecePositions };
+}
+
+const getGameDifferences = (lastBoard, currBoard) => {
+    const { piecePositions: lastPositions, error: lastError } = extractBoardInfo(lastBoard);
+    const { piecePositions: currPositions, error: currError } = extractBoardInfo(currBoard);
+    const differences = {};
+
+    if (lastError || currError) {
+        return {
+            error: lastError || currError
+        };
+    }
+
+    pieceOrder.forEach((piece) => {
+        const lastPos = lastPositions[piece];
+        const currentPos = currPositions[piece];
+
+        if (lastPos !== currentPos) {
+            differences[piece] = [
+                lastPos,
+                currentPos,
+            ];
+        }
+    })
+
+    return { differences, currPositions, lastPositions };
+}
 
 export const validateTurnContinuity = (lastMove, currentMove) => {
     const lastMoveDetails = extractMoveDetails(lastMove);
@@ -159,15 +189,9 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
         };
     }
 
-    if (!validBoardPattern(lastMoveDetails.board) || !validBoardPattern(currentMoveDetails.board)) {
-        return {
-            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_BOARD, currentMoveDetails.player)
-        };
-    }
-
     if (hasSameColor(lastMoveDetails, currentMoveDetails)) {
         return {
-            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.DOUBLE_MOVE, currentMoveDetails.player)
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.SAME_MESSAGE_COLOR, currentMoveDetails.player)
         };
     }
 
@@ -177,15 +201,21 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
         };
     }
 
-    const diff = getGameDifferences(lastMove, currentMove);
+    const { error, currPositions, differences, lastPositions } = getGameDifferences(lastMoveDetails.board, currentMoveDetails.board);
 
-    if (diff.length === 0) {
+    if (error) {
+        return { error };
+    }
+
+    const diffLength = Object.keys(differences).length;
+
+    if (diffLength === 0) {
         return {
             error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.NO_MOVE, currentMoveDetails.player)
         };
     }
 
-    if (diff.length > 1) {
+    if (diffLength > 2) {
         return {
             error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.MULTI_ACTION, currentMoveDetails.player)
         };
@@ -193,9 +223,11 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
 
     return {
         data: {
-            diff,
+            differences,
             player: currentMoveDetails.player,
-            castled: canCastle(lastMove, currentMoveDetails.player) && !canCastle(currentMove, currentMoveDetails.player)
+            castled: canCastle(lastMove, currentMoveDetails.player) && !canCastle(currentMove, currentMoveDetails.player),
+            lastPositions,
+            currPositions,
         }
     };
 };
