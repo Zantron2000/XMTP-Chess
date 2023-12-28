@@ -177,18 +177,18 @@ const validateCastle = (player, diff) => {
     }
 }
 
-export const validateAction = ({ player, differences: diff, castled }) => {
+export const validateAction = ({ player, differences: diff, castled, transformed }) => {
     if (castled) {
         return validateCastle(player, diff);
+    }
+
+    if (transformed) {
+        return validateTransform(player, diff);
     }
 
     const diffValues = Object.values(diff);
 
     if (diffValues.length === 1) {
-        if (diffValues[0][1].length === 3) {
-            return validateTransform(player, diff);
-        }
-
         return validateMove(player, diff);
     }
 

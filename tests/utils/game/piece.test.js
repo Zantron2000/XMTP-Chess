@@ -152,21 +152,21 @@ describe('Tests areAllies', () => {
 
 describe('Tests isMatchingPiece', () => {
     it('Should return true if the piece matches', () => {
-        expect(isMatchingPiece(PIECES.WHITE_KNIGHT, PIECE_VALUES.KNIGHT, PIECE_VALUES.BISHOP)).toBe(true);
-        expect(isMatchingPiece(PIECES.WHITE_BISHOP, PIECE_VALUES.KNIGHT, PIECE_VALUES.BISHOP)).toBe(true);
-        expect(isMatchingPiece(PIECES.WHITE_ROOK, PIECE_VALUES.ROOK, PIECE_VALUES.BISHOP)).toBe(true);
-        expect(isMatchingPiece(PIECES.WHITE_QUEEN, PIECE_VALUES.QUEEN, PIECE_VALUES.BISHOP)).toBe(true);
-        expect(isMatchingPiece(PIECES.WHITE_KING, PIECE_VALUES.KING, PIECE_VALUES.BISHOP)).toBe(true);
-        expect(isMatchingPiece(PIECES.WHITE_PAWN, PIECE_VALUES.PAWN, PIECE_VALUES.BISHOP)).toBe(true);
+        expect(isMatchingPiece(PIECES.WHITE_KNIGHT, {}, PIECE_VALUES.KNIGHT, PIECE_VALUES.BISHOP)).toBe(true);
+        expect(isMatchingPiece(PIECES.WHITE_BISHOP, {}, PIECE_VALUES.KNIGHT, PIECE_VALUES.BISHOP)).toBe(true);
+        expect(isMatchingPiece(PIECES.WHITE_ROOK, {}, PIECE_VALUES.ROOK, PIECE_VALUES.BISHOP)).toBe(true);
+        expect(isMatchingPiece(PIECES.WHITE_QUEEN, {}, PIECE_VALUES.QUEEN, PIECE_VALUES.BISHOP)).toBe(true);
+        expect(isMatchingPiece(PIECES.WHITE_KING, {}, PIECE_VALUES.KING, PIECE_VALUES.BISHOP)).toBe(true);
+        expect(isMatchingPiece(PIECES.WHITE_PAWN, {}, PIECE_VALUES.PAWN, PIECE_VALUES.BISHOP)).toBe(true);
     });
 
     it('Should return false if the piece does not match', () => {
-        expect(isMatchingPiece(PIECES.WHITE_KNIGHT, PIECE_VALUES.BISHOP, PIECE_VALUES.ROOK)).toBe(false);
-        expect(isMatchingPiece(PIECES.WHITE_BISHOP, PIECE_VALUES.ROOK, PIECE_VALUES.QUEEN)).toBe(false);
-        expect(isMatchingPiece(PIECES.WHITE_ROOK, PIECE_VALUES.QUEEN, PIECE_VALUES.KING)).toBe(false);
-        expect(isMatchingPiece(PIECES.WHITE_QUEEN, PIECE_VALUES.KING, PIECE_VALUES.PAWN)).toBe(false);
-        expect(isMatchingPiece(PIECES.WHITE_KING, PIECE_VALUES.PAWN, PIECE_VALUES.KNIGHT)).toBe(false);
-        expect(isMatchingPiece(PIECES.WHITE_PAWN, PIECE_VALUES.KNIGHT, PIECE_VALUES.BISHOP)).toBe(false);
+        expect(isMatchingPiece(PIECES.WHITE_KNIGHT, {}, PIECE_VALUES.BISHOP, PIECE_VALUES.ROOK)).toBe(false);
+        expect(isMatchingPiece(PIECES.WHITE_BISHOP, {}, PIECE_VALUES.ROOK, PIECE_VALUES.QUEEN)).toBe(false);
+        expect(isMatchingPiece(PIECES.WHITE_ROOK, {}, PIECE_VALUES.QUEEN, PIECE_VALUES.KING)).toBe(false);
+        expect(isMatchingPiece(PIECES.WHITE_QUEEN, {}, PIECE_VALUES.KING, PIECE_VALUES.PAWN)).toBe(false);
+        expect(isMatchingPiece(PIECES.WHITE_KING, {}, PIECE_VALUES.PAWN, PIECE_VALUES.KNIGHT)).toBe(false);
+        expect(isMatchingPiece(PIECES.WHITE_PAWN, {}, PIECE_VALUES.KNIGHT, PIECE_VALUES.BISHOP)).toBe(false);
     });
 });
 
@@ -192,33 +192,33 @@ describe('Tests ownsPiece', () => {
 
 describe('Tests isColor', () => {
     it('Should return true if the piece is the color', () => {
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.WHITE_KNIGHT)).toBe(true);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.WHITE_BISHOP)).toBe(true);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.WHITE_ROOK)).toBe(true);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.WHITE_QUEEN)).toBe(true);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.WHITE_KING)).toBe(true);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.WHITE_PAWN)).toBe(true);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.BLACK_KNIGHT)).toBe(true);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.BLACK_BISHOP)).toBe(true);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.BLACK_ROOK)).toBe(true);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.BLACK_QUEEN)).toBe(true);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.BLACK_KING)).toBe(true);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.BLACK_PAWN)).toBe(true);
+        expect(isColor(PIECES.WHITE_KNIGHT, PIECE_COLORS.WHITE)).toBe(true);
+        expect(isColor(PIECES.WHITE_BISHOP, PIECE_COLORS.WHITE)).toBe(true);
+        expect(isColor(PIECES.WHITE_ROOK, PIECE_COLORS.WHITE)).toBe(true);
+        expect(isColor(PIECES.WHITE_QUEEN, PIECE_COLORS.WHITE)).toBe(true);
+        expect(isColor(PIECES.WHITE_KING, PIECE_COLORS.WHITE)).toBe(true);
+        expect(isColor(PIECES.WHITE_PAWN, PIECE_COLORS.WHITE)).toBe(true);
+        expect(isColor(PIECES.BLACK_KNIGHT, PIECE_COLORS.BLACK,)).toBe(true);
+        expect(isColor(PIECES.BLACK_BISHOP, PIECE_COLORS.BLACK,)).toBe(true);
+        expect(isColor(PIECES.BLACK_ROOK, PIECE_COLORS.BLACK,)).toBe(true);
+        expect(isColor(PIECES.BLACK_QUEEN, PIECE_COLORS.BLACK,)).toBe(true);
+        expect(isColor(PIECES.BLACK_KING, PIECE_COLORS.BLACK,)).toBe(true);
+        expect(isColor(PIECES.BLACK_PAWN, PIECE_COLORS.BLACK,)).toBe(true);
     });
 
     it('Should return false if the piece is not the color', () => {
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.BLACK_KNIGHT)).toBe(false);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.BLACK_BISHOP)).toBe(false);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.BLACK_ROOK)).toBe(false);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.BLACK_QUEEN)).toBe(false);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.BLACK_KING)).toBe(false);
-        expect(isColor(PIECE_COLORS.WHITE, PIECES.BLACK_PAWN)).toBe(false);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.WHITE_KNIGHT)).toBe(false);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.WHITE_BISHOP)).toBe(false);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.WHITE_ROOK)).toBe(false);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.WHITE_QUEEN)).toBe(false);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.WHITE_KING)).toBe(false);
-        expect(isColor(PIECE_COLORS.BLACK, PIECES.WHITE_PAWN)).toBe(false);
+        expect(isColor(PIECES.BLACK_KNIGHT, PIECE_COLORS.WHITE)).toBe(false);
+        expect(isColor(PIECES.BLACK_BISHOP, PIECE_COLORS.WHITE)).toBe(false);
+        expect(isColor(PIECES.BLACK_ROOK, PIECE_COLORS.WHITE)).toBe(false);
+        expect(isColor(PIECES.BLACK_QUEEN, PIECE_COLORS.WHITE)).toBe(false);
+        expect(isColor(PIECES.BLACK_KING, PIECE_COLORS.WHITE)).toBe(false);
+        expect(isColor(PIECES.BLACK_PAWN, PIECE_COLORS.WHITE)).toBe(false);
+        expect(isColor(PIECES.WHITE_KNIGHT, PIECE_COLORS.BLACK)).toBe(false);
+        expect(isColor(PIECES.WHITE_BISHOP, PIECE_COLORS.BLACK)).toBe(false);
+        expect(isColor(PIECES.WHITE_ROOK, PIECE_COLORS.BLACK)).toBe(false);
+        expect(isColor(PIECES.WHITE_QUEEN, PIECE_COLORS.BLACK)).toBe(false);
+        expect(isColor(PIECES.WHITE_KING, PIECE_COLORS.BLACK)).toBe(false);
+        expect(isColor(PIECES.WHITE_PAWN, PIECE_COLORS.BLACK)).toBe(false);
     });
 });
 

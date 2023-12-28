@@ -249,8 +249,9 @@ describe("Tests validateAction", () => {
             const differences = {
                 'WP1': ['A7', 'QA8'],
             }
+            const transformed = true;
 
-            const result = validateAction({ player, castled, differences });
+            const result = validateAction({ player, castled, differences, transformed });
 
             expect(result.data).toBeDefined();
             expect(result.data).toEqual({
@@ -263,10 +264,11 @@ describe("Tests validateAction", () => {
             const player = PIECE_COLORS.WHITE;
             const castled = false;
             const differences = {
-                'BP1': ['A7', 'QA8'],
+                'BP1': ['A7', 'A8'],
             }
+            const transformed = true;
 
-            const result = validateAction({ player, castled, differences });
+            const result = validateAction({ player, castled, differences, transformed });
 
             expect(result.error).toBeDefined();
             expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.OPPONENT_TRANSFORM)

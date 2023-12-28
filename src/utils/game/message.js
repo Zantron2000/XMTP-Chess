@@ -139,6 +139,7 @@ const isPiecePos = (piece) => {
 
 const extractBoardInfo = (board, blame = '') => {
     const piecePositions = {};
+    const pawnRegistry = {};
     let pieceCount = 0;
     let transformCount = 0;
 
@@ -152,7 +153,8 @@ const extractBoardInfo = (board, blame = '') => {
         const piece = pieceOrder[pieceCount];
 
         if (isPiece(piece, PIECE_VALUES.PAWN) && isTransformedPawnPos(board.substring(i, i + 3))) {
-            piecePositions[piece] = board.substring(i, i + 3);
+            pawnRegistry[piece] = board.substring(i, i + 1);
+            piecePositions[piece] = board.substring(i + 1, i + 3);
             pieceCount++;
             transformCount++;
             i += 1;
@@ -177,7 +179,7 @@ const extractBoardInfo = (board, blame = '') => {
         };
     }
 
-    return { piecePositions };
+    return { piecePositions, pawnRegistry };
 }
 
 const isValidCastleDetails = (castleDetails) => {
@@ -187,8 +189,8 @@ const isValidCastleDetails = (castleDetails) => {
 }
 
 const getGameDifferences = (lastBoard, currBoard) => {
-    const { piecePositions: lastPositions, error: lastError } = extractBoardInfo(lastBoard);
-    const { piecePositions: currPositions, error: currError } = extractBoardInfo(currBoard);
+    const { piecePositions: lastPositions, error: lastError, pawnRegistry: lastPawnRegistry } = extractBoardInfo(lastBoard);
+    const { piecePositions: currPositions, error: currError, pawnRegistry: currPawnRegistry } = extractBoardInfo(currBoard);
     const differences = {};
 
     if (lastError || currError) {
@@ -209,7 +211,19 @@ const getGameDifferences = (lastBoard, currBoard) => {
         }
     })
 
-    return { differences, currPositions, lastPositions };
+    const lastPawnKeys = Object.keys(lastPawnRegistry);
+    const currPawnKeys = Object.keys(currPawnRegistry);
+    let transformed = false;
+
+    if (Math.abs(lastPawnKeys.length - currPawnKeys.length) > 1) {
+        return { error: GAME_VALIDATION_MESSAGES.INVALID_TRANSFORM_DIFFERENCE };
+    }
+
+    if (currPawnKeys.length - lastPawnKeys.length === 1) {
+        transformed = true;
+    }
+
+    return { differences, currPositions, lastPositions, lastPawnRegistry, currPawnRegistry, transformed };
 }
 
 const playerCastled = (lastCastleDetails, currCastleDetails, player) => {
@@ -255,7 +269,7 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
         };
     }
 
-    const { error, currPositions, differences, lastPositions } = getGameDifferences(lastMoveDetails.board, currentMoveDetails.board);
+    const { error, currPositions, differences, lastPositions, lastPawnRegistry, currPawnRegistry, transformed } = getGameDifferences(lastMoveDetails.board, currentMoveDetails.board);
 
     if (error) {
         return { error };
@@ -280,8 +294,11 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
             differences,
             player: currentMoveDetails.player,
             castled: playerCastled(lastMoveDetails.canCastle, currentMoveDetails.canCastle, currentMoveDetails.player),
+            transformed,
             lastPositions,
             currPositions,
+            lastPawnRegistry,
+            currPawnRegistry,
         }
     };
 };
