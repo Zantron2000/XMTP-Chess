@@ -39,8 +39,8 @@ describe("Tests validateAction", () => {
         })
 
         it('Should take a processed move message, and return the original location and the move action when valid', () => {
-            const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE);
-            const currMove = createMove('A1B1C1D1E1F1G1H1A3B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
+            const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+            const currMove = createMove('A1B1C1D1E1F1G1H1A3B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
             const messageResults = validateTurnContinuity(lastMove, currMove);
             const actionResults = validateAction(messageResults.data);
@@ -96,8 +96,8 @@ describe("Tests validateAction", () => {
         });
 
         it('Should take a processed move message, and return an error when the player moves a piece they do not own', () => {
-            const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
-            const currMove = createMove('A1B1C1D1E1F1G1H1A3B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE);
+            const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+            const currMove = createMove('A1B1C1D1E1F1G1H1A3B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
             const messageResults = validateTurnContinuity(lastMove, currMove);
             const actionResults = validateAction(messageResults.data);
@@ -228,8 +228,8 @@ describe("Tests validateAction", () => {
         })
 
         it('Should generate a capture action from a capture message', () => {
-            const lastMove = createMove('A1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXA7XXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE);
-            const currMove = createMove('A7XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE);
+            const lastMove = createMove('A1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXA7XXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
+            const currMove = createMove('A7XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
 
             const messageResults = validateTurnContinuity(lastMove, currMove);
             const actionResults = validateAction(messageResults.data);
@@ -273,8 +273,8 @@ describe("Tests validateAction", () => {
         })
 
         it('Should generate a transform action from a message', () => {
-            const lastMove = createMove('XXXXXXXXXXXXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE);
-            const currMove = createMove('XXXXXXXXXXXXXXXXQA8QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE);
+            const lastMove = createMove('XXXXXXXXXXXXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
+            const currMove = createMove('XXXXXXXXXXXXXXXXQA8QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
 
             const messageResults = validateTurnContinuity(lastMove, currMove);
             const actionResults = validateAction(messageResults.data);
@@ -390,8 +390,8 @@ describe("Tests validateAction", () => {
         })
 
         it('Should generate a castle action from a message', () => {
-            const lastMove = createMove('A1XXXXXXE1XXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE);
-            const currMove = createMove('D1XXXXXXC1XXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.WHITE, MESSAGE.FALSE + MESSAGE.TRUE);
+            const lastMove = createMove('A1XXXXXXE1XXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
+            const currMove = createMove('D1XXXXXXC1XXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.WHITE, MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
 
             const messageResults = validateTurnContinuity(lastMove, currMove);
             const actionResults = validateAction(messageResults.data);

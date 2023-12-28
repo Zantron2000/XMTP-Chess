@@ -12,7 +12,7 @@ const generateBasicBoard = () => {
     return 'XX'.repeat(32);
 }
 
-const createBasicMove = (color = PIECE_COLORS.WHITE, canCastle = MESSAGE.TRUE + MESSAGE.TRUE) => {
+const createBasicMove = (color = PIECE_COLORS.WHITE, canCastle = MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE) => {
     const board = generateBasicBoard();
 
     return [board, color, canCastle].join(MESSAGE.GAME_DELIMITER);
@@ -24,21 +24,39 @@ const createMove = (board, player, canCastle) => {
 
 describe('Tests extractMoveDetails', () => {
     it('Should extract the board, player, and canCastle from a move', () => {
-        const move = createBasicMove(undefined, 'TF');
+        const move = createBasicMove(undefined, 'TTFF');
 
         const details = extractMoveDetails(move);
 
         expect(details.board).toBe(generateBasicBoard());
         expect(details.player).toBe(PIECE_COLORS.WHITE);
-        expect(details.canCastle).toEqual([true, false]);
+        expect(details.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: false,
+                2: false,
+            },
+        });
     });
 
     it('Should mark invalid canCastle values as undefined', () => {
-        const move = createMove('abcdefg', PIECE_COLORS.WHITE, 'XX');
+        const move = createMove('abcdefg', PIECE_COLORS.WHITE, 'XXXX');
 
         const details = extractMoveDetails(move);
 
-        expect(details.canCastle).toEqual([undefined, undefined]);
+        expect(details.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: undefined,
+                2: undefined,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: undefined,
+                2: undefined,
+            },
+        });
     });
 
     it('Should mark unprovided canCastle values as undefined', () => {
@@ -46,7 +64,16 @@ describe('Tests extractMoveDetails', () => {
 
         const details = extractMoveDetails(move);
 
-        expect(details.canCastle).toEqual([undefined, undefined]);
+        expect(details.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: undefined,
+                2: undefined,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: undefined,
+                2: undefined,
+            },
+        });
     });
 });
 
@@ -54,15 +81,15 @@ describe('Tests canCastle', () => {
     it('Should return true if the player can castle', () => {
         const move = createBasicMove();
 
-        const castle = canCastle(move, PIECE_COLORS.WHITE);
+        const castle = canCastle(move, PIECE_COLORS.WHITE, 1);
 
         expect(castle).toBe(true);
     });
 
     it('Should return false if the player cannot castle', () => {
-        const move = createBasicMove(undefined, 'TF');
+        const move = createBasicMove(undefined, 'TFFF');
 
-        const castle = canCastle(move, PIECE_COLORS.BLACK);
+        const castle = canCastle(move, PIECE_COLORS.BLACK, 1);
 
         expect(castle).toBe(false);
     });
@@ -179,7 +206,7 @@ describe('Tests validateTurnContinuity', () => {
 
     it('Should return an error for the board being less than 64 characters', () => {
         const lastMove = createBasicMove();
-        const currentMove = createMove('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, 'TT');
+        const currentMove = createMove('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, 'TTFF');
 
         const error = validateTurnContinuity(lastMove, currentMove);
 
@@ -188,7 +215,7 @@ describe('Tests validateTurnContinuity', () => {
 
     it('Should return an error for the board giving a rook 3 characters', () => {
         const lastMove = createBasicMove();
-        const currentMove = createMove('RXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, 'TT');
+        const currentMove = createMove('RXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, 'TTFF');
 
         const error = validateTurnContinuity(lastMove, currentMove);
 
@@ -197,7 +224,7 @@ describe('Tests validateTurnContinuity', () => {
 
     it('Should return an error for the board being greater than 80 characters', () => {
         const lastMove = createBasicMove();
-        const currentMove = createMove('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, 'TF');
+        const currentMove = createMove('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, 'TFFF');
 
         const error = validateTurnContinuity(lastMove, currentMove);
 
@@ -206,7 +233,7 @@ describe('Tests validateTurnContinuity', () => {
 
     it('Should return an error for the board using invalid characters', () => {
         const lastMove = createBasicMove();
-        const currentMove = createMove('ZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZX', PIECE_COLORS.BLACK, 'TF');
+        const currentMove = createMove('ZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZXZX', PIECE_COLORS.BLACK, 'TFFF');
 
         const error = validateTurnContinuity(lastMove, currentMove);
 
@@ -214,8 +241,8 @@ describe('Tests validateTurnContinuity', () => {
     })
 
     it('Should return an error for both moves signed by the same player color', () => {
-        const lastMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
-        const currentMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
+        const lastMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+        const currentMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
         const error = validateTurnContinuity(lastMove, currentMove);
 
@@ -223,8 +250,8 @@ describe('Tests validateTurnContinuity', () => {
     })
 
     it('Should return an error if the castle is re-enabled for a player', () => {
-        const lastMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
-        const currentMove = createMove('X'.repeat(64), PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE);
+        const lastMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+        const currentMove = createMove('X'.repeat(64), PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.FALSE);
 
         const error = validateTurnContinuity(lastMove, currentMove);
 
@@ -232,8 +259,8 @@ describe('Tests validateTurnContinuity', () => {
     })
 
     it('Should return an error for having no difference between the moves', () => {
-        const lastMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
-        const currentMove = createMove('X'.repeat(64), PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE);
+        const lastMove = createMove('X'.repeat(64), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+        const currentMove = createMove('X'.repeat(64), PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
         const error = validateTurnContinuity(lastMove, currentMove);
 
@@ -241,8 +268,8 @@ describe('Tests validateTurnContinuity', () => {
     })
 
     it('Should return an error for having too many differences between the moves', () => {
-        const lastMove = createMove('A1B2C3D4'.repeat(8), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
-        const currentMove = createMove('C3D4A1B2'.repeat(8), PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE);
+        const lastMove = createMove('A1B2C3D4'.repeat(8), PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+        const currentMove = createMove('C3D4A1B2'.repeat(8), PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
         const results = validateTurnContinuity(lastMove, currentMove);
 
@@ -250,8 +277,8 @@ describe('Tests validateTurnContinuity', () => {
     });
 
     it('Should return an error for no moves being made', () => {
-        const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
-        const currentMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE);
+        const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+        const currentMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
         const results = validateTurnContinuity(lastMove, currentMove);
 
@@ -259,8 +286,8 @@ describe('Tests validateTurnContinuity', () => {
     });
 
     it('Should return data for a single move being made', () => {
-        const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE);
-        const currMove = createMove('A1B1C1D1E1F1G1H1A3B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE);
+        const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
+        const currMove = createMove('A1B1C1D1E1F1G1H1A3B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
         const results = validateTurnContinuity(lastMove, currMove);
         const expectedLastPos = {
@@ -308,8 +335,8 @@ describe('Tests validateTurnContinuity', () => {
     })
 
     it('Should recognize and allow castling', () => {
-        const lastMove = createMove('XXXXXXXXE1XXXXH1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE);
-        const currMove = createMove('XXXXXXXXG1XXXXF1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE);
+        const lastMove = createMove('XXXXXXXXE1XXXXH1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
+        const currMove = createMove('XXXXXXXXG1XXXXF1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
 
         const results = validateTurnContinuity(lastMove, currMove);
         const expectedLastPos = {
@@ -359,8 +386,8 @@ describe('Tests validateTurnContinuity', () => {
     })
 
     it('Should notice a capture', () => {
-        const lastMove = createMove('A1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXA7XXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE);
-        const currMove = createMove('A7XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE);
+        const lastMove = createMove('A1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXA7XXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
+        const currMove = createMove('A7XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
 
         const results = validateTurnContinuity(lastMove, currMove);
         const expectedLastPos = {
@@ -410,8 +437,8 @@ describe('Tests validateTurnContinuity', () => {
     });
 
     it('Should notice a transform', () => {
-        const lastMove = createMove('XXXXXXXXXXXXXXXXA7XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE);
-        const currMove = createMove('XXXXXXXXXXXXXXXXQA8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE);
+        const lastMove = createMove('XXXXXXXXXXXXXXXXA7XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
+        const currMove = createMove('XXXXXXXXXXXXXXXXQA8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
 
         const results = validateTurnContinuity(lastMove, currMove);
         const expectedLastPos = {
@@ -459,8 +486,8 @@ describe('Tests validateTurnContinuity', () => {
     })
 
     it('It should notice any number of transofrmed pawns', () => {
-        const lastMove = createMove('XXXXXXXXXXXXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE);
-        const currMove = createMove('XXXXXXXXXXXXXXXXQA8QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE);
+        const lastMove = createMove('XXXXXXXXXXXXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.WHITE, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
+        const currMove = createMove('XXXXXXXXXXXXXXXXQA8QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
 
         const results = validateTurnContinuity(lastMove, currMove);
         const expectedLastPos = {

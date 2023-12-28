@@ -9,6 +9,16 @@ const pawnTypes = PIECE_VALUES.QUEEN + PIECE_VALUES.ROOK + PIECE_VALUES.BISHOP +
 const validRows = "ABCDEFGH";
 const validCols = "12345678";
 
+const translateCastleInfo = (rookCanCastle) => {
+    if (rookCanCastle === MESSAGE.TRUE) {
+        return true;
+    } else if (rookCanCastle === MESSAGE.FALSE) {
+        return false;
+    } else {
+        return undefined;
+    }
+}
+
 /**
  * Extracts individual details from a move
  * 
@@ -16,21 +26,36 @@ const validCols = "12345678";
  * @returns {{ 
  *  board: String, 
  *  player: PIECE_COLORS[keyof PIECE_COLORS],
- *  canCastle: [Boolean, Boolean],
+ *  canCastle: {
+ *     w: {
+ *          1: Boolean,
+ *          2: Boolean,
+ *     },
+ *     b: {
+ *          1: Boolean,
+ *          2: Boolean,
+ *     },
+ *   },
  * }}
  */
 export const extractMoveDetails = (move) => {
     const details = move.split(MESSAGE.GAME_DELIMITER);
-    const whiteCanCastle = details[2][0] === MESSAGE.TRUE ? true : details[2][0] === MESSAGE.FALSE ? false : undefined;
-    const blackCanCastle = details[2][1] === MESSAGE.TRUE ? true : details[2][1] === MESSAGE.FALSE ? false : undefined;
+    const castleDetails = details[2];
+    const canCastle = {
+        [PIECE_COLORS.WHITE]: {
+            1: translateCastleInfo(castleDetails[0]),
+            2: translateCastleInfo(castleDetails[1]),
+        },
+        [PIECE_COLORS.BLACK]: {
+            1: translateCastleInfo(castleDetails[2]),
+            2: translateCastleInfo(castleDetails[3]),
+        },
+    }
 
     return {
         board: details[0],
         player: details[1],
-        canCastle: [
-            whiteCanCastle,
-            blackCanCastle,
-        ],
+        canCastle,
     };
 }
 
@@ -79,7 +104,21 @@ const validBoardLength = (board) => {
 const hasSameColor = ({ player: lastPlayer }, { player: currentPlayer }) => PIECE_COLORS.isAlly(lastPlayer, currentPlayer);
 
 const hasReverseCastleEnable = ({ canCastle: lastCanCastle }, { canCastle: currentCanCastle }) => {
-    return (!lastCanCastle[0] && currentCanCastle[0]) || (!lastCanCastle[1] && currentCanCastle[1]);
+    const lastWhiteRook1 = lastCanCastle[PIECE_COLORS.WHITE][1];
+    const lastWhiteRook2 = lastCanCastle[PIECE_COLORS.WHITE][2];
+    const lastBlackRook1 = lastCanCastle[PIECE_COLORS.BLACK][1];
+    const lastBlackRook2 = lastCanCastle[PIECE_COLORS.BLACK][2];
+    const currentWhiteRook1 = currentCanCastle[PIECE_COLORS.WHITE][1];
+    const currentWhiteRook2 = currentCanCastle[PIECE_COLORS.WHITE][2];
+    const currentBlackRook1 = currentCanCastle[PIECE_COLORS.BLACK][1];
+    const currentBlackRook2 = currentCanCastle[PIECE_COLORS.BLACK][2];
+
+    return (
+        (!lastWhiteRook1 && currentWhiteRook1) ||
+        (!lastWhiteRook2 && currentWhiteRook2) ||
+        (!lastBlackRook1 && currentBlackRook1) ||
+        (!lastBlackRook2 && currentBlackRook2)
+    );
 };
 
 const isTransformedPawnPos = (pawn) => {
@@ -141,6 +180,12 @@ const extractBoardInfo = (board, blame = '') => {
     return { piecePositions };
 }
 
+const isValidCastleDetails = (castleDetails) => {
+    return Object.values(castleDetails).every((player) => {
+        return player['1'] !== undefined && player['2'] !== undefined;
+    })
+}
+
 const getGameDifferences = (lastBoard, currBoard) => {
     const { piecePositions: lastPositions, error: lastError } = extractBoardInfo(lastBoard);
     const { piecePositions: currPositions, error: currError } = extractBoardInfo(currBoard);
@@ -167,6 +212,15 @@ const getGameDifferences = (lastBoard, currBoard) => {
     return { differences, currPositions, lastPositions };
 }
 
+const playerCastled = (lastCastleDetails, currCastleDetails, player) => {
+    const lastRook1 = lastCastleDetails[player][1];
+    const lastRook2 = lastCastleDetails[player][2];
+    const currRook1 = currCastleDetails[player][1];
+    const currRook2 = currCastleDetails[player][2];
+
+    return (lastRook1 !== currRook1) || (lastRook2 !== currRook2);
+}
+
 export const validateTurnContinuity = (lastMove, currentMove) => {
     const lastMoveDetails = extractMoveDetails(lastMove);
     const currentMoveDetails = extractMoveDetails(currentMove);
@@ -177,7 +231,7 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
         };
     }
 
-    if (lastMoveDetails.canCastle.includes(undefined) || currentMoveDetails.canCastle.includes(undefined)) {
+    if (!isValidCastleDetails(lastMoveDetails.canCastle) || !isValidCastleDetails(currentMoveDetails.canCastle)) {
         return {
             error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_MESSAGE, currentMoveDetails.player)
         };
@@ -225,15 +279,15 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
         data: {
             differences,
             player: currentMoveDetails.player,
-            castled: canCastle(lastMove, currentMoveDetails.player) && !canCastle(currentMove, currentMoveDetails.player),
+            castled: playerCastled(lastMoveDetails.canCastle, currentMoveDetails.canCastle, currentMoveDetails.player),
             lastPositions,
             currPositions,
         }
     };
 };
 
-export const canCastle = (move, player) => {
+export const canCastle = (move, player, rookNum) => {
     const { canCastle } = extractMoveDetails(move);
 
-    return canCastle[MESSAGE.CAN_CASTLE_POSITIONS[player]];
+    return canCastle[player][rookNum];
 }
