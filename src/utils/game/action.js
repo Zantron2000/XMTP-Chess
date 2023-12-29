@@ -1,6 +1,8 @@
 import { ACTION_TYPES } from "../../tools/enums";
 import { CAPTURED_PIECE, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_VALUES } from "../enum";
-import { isPiece, ownsPiece } from "./piece";
+import { getPieceAtChessCoords } from "./board";
+import { areAllies, isPiece, ownsPiece } from "./piece";
+import { extractCoords } from "./translate";
 
 const findCapturedPiece = (diff) => {
     const entry = Object.entries(diff).find(([key, [lastPos, currentPos]]) => {
@@ -12,6 +14,12 @@ const findCapturedPiece = (diff) => {
     }
 
     return entry[0];
+}
+
+const isCastle = (diff) => {
+    const keys = Object.keys(diff);
+
+    return keys.length === 2 && areAllies(keys[0], keys[1]);
 }
 
 const validateMove = (player, diff) => {
@@ -177,11 +185,7 @@ const validateCastle = (player, diff) => {
     }
 }
 
-export const validateAction = ({ player, differences: diff, castled, transformed }) => {
-    if (castled) {
-        return validateCastle(player, diff);
-    }
-
+export const validateAction = ({ player, differences: diff, transformed }) => {
     if (transformed) {
         return validateTransform(player, diff);
     }
@@ -193,9 +197,13 @@ export const validateAction = ({ player, differences: diff, castled, transformed
     }
 
     const capturedPiece = findCapturedPiece(diff);
-
     if (capturedPiece) {
         return validateCapture(player, capturedPiece, diff);
+    }
+
+    const isCastled = isCastle(diff);
+    if (isCastled) {
+        return validateCastle(player, diff);
     }
 
     return {
@@ -208,4 +216,32 @@ export const convertToAction = ([rowIdx, colIdx], action) => {
     const col = INDEX_TO_COL[colIdx];
 
     return `${col}${row}${action}`;
+}
+
+export const executeAction = (board, originalChessPos, action) => {
+    const actionChessPos = action.slice(0, 2);
+    const actionType = action.slice(2);
+    const actionPos = extractCoords(actionChessPos);
+    const originalPos = extractCoords(originalChessPos);
+    const piece = getPieceAtChessCoords(board, originalChessPos);
+
+    if (actionType === ACTION_TYPES.CASTLE) {
+        const rookCol = actionChessPos[0] === 'C' ? 'A' : 'H';
+        const rookEndCol = actionChessPos[0] === 'C' ? 'D' : 'F';
+        const rookRow = actionChessPos[1];
+        const rookChessPos = `${rookCol}${rookRow}`;
+        const rookPos = extractCoords(rookChessPos);
+        const rookEndPos = extractCoords(`${rookEndCol}${rookRow}`);
+        const rook = getPieceAtChessCoords(board, rookChessPos);
+
+        board[originalPos[0]][originalPos[1]] = PIECE_VALUES.EMPTY;
+        board[actionPos[0]][actionPos[1]] = piece;
+        board[rookPos[0]][rookPos[1]] = PIECE_VALUES.EMPTY;
+        board[rookEndPos[0]][rookEndPos[1]] = rook;
+    } else {
+        board[originalPos[0]][originalPos[1]] = PIECE_VALUES.EMPTY;
+        board[actionPos[0]][actionPos[1]] = piece;
+    }
+
+    return board;
 }

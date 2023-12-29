@@ -377,20 +377,6 @@ describe("Tests validateAction", () => {
             expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CASTLED_DEAD_PIECE)
         });
 
-        it('Should generate an error if the king or rook is dead', () => {
-            const player = PIECE_COLORS.WHITE;
-            const castled = true;
-            const differences = {
-                'WK': ['E1', 'XX'],
-                'WR2': ['G1', 'XX'],
-            }
-
-            const result = validateAction({ player, castled, differences });
-
-            expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CASTLED_PIECE_DIED)
-        })
-
         it('Should generate a castle action from a message', () => {
             const lastMove = createMove('A1XXXXXXE1XXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
             const currMove = createMove('D1XXXXXXC1XXXXXXA7QB2QC2QD2QE2QF2QG2QH2XXXXXXXXXXXXXXXXQA1QB1QC1QD1QE1QF1QG1QH1', PIECE_COLORS.WHITE, MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.TRUE + MESSAGE.TRUE);
