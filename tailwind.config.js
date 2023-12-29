@@ -14,6 +14,10 @@ export default {
         'primary-button': '#88B452',
         'primary-button-hover': '#7eaa48',
         'input': '#507330',
+        'selected-piece-border': '#507330',
+        'selected-piece-background': '#88B452',
+        'move-background': '#88B452',
+        'capture-background': '#88B452',
       }
     },
   },

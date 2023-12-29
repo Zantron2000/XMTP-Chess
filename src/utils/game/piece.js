@@ -1,15 +1,15 @@
 import { PIECE_COLORS, PIECE_VALUES, DIRECTION_VECTORS } from "../enum";
 
 export const areEnemies = (piece1, piece2) => {
-    const color1 = piece1[0] ?? undefined;
-    const color2 = piece2[0] ?? undefined;
+    const color1 = piece1?.[0] ?? undefined;
+    const color2 = piece2?.[0] ?? undefined;
 
     return PIECE_COLORS.isEnemy(color1, color2);
 }
 
 export const areAllies = (piece1, piece2) => {
-    const color1 = piece1[0] ?? undefined;
-    const color2 = piece2[0] ?? undefined;
+    const color1 = piece1?.[0] ?? undefined;
+    const color2 = piece2?.[0] ?? undefined;
 
     return PIECE_COLORS.isAlly(color1, color2);
 }

@@ -58,29 +58,39 @@ export const GAME_STATUS = {
  * The messages to display to the user for validation errors
  */
 export const GAME_VALIDATION_MESSAGES = {
-    DOUBLE_MOVE: 'Player ## moved twice in a row',
-    NO_MOVE: 'Player ## did not move',
-    MULTI_MOVE: 'Player ## moved more than one piece',
-    REENABLE_CASTLING: 'Player ## re-enabled castling',
-    MULTI_ACTION: 'Multiple moves were made in one turn',
-    INVALID_ACTION: 'Player ## made an unrecognized move',
-    MOVE_NO_PIECE: 'Player ## moved a piece that does not exist',
-    MOVE_OPPONENT_PIECE: 'Player ## moved their opponent\'s piece',
-    NO_CAPTURED_PIECE: 'Player ## captured a piece that does not exist',
-    NO_CAPTURER_PIECE: 'Player ## captured a piece with a piece that does not exist',
-    CAPTURE_WITH_OPPONENT_PIECE: 'Player ## captured a piece with their opponent\'s piece',
-    CAPTURE_FRIENDLY_PIECE: 'Player ## captured their own piece',
-    CAPTURED_ALREADY_DEAD: 'Player ## captured a piece that was already dead',
-    CAPTURER_DIED: 'Player ## captured a piece with a piece that died',
-    CAPTURED_SURVIVED: 'Player ## captured a piece that survived',
-    CAPTURED_FAR_TARGET: 'Player ## captured a piece not in range',
-    NO_REVIVED_PIECE: 'Player ## revived a piece that does not exist',
-    OPPONENT_TRANSFORM: 'Player ## transformed their opponent\'s piece',
-    INVALID_ACTION: 'Player ## executed an action not offered by the game',
-    INVALID_MESSAGE: 'Game information is invalid',
-    INVALID_BOARD: 'An invalid board format was provided',
+    SAME_MESSAGE_COLOR: 1,
+    NO_MOVE: 2,
+    MULTI_MOVE: 3,
+    REENABLE_CASTLING: 4,
+    MULTI_ACTION: 5,
+    INVALID_ACTION: 6,
+    MOVE_NO_PIECE: 7,
+    MOVE_OPPONENT_PIECE: 8,
+    NO_CAPTURED_PIECE: 9,
+    NO_CAPTURER_PIECE: 10,
+    CAPTURE_WITH_OPPONENT_PIECE: 12,
+    CAPTURE_FRIENDLY_PIECE: 13,
+    CAPTURED_ALREADY_DEAD: 14,
+    CAPTURER_DIED: 15,
+    CAPTURED_SURVIVED: 16,
+    CAPTURED_FAR_TARGET: 17,
+    NO_REVIVED_PIECE: 18,
+    OPPONENT_TRANSFORM: 19,
+    INVALID_ACTION: 20,
+    INVALID_MESSAGE: 21,
+    INVALID_BOARD: 22,
+    INVALID_PIECE_COUNT: 23,
+    INVALID_TRANSFORM_COUNT: 24,
+    INVALID_PIECE_POS: 25,
+    INVALID_BOARD_SIZE: 26,
+    CAPTURE_WITH_DEAD_PIECE: 27,
+    CASTLED_NON_KING: 28,
+    CASTLED_NON_ROOK: 29,
+    CASTLED_ENEMY_PIECE: 30,
+    CASTLED_DEAD_PIECE: 31,
+    CASTLED_PIECE_DIED: 32,
 
-    formatMessage: (message, color) => message.replace('##', color),
+    formatMessage: (message, color) => message,
 }
 
 export const PIECE_VALUES = {
@@ -188,19 +198,6 @@ export const MESSAGE = {
 }
 
 export const ROW_TO_INDEX = {
-    A: 0,
-    B: 1,
-    C: 2,
-    D: 3,
-    E: 4,
-    F: 5,
-    G: 6,
-    H: 7,
-}
-
-export const INDEX_TO_ROW = Object.keys(ROW_TO_INDEX);
-
-export const COL_TO_INDEX = {
     1: 0,
     2: 1,
     3: 2,
@@ -209,6 +206,19 @@ export const COL_TO_INDEX = {
     6: 5,
     7: 6,
     8: 7,
+}
+
+export const INDEX_TO_ROW = Object.keys(ROW_TO_INDEX);
+
+export const COL_TO_INDEX = {
+    A: 0,
+    B: 1,
+    C: 2,
+    D: 3,
+    E: 4,
+    F: 5,
+    G: 6,
+    H: 7,
 }
 
 export const INDEX_TO_COL = Object.keys(COL_TO_INDEX);

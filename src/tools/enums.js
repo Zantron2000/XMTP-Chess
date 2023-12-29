@@ -32,7 +32,7 @@ export const ACTION_TYPES = {
     MOVE: 'M',
     CAPTURE: 'C',
     TRANSFORM: 'T',
-    SWAP: 'S',
+    CASTLE: 'S',
 };
 
 export const PIECE_ORDER = {
