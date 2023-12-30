@@ -1,4 +1,6 @@
-import { validateMove } from "../game/board";
+import { PIECE_COLORS, PIECE_VALUES } from "../enum";
+import { validateAction } from "../game/action";
+import { isSafeMove, validateMove } from "../game/board";
 import { getNextTurn, isPlayerMove, validateTurnContinuity } from "../game/message";
 import { translateMessageToBoard } from "../game/translate";
 
@@ -18,15 +20,48 @@ class BoardManager {
             return cError;
         }
 
-        const board = translateMessageToBoard(this.lastMove);
-        const { error: pError, data: pData } = validateAction(board, cData);
+        const { error: pError, data: pData } = validateAction(cData);
         if (pError) {
             return pError;
         }
 
-        const { error: mError } = validateMove(board, pData);
+        const lastBoard = translateMessageToBoard(this.lastMove);
+        const { error: mError } = validateMove(lastBoard, pData, cData.castled[this.player], cData.lastPawnRegistry);
 
-        return mError;
+        if (mError) {
+            return mError;
+        }
+
+        this.board = translateMessageToBoard(this.currentMove);
+        this.positions = cData.currPositions;
+        this.pawnRegistry = cData.currPawnRegistry;
+    }
+
+    validateOpponentMove() {
+        const { error: cError, data: cData } = validateTurnContinuity(this.lastMove, this.currentMove);
+        if (cError) {
+            return cError;
+        }
+
+        const { error: pError, data: pData } = validateAction(cData);
+        if (pError) {
+            return pError;
+        }
+
+        const lastBoard = translateMessageToBoard(this.lastMove);
+        const { error: mError } = validateMove(lastBoard, pData, cData.castled[this.player], cData.lastPawnRegistry);
+
+        if (mError) {
+            return mError;
+        }
+
+        this.board = translateMessageToBoard(this.currentMove);
+        this.positions = cData.currPositions;
+        this.pawnRegistry = cData.currPawnRegistry;
+
+        if (!isSafeMove(this.board, this.positions[PIECE_COLORS.BLACK + PIECE_VALUES.KING])) {
+            return GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.CHECKMATE, this.player);
+        }
     }
 
     getStatus(setStatus) {
