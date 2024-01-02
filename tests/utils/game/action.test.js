@@ -67,22 +67,41 @@ describe("Tests validateAction", () => {
 
             expect(messageResults.data).toBeDefined();
             expect(messageResults.data).not.toBeNull();
-            expect(messageResults.data.castled).toBe(false);
+            expect(messageResults.data.last.canCastle).toStrictEqual({
+                [PIECE_COLORS.WHITE]: {
+                    1: true,
+                    2: false,
+                },
+                [PIECE_COLORS.BLACK]: {
+                    1: true,
+                    2: false,
+                },
+            });
+            expect(messageResults.data.curr.canCastle).toStrictEqual({
+                [PIECE_COLORS.WHITE]: {
+                    1: true,
+                    2: false,
+                },
+                [PIECE_COLORS.BLACK]: {
+                    1: true,
+                    2: false,
+                },
+            });
             expect(messageResults.data.player).toBe(PIECE_COLORS.WHITE);
-            expect(Object.keys(messageResults.data.lastPositions).length).toBe(32);
-            expect(Object.keys(messageResults.data.currPositions).length).toBe(32);
+            expect(Object.keys(messageResults.data.last.positions).length).toBe(32);
+            expect(Object.keys(messageResults.data.curr.positions).length).toBe(32);
             expect(Object.keys(messageResults.data.differences).length).toBe(1);
             expect(messageResults.data.differences['WP1'][0]).toBe('A2');
             expect(messageResults.data.differences['WP1'][1]).toBe('A3');
             Object.keys(expectedLastPos).forEach((key) => {
                 const expectedLast = expectedLastPos[key];
-                const recievedLast = messageResults.data.lastPositions[key];
+                const recievedLast = messageResults.data.last.positions[key];
 
                 expect(recievedLast).toBe(expectedLast);
             });
             Object.keys(expectedCurrPos).forEach((key) => {
                 const expectedCurr = expectedCurrPos[key];
-                const recievedCurr = messageResults.data.currPositions[key];
+                const recievedCurr = messageResults.data.curr.positions[key];
 
                 expect(recievedCurr).toBe(expectedCurr);
             });
@@ -124,22 +143,41 @@ describe("Tests validateAction", () => {
 
             expect(messageResults.data).toBeDefined();
             expect(messageResults.data).not.toBeNull();
-            expect(messageResults.data.castled).toBe(false);
+            expect(messageResults.data.last.canCastle).toStrictEqual({
+                [PIECE_COLORS.WHITE]: {
+                    1: true,
+                    2: false,
+                },
+                [PIECE_COLORS.BLACK]: {
+                    1: true,
+                    2: false,
+                },
+            });
+            expect(messageResults.data.curr.canCastle).toStrictEqual({
+                [PIECE_COLORS.WHITE]: {
+                    1: true,
+                    2: false,
+                },
+                [PIECE_COLORS.BLACK]: {
+                    1: true,
+                    2: false,
+                },
+            });
             expect(messageResults.data.player).toBe(PIECE_COLORS.BLACK);
-            expect(Object.keys(messageResults.data.lastPositions).length).toBe(32);
-            expect(Object.keys(messageResults.data.currPositions).length).toBe(32);
+            expect(Object.keys(messageResults.data.last.positions).length).toBe(32);
+            expect(Object.keys(messageResults.data.curr.positions).length).toBe(32);
             expect(Object.keys(messageResults.data.differences).length).toBe(1);
             expect(messageResults.data.differences['WP1'][0]).toBe('A2');
             expect(messageResults.data.differences['WP1'][1]).toBe('A3');
             Object.keys(expectedLastPos).forEach((key) => {
                 const expectedLast = expectedLastPos[key];
-                const recievedLast = messageResults.data.lastPositions[key];
+                const recievedLast = messageResults.data.last.positions[key];
 
                 expect(recievedLast).toBe(expectedLast);
             });
             Object.keys(expectedCurrPos).forEach((key) => {
                 const expectedCurr = expectedCurrPos[key];
-                const recievedCurr = messageResults.data.currPositions[key];
+                const recievedCurr = messageResults.data.curr.positions[key];
 
                 expect(recievedCurr).toBe(expectedCurr);
             });

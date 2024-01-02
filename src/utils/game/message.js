@@ -2,9 +2,6 @@ import { PIECE_ORDER } from "../../tools/enums";
 import { GAME_STATUS, GAME_VALIDATION_MESSAGES, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES } from "../enum";
 import { isPiece } from "./piece";
 
-const pieceOrder = Object.keys(PIECE_MESSAGE_ORDER).sort((a, b) => {
-    return PIECE_MESSAGE_ORDER[a] - PIECE_MESSAGE_ORDER[b];
-});
 const pawnTypes = PIECE_VALUES.QUEEN + PIECE_VALUES.ROOK + PIECE_VALUES.BISHOP + PIECE_VALUES.KNIGHT;
 const validRows = "ABCDEFGH";
 const validCols = "12345678";
@@ -66,10 +63,10 @@ export const extractMoveDetails = (move) => {
  * @param {PIECE_COLORS[keyof PIECE_COLORS]} player
  * @returns {Boolean} Whether or not the move was made by the player
  */
-export const isPlayerMove = (move, player) => {
+export const getPlayerFromMessage = (move) => {
     const { player: movePlayer } = extractMoveDetails(move);
 
-    return PIECE_COLORS.isAlly(movePlayer, player);
+    return movePlayer;
 };
 
 /**
@@ -150,7 +147,7 @@ const extractBoardInfo = (board, blame = '') => {
     }
 
     for (let i = 0; i < board.length; i += 2) {
-        const piece = pieceOrder[pieceCount];
+        const piece = PIECE_MESSAGE_ORDER[pieceCount];
 
         if (isPiece(piece, PIECE_VALUES.PAWN) && isTransformedPawnPos(board.substring(i, i + 3))) {
             pawnRegistry[piece] = board.substring(i, i + 1);
@@ -199,7 +196,7 @@ const getGameDifferences = (lastBoard, currBoard) => {
         };
     }
 
-    pieceOrder.forEach((piece) => {
+    PIECE_MESSAGE_ORDER.forEach((piece) => {
         const lastPos = lastPositions[piece];
         const currentPos = currPositions[piece];
 
@@ -292,13 +289,18 @@ export const validateTurnContinuity = (lastMove, currentMove) => {
     return {
         data: {
             differences,
+            last: {
+                canCastle: lastMoveDetails.canCastle,
+                positions: lastPositions,
+                pawnRegistry: lastPawnRegistry,
+            },
+            curr: {
+                canCastle: currentMoveDetails.canCastle,
+                positions: currPositions,
+                pawnRegistry: currPawnRegistry,
+            },
             player: currentMoveDetails.player,
-            castled: playerCastled(lastMoveDetails.canCastle, currentMoveDetails.canCastle, currentMoveDetails.player),
             transformed,
-            lastPositions,
-            currPositions,
-            lastPawnRegistry,
-            currPawnRegistry,
         }
     };
 };

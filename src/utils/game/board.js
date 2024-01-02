@@ -1,4 +1,4 @@
-import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS } from '../enum';
+import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE } from '../enum';
 import { isEnemy } from '../../tools/tools/piece';
 import { extractCoords } from './translate';
 import { areAllies, areEnemies, canAttackDirection, isColor, isPiece } from './piece';
@@ -408,29 +408,36 @@ const generateKingMoves = (board, [row, col], piece, canCastle, registry) => {
     return moves;
 };
 
-const generateMovesForPiece = (board, chessPos, canCastle, registry, ignore) => {
+const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ignore) => {
     const pos = extractCoords(chessPos);
     const piece = ignore || getPieceAt(board, pos);
+    let actions = [];
 
     if (!piece) {
         return [];
     }
 
     if (isPiece(piece, PIECE_VALUES.PAWN)) {
-        return generatePawnMoves(board, pos, piece, registry);
+        actions = generatePawnMoves(board, pos, piece, registry);
     } else if (isPiece(piece, PIECE_VALUES.ROOK)) {
-        return generateRookMoves(board, pos, piece);
+        actions = generateRookMoves(board, pos, piece);
     } else if (isPiece(piece, PIECE_VALUES.KNIGHT)) {
-        return generateKnightMoves(board, pos, piece);
+        actions = generateKnightMoves(board, pos, piece);
     } else if (isPiece(piece, PIECE_VALUES.BISHOP)) {
-        return generateBishopMoves(board, pos, piece);
+        actions = generateBishopMoves(board, pos, piece);
     } else if (isPiece(piece, PIECE_VALUES.QUEEN)) {
-        return generateQueenMoves(board, pos, piece);
+        actions = generateQueenMoves(board, pos, piece);
     } else if (isPiece(piece, PIECE_VALUES.KING)) {
         return generateKingMoves(board, pos, piece, canCastle, registry);
     } else {
         return [];
     }
+
+    return actions.filter((action) => {
+        const nextBoard = movePiece(board, chessPos, action.substring(0, 2));
+
+        return isSafeMove(nextBoard, kingPos, registry);
+    })
 }
 
 const exitsCheck = (board, registry, piecePos, move, kingPos) => {
@@ -441,8 +448,8 @@ const exitsCheck = (board, registry, piecePos, move, kingPos) => {
     return isSafeMove(nextBoard, newKingChessPos, registry);
 }
 
-export const validateMove = (board, { piecePos, action }, canCastle, registry = {}, ignore) => {
-    const actions = generateMovesForPiece(board, piecePos, canCastle, registry, ignore);
+export const validateMove = (board, { piecePos, action }, canCastle, registry = {}, kingPos = 'XX', ignore) => {
+    const actions = generateMovesForPiece(board, piecePos, canCastle, registry, kingPos, ignore);
 
     if (!actions.includes(action)) {
         return {
@@ -467,7 +474,14 @@ export const getTurnInfo = (board, player, positions, registry, canCastle) => {
     Object.keys(positions).forEach((piece) => {
         if (isColor(piece, player)) {
             if (positions[piece] !== 'XX') {
-                actions[piece] = generateMovesForPiece(board, positions[piece], canCastle, registry, piece);
+                actions[piece] = generateMovesForPiece(
+                    board, 
+                    positions[piece], 
+                    canCastle, 
+                    registry, 
+                    positions[player + PIECE_VALUES.KING], 
+                    piece
+                );
             } else {
                 actions[piece] = [];
             }
@@ -497,8 +511,10 @@ export const movePiece = (board, start, end) => {
 }
 
 export const placePiece = (board, pos, piece) => {
-    const [row, col] = extractCoords(pos);
-    board[row][col] = piece;
+    if (pos !== CAPTURED_PIECE) {
+        const [row, col] = extractCoords(pos);
+        board[row][col] = piece;
+    }
 
     return board;
 }

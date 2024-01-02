@@ -245,3 +245,7 @@ export const executeAction = (board, originalChessPos, action) => {
 
     return board;
 }
+
+export const noMoreActions = (actionsList) => {
+    return Object.values(actionsList).every((actions) => actions.length === 0);
+}

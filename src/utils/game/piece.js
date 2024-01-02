@@ -16,6 +16,16 @@ export const areAllies = (piece1, piece2) => {
 
 export const isMatchingPiece = (piece, registry, ...types) => types.some(pieceType => isPiece(piece, pieceType, registry));
 
+export const getEnemyColor = (color) => {
+    if (color === PIECE_COLORS.WHITE) {
+        return PIECE_COLORS.BLACK;
+    } else if (color === PIECE_COLORS.BLACK) {
+        return PIECE_COLORS.WHITE;
+    } else {
+        return undefined;
+    }
+}
+
 export const ownsPiece = (player, piece) => {
     const color = piece[0] ?? undefined;
 

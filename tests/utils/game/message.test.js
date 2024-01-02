@@ -3,7 +3,7 @@ import {
     canCastle,
     getNextTurn,
     isOpponentMove,
-    isPlayerMove,
+    getPlayerFromMessage,
     validateTurnContinuity,
 } from '../../../src/utils/game/message';
 import { MESSAGE, PIECE_COLORS, GAME_STATUS, GAME_VALIDATION_MESSAGES } from '../../../src/utils/enum';
@@ -113,21 +113,13 @@ describe('Tests getNextTurn', () => {
     });
 });
 
-describe('Tests isPlayerMove', () => {
-    it('Should return true if the move was made by the player', () => {
+describe('Tests getPlayerFromMessage', () => {
+    it('Should return the player color from the message', () => {
         const move = createBasicMove();
 
-        const isMove = isPlayerMove(move, PIECE_COLORS.WHITE);
+        const player = getPlayerFromMessage(move);
 
-        expect(isMove).toBe(true);
-    });
-
-    it('Should return false if the move was not made by the player', () => {
-        const move = createBasicMove();
-
-        const isMove = isPlayerMove(move, PIECE_COLORS.BLACK);
-
-        expect(isMove).toBe(false);
+        expect(player).toBe('W');
     });
 });
 
@@ -313,22 +305,41 @@ describe('Tests validateTurnContinuity', () => {
 
         expect(results.data).toBeDefined();
         expect(results.data).not.toBeNull();
-        expect(results.data.castled).toBe(false);
+        expect(results.data.last.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: false,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: false,
+            },
+        });
+        expect(results.data.curr.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: false,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: false,
+            },
+        });
         expect(results.data.player).toBe(PIECE_COLORS.BLACK);
-        expect(Object.keys(results.data.lastPositions).length).toBe(32);
-        expect(Object.keys(results.data.currPositions).length).toBe(32);
+        expect(Object.keys(results.data.last.positions).length).toBe(32);
+        expect(Object.keys(results.data.curr.positions).length).toBe(32);
         expect(Object.keys(results.data.differences).length).toBe(1);
         expect(results.data.differences['WP1'][0]).toBe('A2');
         expect(results.data.differences['WP1'][1]).toBe('A3');
         Object.keys(expectedLastPos).forEach((key) => {
             const expectedLast = expectedLastPos[key];
-            const recievedLast = results.data.lastPositions[key];
+            const recievedLast = results.data.last.positions[key];
 
             expect(recievedLast).toBe(expectedLast);
         });
         Object.keys(expectedCurrPos).forEach((key) => {
             const expectedCurr = expectedCurrPos[key];
-            const recievedCurr = results.data.currPositions[key];
+            const recievedCurr = results.data.curr.positions[key];
 
             expect(recievedCurr).toBe(expectedCurr);
         });
@@ -362,11 +373,30 @@ describe('Tests validateTurnContinuity', () => {
 
         expect(results.data).toBeDefined();
         expect(results.data).not.toBeNull();
-        expect(results.data.castled).toBe(true);
+        expect(results.data.last.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: true,
+            },
+        });
+        expect(results.data.curr.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: false,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: false,
+            },
+        });
         expect(results.data.transformed).toBe(false);
         expect(results.data.player).toBe(PIECE_COLORS.BLACK);
-        expect(Object.keys(results.data.lastPositions).length).toBe(32);
-        expect(Object.keys(results.data.currPositions).length).toBe(32);
+        expect(Object.keys(results.data.last.positions).length).toBe(32);
+        expect(Object.keys(results.data.curr.positions).length).toBe(32);
         expect(Object.keys(results.data.differences).length).toBe(2);
         expect(results.data.differences['WK'][0]).toBe('E1');
         expect(results.data.differences['WK'][1]).toBe('G1');
@@ -374,13 +404,13 @@ describe('Tests validateTurnContinuity', () => {
         expect(results.data.differences['WR2'][1]).toBe('F1');
         Object.keys(expectedLastPos).forEach((key) => {
             const expectedLast = expectedLastPos[key];
-            const recievedLast = results.data.lastPositions[key];
+            const recievedLast = results.data.last.positions[key];
 
             expect(recievedLast).toBe(expectedLast);
         });
         Object.keys(expectedCurrPos).forEach((key) => {
             const expectedCurr = expectedCurrPos[key];
-            const recievedCurr = results.data.currPositions[key];
+            const recievedCurr = results.data.curr.positions[key];
 
             expect(recievedCurr).toBe(expectedCurr);
         });
@@ -414,11 +444,30 @@ describe('Tests validateTurnContinuity', () => {
 
         expect(results.data).toBeDefined();
         expect(results.data).not.toBeNull();
-        expect(results.data.castled).toBe(false);
+        expect(results.data.last.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: true,
+            },
+        });
+        expect(results.data.curr.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: true,
+            },
+        });
         expect(results.data.transformed).toBe(false);
         expect(results.data.player).toBe(PIECE_COLORS.BLACK);
-        expect(Object.keys(results.data.lastPositions).length).toBe(32);
-        expect(Object.keys(results.data.currPositions).length).toBe(32);
+        expect(Object.keys(results.data.last.positions).length).toBe(32);
+        expect(Object.keys(results.data.curr.positions).length).toBe(32);
         expect(Object.keys(results.data.differences).length).toBe(2);
         expect(results.data.differences['WR1'][0]).toBe('A1');
         expect(results.data.differences['WR1'][1]).toBe('A7');
@@ -426,13 +475,13 @@ describe('Tests validateTurnContinuity', () => {
         expect(results.data.differences['BP1'][1]).toBe('XX');
         Object.keys(expectedLastPos).forEach((key) => {
             const expectedLast = expectedLastPos[key];
-            const recievedLast = results.data.lastPositions[key];
+            const recievedLast = results.data.last.positions[key];
 
             expect(recievedLast).toBe(expectedLast);
         });
         Object.keys(expectedCurrPos).forEach((key) => {
             const expectedCurr = expectedCurrPos[key];
-            const recievedCurr = results.data.currPositions[key];
+            const recievedCurr = results.data.curr.positions[key];
 
             expect(recievedCurr).toBe(expectedCurr);
         });
@@ -466,27 +515,46 @@ describe('Tests validateTurnContinuity', () => {
 
         expect(results.data).toBeDefined();
         expect(results.data).not.toBeNull();
-        expect(results.data.castled).toBe(false);
+        expect(results.data.last.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: true,
+            },
+        });
+        expect(results.data.curr.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: true,
+            },
+        });
         expect(results.data.transformed).toBe(true);
         expect(results.data.player).toBe(PIECE_COLORS.BLACK);
-        expect(Object.keys(results.data.lastPositions).length).toBe(32);
-        expect(Object.keys(results.data.currPositions).length).toBe(32);
+        expect(Object.keys(results.data.last.positions).length).toBe(32);
+        expect(Object.keys(results.data.curr.positions).length).toBe(32);
         expect(Object.keys(results.data.differences).length).toBe(1);
         expect(results.data.differences['WP1'][0]).toBe('A7');
         expect(results.data.differences['WP1'][1]).toBe('A8');
-        expect(results.data.lastPawnRegistry).toEqual({});
-        expect(results.data.currPawnRegistry).toEqual({
+        expect(results.data.last.pawnRegistry).toEqual({});
+        expect(results.data.curr.pawnRegistry).toEqual({
             'WP1': 'Q',
         });
         Object.keys(expectedLastPos).forEach((key) => {
             const expectedLast = expectedLastPos[key];
-            const recievedLast = results.data.lastPositions[key];
+            const recievedLast = results.data.last.positions[key];
 
             expect(recievedLast).toBe(expectedLast);
         });
         Object.keys(expectedCurrPos).forEach((key) => {
             const expectedCurr = expectedCurrPos[key];
-            const recievedCurr = results.data.currPositions[key];
+            const recievedCurr = results.data.curr.positions[key];
 
             expect(recievedCurr).toBe(expectedCurr);
         });
@@ -521,21 +589,40 @@ describe('Tests validateTurnContinuity', () => {
 
         expect(results.data).toBeDefined();
         expect(results.data).not.toBeNull();
-        expect(results.data.castled).toBe(false);
+        expect(results.data.last.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: true,
+            },
+        });
+        expect(results.data.curr.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: {
+                1: true,
+                2: true,
+            },
+            [PIECE_COLORS.BLACK]: {
+                1: true,
+                2: true,
+            },
+        });
         expect(results.data.transformed).toBe(true);
         expect(results.data.player).toBe(PIECE_COLORS.BLACK);
-        expect(Object.keys(results.data.lastPositions).length).toBe(32);
-        expect(Object.keys(results.data.currPositions).length).toBe(32);
+        expect(Object.keys(results.data.last.positions).length).toBe(32);
+        expect(Object.keys(results.data.curr.positions).length).toBe(32);
         expect(Object.keys(results.data.differences).length).toBe(1);
         expect(results.data.differences['WP1'][0]).toBe('A7');
         expect(results.data.differences['WP1'][1]).toBe('A8');
-        expect(results.data.lastPawnRegistry).toEqual({
+        expect(results.data.last.pawnRegistry).toEqual({
             'BP1': 'Q', 'BP2': 'Q', 'BP3': 'Q', 'BP4': 'Q',
             'BP5': 'Q', 'BP6': 'Q', 'BP7': 'Q', 'BP8': 'Q',
             'WP2': 'Q', 'WP3': 'Q', 'WP4': 'Q',
             'WP5': 'Q', 'WP6': 'Q', 'WP7': 'Q', 'WP8': 'Q',
         });
-        expect(results.data.currPawnRegistry).toEqual({
+        expect(results.data.curr.pawnRegistry).toEqual({
             'BP1': 'Q', 'BP2': 'Q', 'BP3': 'Q', 'BP4': 'Q',
             'BP5': 'Q', 'BP6': 'Q', 'BP7': 'Q', 'BP8': 'Q',
             'WP1': 'Q', 'WP2': 'Q', 'WP3': 'Q', 'WP4': 'Q',
@@ -543,13 +630,13 @@ describe('Tests validateTurnContinuity', () => {
         });
         Object.keys(expectedLastPos).forEach((key) => {
             const expectedLast = expectedLastPos[key];
-            const recievedLast = results.data.lastPositions[key];
+            const recievedLast = results.data.last.positions[key];
 
             expect(recievedLast).toBe(expectedLast);
         });
         Object.keys(expectedCurrPos).forEach((key) => {
             const expectedCurr = expectedCurrPos[key];
-            const recievedCurr = results.data.currPositions[key];
+            const recievedCurr = results.data.curr.positions[key];
 
             expect(recievedCurr).toBe(expectedCurr);
         });

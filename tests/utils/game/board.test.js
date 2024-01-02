@@ -86,9 +86,9 @@ describe('Tests validateMove', () => {
                 action: 'A3' + ACTION_TYPES.TRANSFORM,
             }
 
-            const { error: doubleMoveError } = validateMove(board, doubleMove);
-            const { error: singleMoveError } = validateMove(board, singleMove);
-            const { error: transformError } = validateMove(board, transform);
+            const { error: doubleMoveError } = validateMove(board, doubleMove, undefined, undefined, 'XX');
+            const { error: singleMoveError } = validateMove(board, singleMove, undefined, undefined, 'XX');
+            const { error: transformError } = validateMove(board, transform, undefined, undefined, 'XX');
 
             expect(singleMoveError).toBe(null);
             expect(doubleMoveError).toBe(null);
