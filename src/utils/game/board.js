@@ -91,7 +91,9 @@ const generateBlackPawnMoves = (board, [row, col], piece) => {
 
     possibleCaptures.forEach((capture) => {
         if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, board[capture[0]][capture[1]])) {
-            moves.push(convertToAction(capture, ACTION_TYPES.CAPTURE));
+            const action = row === 1 ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
+
+            moves.push(convertToAction(capture, action));
         }
     });
 
@@ -131,7 +133,9 @@ const generateWhitePawnMoves = (board, [row, col], piece) => {
 
     possibleCaptures.forEach((capture) => {
         if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, board[capture[0]][capture[1]])) {
-            moves.push(convertToAction(capture, ACTION_TYPES.CAPTURE));
+            const action = row === 6 ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
+
+            moves.push(convertToAction(capture, action));
         }
     });
 

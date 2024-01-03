@@ -1,9 +1,9 @@
 import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS } from "../enum";
 import { noMoreActions, validateAction } from "../game/action";
-import { getTurnInfo, isSafeMove, validateMove } from "../game/board";
+import { getPieceAtChessCoords, getTurnInfo, isSafeMove, validateMove } from "../game/board";
 import { getNextTurn, getPlayerFromMessage, validateTurnContinuity } from "../game/message";
-import { getEnemyColor } from "../game/piece";
-import { translateMessageToBoard } from "../game/translate";
+import { getEnemyColor, ownsPiece } from "../game/piece";
+import { translateMessageToBoard, translateTurnToMessage } from "../game/translate";
 
 class BoardManager {
     constructor(lastMove, currentMove, selectedPiece, status, player) {
@@ -80,11 +80,11 @@ class BoardManager {
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
-            const { actions, kingInDanger } = getTurnInfo(this.board, nextMoveMaker, this.positions, this.pawnRegistry, this.canCastle[nextMoveMaker]);
+            const { actions, isKingSafe } = getTurnInfo(this.board, nextMoveMaker, this.positions, this.pawnRegistry, this.canCastle[nextMoveMaker]);
 
-            if (noMoreActions(actions) && kingInDanger) {
+            if (noMoreActions(actions) && !isKingSafe) {
                 return setStatus(GAME_STATUS.CHECKMATE);
-            } else if (noMoreActions(actions) && !kingInDanger) {
+            } else if (noMoreActions(actions) && isKingSafe) {
                 return setStatus(GAME_STATUS.STALEMATE);
             } else {
                 return setStatus(nextTurn);
@@ -96,17 +96,38 @@ class BoardManager {
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
-            const { actions, kingInDanger } = getTurnInfo(this.board, this.player, this.positions, this.pawnRegistry, this.canCastle[this.player]);
+            const { actions, isKingSafe } = getTurnInfo(this.board, this.player, this.positions, this.pawnRegistry, this.canCastle[this.player]);
             this.actions = actions;
 
-            if (noMoreActions(actions) && kingInDanger) {
+            if (noMoreActions(actions) && !isKingSafe) {
                 return setStatus(GAME_STATUS.CHECKMATE);
-            } else if (noMoreActions(actions) && !kingInDanger) {
+            } else if (noMoreActions(actions) && isKingSafe) {
                 return setStatus(GAME_STATUS.STALEMATE);
             } else {
                 return setStatus(nextTurn);
             }
         }
+    }
+
+    getTileDetails(chessPos) {
+        const details = {};
+        const piece = getPieceAtChessCoords(board, chessPos);
+        
+        if (piece) {
+            details.piece = piece;
+            details.selectable = ownsPiece(this.player, piece);
+        }
+
+        if (this.selectedPiece) {
+            const action = this.actions[this.selectedPiece].find((action) => action.includes(chessPos))
+            details.action = action[2];
+        }
+
+        return details;
+    }
+
+    translateTurn() {
+        return translateTurnToMessage(this.positions, this.pawnRegistry, this.player, this.canCastle);
     }
 }
 

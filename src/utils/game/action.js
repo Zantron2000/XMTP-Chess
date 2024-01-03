@@ -117,7 +117,7 @@ const validateCapture = (player, captured, diff) => {
 }
 
 const validateTransform = (player, diff) => {
-    const transformer = Object.keys(diff)[0]
+    const transformer = Object.keys(diff).find((piece) => isPiece(piece, PIECE_VALUES.PAWN));
     const [lastTrsPos, currTrsPos] = diff[transformer];
 
     if (!transformer) {

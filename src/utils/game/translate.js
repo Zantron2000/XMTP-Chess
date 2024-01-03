@@ -1,4 +1,4 @@
-import { COL_TO_INDEX, INDEX_TO_ROW, PIECE_MESSAGE_ORDER, PIECE_VALUES, ROW_TO_INDEX } from "../enum";
+import { CAPTURED_PIECE, COL_TO_INDEX, INDEX_TO_ROW, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES, ROW_TO_INDEX } from "../enum";
 import { placePiece } from "./board";
 import { extractMoveDetails } from "./message";
 import { isPiece } from "./piece";
@@ -59,4 +59,23 @@ export const translateMessageToBoard = (message) => {
     });
 
     return board;
+}
+
+export const translateTurnToMessage = (positions, registry, player, canCastleDetails) => {
+    let board = '';
+
+    PIECE_MESSAGE_ORDER.forEach((piece) => {
+        const pos = positions[piece];
+        const registryPiece = pos !== CAPTURED_PIECE ? registry[piece] || '' : '';
+
+        board += registryPiece + pos;
+    });
+
+    const w1 = canCastleDetails[PIECE_COLORS.WHITE][1] === true ? MESSAGE.TRUE : MESSAGE.FALSE;
+    const w2 = canCastleDetails[PIECE_COLORS.WHITE][2] === true ? MESSAGE.TRUE : MESSAGE.FALSE;
+    const b1 = canCastleDetails[PIECE_COLORS.BLACK][1] === true ? MESSAGE.TRUE : MESSAGE.FALSE;
+    const b2 = canCastleDetails[PIECE_COLORS.BLACK][2] === true ? MESSAGE.TRUE : MESSAGE.FALSE;
+    const canCastleString = w1 + w2 + b1 + b2;
+
+    return [board, player, canCastleString].join(MESSAGE.GAME_DELIMITER);
 }
