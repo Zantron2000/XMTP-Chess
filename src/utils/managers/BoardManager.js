@@ -6,10 +6,10 @@ import { getEnemyColor, ownsPiece } from "../game/piece";
 import { translateMessageToBoard, translateTurnToMessage } from "../game/translate";
 
 class BoardManager {
-    constructor(lastMove, currentMove, selectedPiece, status, player) {
+    constructor(lastMove, currentMove, selectedTile, status, player) {
         this.lastMove = lastMove;
         this.currentMove = currentMove;
-        this.selectedPiece = selectedPiece;
+        this.selectedTile = selectedTile;
         this.status = status;
         this.player = player;
         this.actions = {};
@@ -111,17 +111,23 @@ class BoardManager {
 
     getTileDetails(chessPos) {
         const details = {};
-        const piece = getPieceAtChessCoords(board, chessPos);
+        const piece = getPieceAtChessCoords(this.board, chessPos);
         
         if (piece) {
             details.piece = piece;
             details.selectable = ownsPiece(this.player, piece);
         }
 
-        if (this.selectedPiece) {
-            const action = this.actions[this.selectedPiece].find((action) => action.includes(chessPos))
-            details.action = action[2];
+        if (this.selectedTile) {
+            const actionPiece = getPieceAtChessCoords(this.board, this.selectedTile);
+            const action = this.actions[actionPiece].find((action) => action.includes(chessPos))
+            if (action) {
+                details.action = action[2];
+                details.selectable = true;
+            }
         }
+
+        details.selectable ??= false;
 
         return details;
     }

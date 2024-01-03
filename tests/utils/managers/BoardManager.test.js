@@ -1,9 +1,10 @@
 import { jest } from '@jest/globals';
 import { createActions, createBoard, createMessage, createPositions, createStarterMessage, createTestBoard } from '../../tools';
 
-import { GAME_STATUS, GAME_VALIDATION_MESSAGES, PIECE_COLORS, PIECES } from "../../../src/utils/enum";
+import { GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES, PIECES } from "../../../src/utils/enum";
 import BoardManager from "../../../src/utils/managers/BoardManager";
-import { movePiece } from '../../../src/utils/game/board';
+import { getPieceAtChessCoords, movePiece } from '../../../src/utils/game/board';
+import { ACTION_TYPES } from '../../../src/tools/enums';
 
 describe('Tests the getStatus method', () => {
     const setStatusFunc = jest.fn();
@@ -2198,3 +2199,75 @@ describe('Tests the getStatus method', () => {
         });
     });
 });
+
+describe('Tests the getTileDetails method', () => {
+    it('Should note all tiles that are interactable', () => {
+        const turn2 = createMessage({
+            [PIECES.WHITE_KNIGHT_1]: 'C3',
+        }, 'W');
+        const turn3 = createMessage({
+            [PIECES.WHITE_KNIGHT_1]: 'C3',
+            [PIECES.BLACK_PAWN_4]: 'D5',
+        }, 'B')
+
+        const manager = new BoardManager(turn2, turn3, 'C3', undefined, PIECE_COLORS.WHITE);
+        manager.getStatus(jest.fn(), jest.fn());
+
+        for (let i = 0; i < 8; i += 1) {
+            for (let j = 0; j < 8; j += 1) {
+                const chessCol = INDEX_TO_COL[j];
+                const chessRow = INDEX_TO_ROW[i];
+                const chessPos = chessCol + chessRow;
+
+                const details = manager.getTileDetails(chessPos);
+                const horseMovements = ['B1', 'A4', 'B5', 'E4'];
+                const horseAttack = ['D5'];
+                const piece = manager.board[i][j];
+
+                if (horseMovements.includes(chessPos)) {
+                    expect(details.action).toBe(ACTION_TYPES.MOVE);
+                    expect(details.piece).toBe(undefined);
+                    expect(details.selectable).toBe(true);
+                } else if (horseAttack.includes(chessPos)) {
+                    expect(details.action).toBe(ACTION_TYPES.CAPTURE);
+                    expect(details.piece).toBe(PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '4');
+                    expect(details.selectable).toBe(true);
+                } else if (piece && piece[0] === PIECE_COLORS.WHITE) {
+                    expect(details.action).toBe(undefined);
+                    expect(details.piece).toBe(piece);
+                    expect(details.selectable).toBe(true);
+                } else if (piece && piece[0] === PIECE_COLORS.BLACK) {
+                    expect(details.action).toBe(undefined);
+                    expect(details.piece).toBe(piece);
+                    expect(details.selectable).toBe(false);
+                } else {
+                    expect(details.action).toBe(undefined);
+                    expect(details.piece).toBe(undefined);
+                    expect(details.selectable).toBe(false);
+                }
+            }
+        }
+    });
+});
+
+describe('Tests the translateTurn method', () => {
+    it('Should successfully translate no move as the current turn message', () => {
+        const turn2 = createMessage({
+            [PIECES.WHITE_KNIGHT_1]: 'C3',
+        }, 'W');
+        const turn3 = createMessage({
+            [PIECES.WHITE_KNIGHT_1]: 'C3',
+            [PIECES.BLACK_PAWN_4]: 'D5',
+        }, 'B')
+
+        const expectedMessage = createMessage({
+            [PIECES.WHITE_KNIGHT_1]: 'C3',
+            [PIECES.BLACK_PAWN_4]: 'D5',
+        }, 'W')
+
+        const manager = new BoardManager(turn2, turn3, 'C3', undefined, PIECE_COLORS.WHITE);
+        manager.getStatus(jest.fn(), jest.fn());
+
+        expect(manager.translateTurn()).toBe(expectedMessage);
+    })
+})
