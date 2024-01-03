@@ -2210,7 +2210,7 @@ describe('Tests the getTileDetails method', () => {
             [PIECES.BLACK_PAWN_4]: 'D5',
         }, 'B')
 
-        const manager = new BoardManager(turn2, turn3, 'C3', undefined, PIECE_COLORS.WHITE);
+        const manager = new BoardManager(turn2, turn3, 'C3', GAME_STATUS.WHITE_TURN, PIECE_COLORS.WHITE);
         manager.getStatus(jest.fn(), jest.fn());
 
         for (let i = 0; i < 8; i += 1) {
@@ -2225,11 +2225,11 @@ describe('Tests the getTileDetails method', () => {
                 const piece = manager.board[i][j];
 
                 if (horseMovements.includes(chessPos)) {
-                    expect(details.action).toBe(ACTION_TYPES.MOVE);
+                    expect(details.action).toBe(chessPos + ACTION_TYPES.MOVE);
                     expect(details.piece).toBe(undefined);
                     expect(details.selectable).toBe(true);
                 } else if (horseAttack.includes(chessPos)) {
-                    expect(details.action).toBe(ACTION_TYPES.CAPTURE);
+                    expect(details.action).toBe(chessPos + ACTION_TYPES.CAPTURE);
                     expect(details.piece).toBe(PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '4');
                     expect(details.selectable).toBe(true);
                 } else if (piece && piece[0] === PIECE_COLORS.WHITE) {
@@ -2245,6 +2245,36 @@ describe('Tests the getTileDetails method', () => {
                     expect(details.piece).toBe(undefined);
                     expect(details.selectable).toBe(false);
                 }
+            }
+        }
+    });
+
+    it('Should note no tiles are interactable due to not being the players turn', () => {
+        const turn3 = createMessage({
+            [PIECES.WHITE_KNIGHT_1]: 'C3',
+            [PIECES.BLACK_PAWN_4]: 'D5',
+        }, 'B');
+        const turn4 = createMessage({
+            [PIECES.WHITE_KNIGHT_1]: 'C3',
+            [PIECES.BLACK_PAWN_4]: 'D5',
+            [PIECES.WHITE_PAWN_8]: 'H3',
+        }, 'W');
+
+        const manager = new BoardManager(turn3, turn4, 'C3', GAME_STATUS.BLACK_TURN, PIECE_COLORS.WHITE);
+        manager.getStatus(jest.fn(), jest.fn());
+
+        for (let i = 0; i < 8; i += 1) {
+            for (let j = 0; j < 8; j += 1) {
+                const chessCol = INDEX_TO_COL[j];
+                const chessRow = INDEX_TO_ROW[i];
+                const chessPos = chessCol + chessRow;
+
+                const details = manager.getTileDetails(chessPos);
+                const piece = manager.board[i][j];
+
+                expect(details.action).toBe(undefined);
+                expect(details.piece).toBe(piece);
+                expect(details.selectable).toBe(false);
             }
         }
     });
@@ -2271,3 +2301,187 @@ describe('Tests the translateTurn method', () => {
         expect(manager.translateTurn()).toBe(expectedMessage);
     })
 })
+
+describe('Tests the toggleTile method', () => {
+    const setSelectedFn = jest.fn();
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    })
+
+    it('Should select a tile when no tile has been selected', () => {
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+
+        manager.toggleTile('A1', setSelectedFn);
+
+        expect(setSelectedFn).toHaveBeenCalledTimes(1);
+        expect(setSelectedFn).toHaveBeenCalledWith('A1');
+        expect(manager.selectedTile).toBe('A1');
+    });
+
+    it('Should select a tile even when a different tile has been selected', () => {
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+
+        manager.toggleTile('A1', setSelectedFn);
+        manager.toggleTile('B1', setSelectedFn);
+
+        expect(setSelectedFn).toHaveBeenCalledTimes(2);
+        expect(setSelectedFn).toHaveBeenCalledWith('A1');
+        expect(setSelectedFn).toHaveBeenCalledWith('B1');
+        expect(manager.selectedTile).toBe('B1');
+    });
+
+    it('Should deselect a tile when the same tile has been selected', () => {
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+
+        manager.toggleTile('A1', setSelectedFn);
+        manager.toggleTile('A1', setSelectedFn);
+
+        expect(setSelectedFn).toHaveBeenCalledTimes(2);
+        expect(setSelectedFn).toHaveBeenCalledWith('A1');
+        expect(setSelectedFn).toHaveBeenCalledWith(undefined);
+        expect(manager.selectedTile).toBe(undefined);
+    });
+});
+
+describe('Tests the updateRegistry method', () => {
+    it('Should not update the registry if the piece is not a pawn', () => {
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.pawnRegistry = {};
+        manager.updateRegistry(PIECES.WHITE_KNIGHT_1, 'C3', 'C4');
+
+        expect(manager.pawnRegistry).toEqual({});
+    });
+
+    it('Should not update the registry if the player does not own the pawn', () => {
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.pawnRegistry = {};
+        manager.updateRegistry(PIECES.BLACK_PAWN_1, 'C3', 'C4');
+
+        expect(manager.pawnRegistry).toEqual({});
+    });
+
+    it('Should not update the registry if the pawn is already in the registry', () => {
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.pawnRegistry = {};
+        manager.pawnRegistry[PIECES.WHITE_PAWN_1] = 'N';
+        manager.updateRegistry(PIECES.WHITE_PAWN_1, 'Q');
+
+        expect(manager.pawnRegistry).toEqual({
+            [PIECES.WHITE_PAWN_1]: 'N',
+        });
+    });
+
+    it('Should update the registry if the pawn is not already in the registry', () => {
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.pawnRegistry = {};
+        manager.updateRegistry(PIECES.WHITE_PAWN_1, 'Q');
+
+        expect(manager.pawnRegistry).toEqual({
+            [PIECES.WHITE_PAWN_1]: 'Q',
+        });
+    });
+});
+
+describe('Tests the executeAction method', () => {
+    const toggleTransformFn = jest.fn();
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    })
+
+    it('Should execute a move action', () => {
+        const board = createBoard();
+        const nextBoard = createBoard();
+        nextBoard[2][0] = PIECES.WHITE_PAWN_1;
+        nextBoard[1][0] = PIECE_VALUES.EMPTY;
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.board = board;
+        manager.canCastle = {
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        }
+
+        manager.executeAction('A2', 'A3M', toggleTransformFn);
+
+        expect(manager.board).toEqual(nextBoard);
+        expect(toggleTransformFn).toHaveBeenCalledTimes(0);
+        expect(manager.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        });
+    });
+
+    it('Should execute a capture action', () => {
+        const board = createBoard();
+        const nextBoard = createBoard();
+        board[1][3] = PIECE_VALUES.EMPTY;
+        nextBoard[1][3] = PIECE_VALUES.EMPTY;
+        nextBoard[0][3] = PIECE_VALUES.EMPTY;
+        nextBoard[6][3] = PIECES.WHITE_QUEEN;
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.board = board;
+        manager.canCastle = {
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        }
+
+        manager.executeAction('D1', 'D7C', toggleTransformFn);
+
+        expect(manager.board).toEqual(nextBoard);
+        expect(toggleTransformFn).toHaveBeenCalledTimes(0);
+        expect(manager.canCastle).toEqual(manager.canCastle = {
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        });
+    });
+
+    it('Should execute a castle action', () => {
+        const board = createTestBoard();
+        const nextBoard = createTestBoard();
+
+        board[0][4] = PIECES.WHITE_KING;
+        board[0][7] = PIECES.WHITE_ROOK_2;
+        nextBoard[0][6] = PIECES.WHITE_KING;
+        nextBoard[0][5] = PIECES.WHITE_ROOK_2;
+
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.board = board;
+        manager.canCastle = {
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        }
+
+        manager.executeAction('E1', 'G1' + ACTION_TYPES.CASTLE, toggleTransformFn);
+
+        expect(manager.board).toEqual(nextBoard);
+        expect(toggleTransformFn).toHaveBeenCalledTimes(0);
+        expect(manager.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: { 1: false, 2: false },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        });
+    });
+
+    it('Should execute a transform action', () => {
+        const board = createTestBoard();
+        const nextBoard = createTestBoard();
+
+        board[6][0] = PIECES.WHITE_PAWN_1;
+        nextBoard[7][0] = PIECES.WHITE_PAWN_1;
+
+        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        manager.board = board;
+        manager.canCastle = {
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        }
+        manager.executeAction('A7', 'A8' + ACTION_TYPES.TRANSFORM, toggleTransformFn);
+
+        expect(manager.board).toEqual(nextBoard);
+        expect(toggleTransformFn).toHaveBeenCalledTimes(1);
+        expect(manager.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        });
+    });
+});
