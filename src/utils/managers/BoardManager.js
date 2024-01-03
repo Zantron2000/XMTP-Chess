@@ -1,8 +1,9 @@
+import { ACTION_TYPES } from "../../tools/enums";
 import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS } from "../enum";
-import { noMoreActions, validateAction } from "../game/action";
+import { executeAction, isAction, isTurn, noMoreActions, validateAction } from "../game/action";
 import { getPieceAtChessCoords, getTurnInfo, isSafeMove, validateMove } from "../game/board";
 import { getNextTurn, getPlayerFromMessage, validateTurnContinuity } from "../game/message";
-import { getEnemyColor, ownsPiece } from "../game/piece";
+import { getEnemyColor, isPiece, ownsPiece } from "../game/piece";
 import { translateMessageToBoard, translateTurnToMessage } from "../game/translate";
 
 class BoardManager {
@@ -77,22 +78,27 @@ class BoardManager {
 
             if (error) {
                 setMessage(error)
+                this.status = GAME_STATUS.CHEAT;
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
             const { actions, isKingSafe } = getTurnInfo(this.board, nextMoveMaker, this.positions, this.pawnRegistry, this.canCastle[nextMoveMaker]);
 
             if (noMoreActions(actions) && !isKingSafe) {
+                this.status = GAME_STATUS.CHECKMATE;
                 return setStatus(GAME_STATUS.CHECKMATE);
             } else if (noMoreActions(actions) && isKingSafe) {
+                this.status = GAME_STATUS.STALEMATE;
                 return setStatus(GAME_STATUS.STALEMATE);
             } else {
+                this.status = nextTurn;
                 return setStatus(nextTurn);
             }
         } else {
             const error = this.validateOpponentMove(currentMoveMaker);
             if (error) {
                 setMessage(error)
+                this.status = GAME_STATUS.CHEAT;
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
@@ -100,10 +106,13 @@ class BoardManager {
             this.actions = actions;
 
             if (noMoreActions(actions) && !isKingSafe) {
+                this.status = GAME_STATUS.CHECKMATE;
                 return setStatus(GAME_STATUS.CHECKMATE);
             } else if (noMoreActions(actions) && isKingSafe) {
+                this.status = GAME_STATUS.STALEMATE;
                 return setStatus(GAME_STATUS.STALEMATE);
             } else {
+                this.status = nextTurn;
                 return setStatus(nextTurn);
             }
         }
@@ -113,6 +122,10 @@ class BoardManager {
         const details = {};
         const piece = getPieceAtChessCoords(this.board, chessPos);
         
+        if (!isTurn(this.player, this.status)) {
+            return { piece, selectable: false };
+        }
+
         if (piece) {
             details.piece = piece;
             details.selectable = ownsPiece(this.player, piece);
@@ -122,7 +135,7 @@ class BoardManager {
             const actionPiece = getPieceAtChessCoords(this.board, this.selectedTile);
             const action = this.actions[actionPiece].find((action) => action.includes(chessPos))
             if (action) {
-                details.action = action[2];
+                details.action = action;
                 details.selectable = true;
             }
         }
@@ -134,6 +147,34 @@ class BoardManager {
 
     translateTurn() {
         return translateTurnToMessage(this.positions, this.pawnRegistry, this.player, this.canCastle);
+    }
+
+    toggleTile(tile, setSelected) {
+        if (this.selectedTile === tile) {
+            setSelected(undefined);
+            this.selectedTile = undefined;
+        } else {
+            setSelected(tile);
+            this.selectedTile = tile;
+        }
+    }
+
+    updateRegistry(pawn, to) {
+        if (isPiece(pawn, PIECE_VALUES.PAWN) && ownsPiece(this.player, pawn)) {
+            if (this.pawnRegistry[pawn] === undefined) {
+                this.pawnRegistry[pawn] = to;
+            }
+        }
+    }
+
+    executeAction(tile, action, toggleTransformModal) {
+        executeAction(this.board, tile, action);
+
+        if (isAction(action, ACTION_TYPES.TRANSFORM)) {
+            toggleTransformModal();
+        } else if (isAction(action, ACTION_TYPES.CASTLE)) {
+            this.canCastle[this.player] = { 1: false, 2: false };
+        }
     }
 }
 

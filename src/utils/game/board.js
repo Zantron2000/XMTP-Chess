@@ -1,7 +1,7 @@
 import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE } from '../enum';
 import { isEnemy } from '../../tools/tools/piece';
 import { extractCoords } from './translate';
-import { areAllies, areEnemies, canAttackDirection, isColor, isPiece } from './piece';
+import { areAllies, areEnemies, canAttackDirection, isColor, isPiece, ownsPiece } from './piece';
 import { convertToAction, executeAction } from './action';
 import { ACTION_TYPES } from '../../tools/enums';
 
@@ -351,6 +351,10 @@ const validLongCastle = (board, [row, col], piece, canCastle, registry) => {
         return false;
     }
 
+    if (!isPiece(board[row][0], PIECE_VALUES.ROOK) || !areAllies(piece, board[row][0])) {
+        return false;
+    }
+
     return true;
 }
 
@@ -370,6 +374,10 @@ const validShortCastle = (board, [row, col], piece, canCastle, registry) => {
         return isSafe(board, [row, castleCol], piece, registry);
     });
     if (!isAllSafe) {
+        return false;
+    }
+
+    if (!isPiece(board[row][7], PIECE_VALUES.ROOK) || !areAllies(piece, board[row][7])) {
         return false;
     }
 
@@ -438,7 +446,7 @@ const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ig
     }
 
     return actions.filter((action) => {
-        const nextBoard = movePiece(board, chessPos, action.substring(0, 2));
+        const nextBoard = movePiece(copyBoard(board), chessPos, action.substring(0, 2));
 
         return isSafeMove(nextBoard, kingPos, registry);
     })
@@ -506,12 +514,11 @@ export const getTurnInfo = (board, player, positions, registry, canCastle) => {
 export const movePiece = (board, start, end) => {
     const [startRow, startCol] = extractCoords(start);
     const [endRow, endCol] = extractCoords(end);
-    const newBoard = copyBoard(board);
 
-    newBoard[endRow][endCol] = newBoard[startRow][startCol];
-    newBoard[startRow][startCol] = PIECE_VALUES.EMPTY;
+    board[endRow][endCol] = board[startRow][startCol];
+    board[startRow][startCol] = PIECE_VALUES.EMPTY;
 
-    return newBoard;
+    return board;
 }
 
 export const placePiece = (board, pos, piece) => {

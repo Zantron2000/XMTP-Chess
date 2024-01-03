@@ -1,6 +1,7 @@
-import { PIECE_ORDER } from "../../tools/enums";
+import { INITIAL_BOARD_POSITIONS, PIECES } from "../enum";
 import { GAME_STATUS, GAME_VALIDATION_MESSAGES, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES } from "../enum";
 import { isPiece } from "./piece";
+import { translateTurnToMessage } from "./translate";
 
 const pawnTypes = PIECE_VALUES.QUEEN + PIECE_VALUES.ROOK + PIECE_VALUES.BISHOP + PIECE_VALUES.KNIGHT;
 const validRows = "ABCDEFGH";
@@ -309,4 +310,22 @@ export const canCastle = (move, player, rookNum) => {
     const { canCastle } = extractMoveDetails(move);
 
     return canCastle[player][rookNum];
+}
+
+export const generateInitalMoves = () => {
+    const negOnePositions = { ...INITIAL_BOARD_POSITIONS, [PIECES.BLACK_KNIGHT_1]: 'C6' }
+    const canCastleDetails = {
+        [PIECE_COLORS.WHITE]: {
+            1: true,
+            2: true,
+        },
+        [PIECE_COLORS.BLACK]: {
+            1: true,
+            2: true,
+        },
+    }
+
+    const negOneTurn = translateTurnToMessage(negOnePositions, {}, PIECE_COLORS.WHITE, canCastleDetails);
+    const zeroTurn = translateTurnToMessage(INITIAL_BOARD_POSITIONS, {}, PIECE_COLORS.BLACK, canCastleDetails);
+    return [negOneTurn, zeroTurn];
 }
