@@ -34,7 +34,7 @@ function Board({ board, setBoard, player }) {
 
     return (
         <div className='w-full'>
-            <div className='w-full'>
+            <div className='w-full bg-[#65a92d] rounded-xl'>
                 <div className='grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] text-center'>
                     <div className='invisible px-2'>X</div>
                     {colLabelOrder.map((label) => <div className='py-2'>{label}</div>)}
