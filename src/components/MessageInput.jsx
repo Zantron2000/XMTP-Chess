@@ -7,14 +7,16 @@ function MessageInput() {
         e.preventDefault();
 
         if (e.which === 13) {
-            console.log('Submitting message...');
+            console.log('Submitting message: ' + message);
+            setMessage('');
         }
     }
 
     const editMesssage = (e) => {
         e.preventDefault();
 
-        setMessage(e.target.value);
+        let temp = e.target.value.replace(/\n/g, ' ');
+        setMessage(temp);
     }
 
     return (
