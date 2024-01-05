@@ -7,6 +7,7 @@ import { createInitialBoard } from '../../tools/tools/board'
 import { PIECE_COLORS } from "../../tools/enums"
 import OpponentMessage from "../OpponentMessage"
 import PlayerMessage from "../PlayerMessage"
+import MessageInput from "../MessageInput"
 
 function Play() {
     const [board, setBoard] = useState(createInitialBoard())
@@ -91,14 +92,7 @@ function Play() {
                                     />
                                 </div>
                             </div>
-                            <form className="h-[13%] w-[95%] px-4 py-2 bg-[#70c729] rounded-xl">
-                                <textarea
-                                    className=" w-full h-full textbar bg-[#70c729] text-black placeholder:text-gray-900"
-                                    placeholder="Message opponent here..."
-                                >
-                                    Text input
-                                </textarea>
-                            </form>
+                            <MessageInput />
                         </div>
                     </div>
                 </div>
