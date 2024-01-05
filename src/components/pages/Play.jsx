@@ -5,6 +5,8 @@ import Footer from "../Footer"
 import Board from "../GameBoard"
 import { createInitialBoard } from '../../tools/tools/board'
 import { PIECE_COLORS } from "../../tools/enums"
+import OpponentMessage from "../OpponentMessage"
+import PlayerMessage from "../PlayerMessage"
 
 function Play() {
     const [board, setBoard] = useState(createInitialBoard())
@@ -19,97 +21,81 @@ function Play() {
                             <Board board={board} player={PIECE_COLORS.BLACK} setBoard={setBoard} />
                         </div>
                     </div>
-                    <div className="w-[100%] md:w-[75%] xl:w-1/2 bg-gray-900 mx-auto h-[450px] md:h-[600px] xl:h-[90%]">
-                        <div className="w-[85%] md:w-[85%] xl:w-[75%] h-full mx-auto flex flex-col justify-around items-center bg-gray-800 rounded-xl">
-                            <div className="bg-gray-700 h-[80%] w-[95%] rounded-xl px-4 py-2">
-                                <div className="border-b border-white mb-4 flex justify-center items-center text-lg h-[10%]">
+                    <div className="w-[100%] md:w-[75%] xl:w-1/2 mx-auto h-[450px] md:h-[600px] xl:h-[90%]">
+                        <div className="w-[85%] md:w-[85%] xl:w-[75%] h-full mx-auto flex flex-col justify-around items-center bg-[#68a239] rounded-xl">
+                            <div className="bg-[#70c729] h-[80%] w-[95%] rounded-xl px-4 py-2">
+                                <div className="border-b border-white mb-4 flex justify-center items-center text-2xl h-[10%]">
                                     Opponent.eth
                                 </div>
                                 <div className="overflow-y-scroll flex justify-start flex-col h-[85%] textbar space-y-2">
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]">
-                                            <img src="https://noun-api.com/beta/pfp?name=A" className="rounded-full max-w-[60px]" />
-                                        </div>
-                                        <div className="w-[80%] px-2 flex justify-start">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
-                                                A
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]"></div>
-                                    </div>
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]"></div>
-                                        <div className="w-[80%] px-2 flex justify-end">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
-                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]">
-                                            <img src="https://noun-api.com/beta/pfp?name=B" className="rounded-full max-w-[60px]" />
-                                        </div>
-                                    </div>
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]">
-                                            <img src="https://noun-api.com/beta/pfp?name=A" className="rounded-full max-w-[60px]" />
-                                        </div>
-                                        <div className="w-[80%] px-2 flex justify-start">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px]py-2 rounded-lg break-all">
-                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]"></div>
-                                    </div>
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]"></div>
-                                        <div className="w-[80%] px-2 flex justify-start">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px]py-2 rounded-lg break-all">
-                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]"></div>
-                                    </div>
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]"></div>
-                                        <div className="w-[80%] px-2 flex justify-end">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
-                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]">
-                                            <img src="https://noun-api.com/beta/pfp?name=B" className="rounded-full max-w-[60px]" />
-                                        </div>
-                                    </div>
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]"></div>
-                                        <div className="w-[80%] px-2 flex justify-end">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
-                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]"></div>
-                                    </div>
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]"></div>
-                                        <div className="w-[80%] px-2 flex justify-end">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
-                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]"></div>
-                                    </div>
-                                    <div className="w-full bg-black flex">
-                                        <div className="w-[10%]"></div>
-                                        <div className="w-[80%] px-2 flex justify-end">
-                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
-                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
-                                            </div>
-                                        </div>
-                                        <div className="w-[10%]"></div>
-                                    </div>
+                                    <OpponentMessage message={'A'} newThread={true} profileSrc={'https://noun-api.com/beta/pfp?name=A'} />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={true}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <PlayerMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=B'}
+                                    />
+                                    <OpponentMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={true}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=A'}
+                                    />
+                                    <OpponentMessage
+                                        message={'ABCDEFG ABCDEFG ABCDEFG ABCDEFG'}
+                                        newThread={false}
+                                        profileSrc={'https://noun-api.com/beta/pfp?name=A'}
+                                    />
                                 </div>
                             </div>
-                            <form className="h-[13%] w-[95%] px-4 py-2 bg-gray-700 rounded-xl">
-                                <textarea className=" w-full h-full textbar bg-gray-700">
+                            <form className="h-[13%] w-[95%] px-4 py-2 bg-[#70c729] rounded-xl">
+                                <textarea
+                                    className=" w-full h-full textbar bg-[#70c729] text-black placeholder:text-gray-900"
+                                    placeholder="Message opponent here..."
+                                >
                                     Text input
                                 </textarea>
                             </form>
