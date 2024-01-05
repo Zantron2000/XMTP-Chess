@@ -25,9 +25,86 @@ function Play() {
                                 <div className="border-b border-white mb-4 flex justify-center items-center text-lg h-[10%]">
                                     Opponent.eth
                                 </div>
-                                <div className="overflow-y-scroll flex justify-start flex-col h-[85%] textbar">
+                                <div className="overflow-y-scroll flex justify-start flex-col h-[85%] textbar space-y-2">
                                     <div className="w-full bg-black flex">
-
+                                        <div className="w-[10%]">
+                                            <img src="https://noun-api.com/beta/pfp?name=A" className="rounded-full max-w-[60px]" />
+                                        </div>
+                                        <div className="w-[80%] px-2 flex justify-start">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
+                                                A
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]"></div>
+                                    </div>
+                                    <div className="w-full bg-black flex">
+                                        <div className="w-[10%]"></div>
+                                        <div className="w-[80%] px-2 flex justify-end">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
+                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]">
+                                            <img src="https://noun-api.com/beta/pfp?name=B" className="rounded-full max-w-[60px]" />
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-black flex">
+                                        <div className="w-[10%]">
+                                            <img src="https://noun-api.com/beta/pfp?name=A" className="rounded-full max-w-[60px]" />
+                                        </div>
+                                        <div className="w-[80%] px-2 flex justify-start">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px]py-2 rounded-lg break-all">
+                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]"></div>
+                                    </div>
+                                    <div className="w-full bg-black flex">
+                                        <div className="w-[10%]"></div>
+                                        <div className="w-[80%] px-2 flex justify-start">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px]py-2 rounded-lg break-all">
+                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG ABCDEFG
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]"></div>
+                                    </div>
+                                    <div className="w-full bg-black flex">
+                                        <div className="w-[10%]"></div>
+                                        <div className="w-[80%] px-2 flex justify-end">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
+                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]">
+                                            <img src="https://noun-api.com/beta/pfp?name=B" className="rounded-full max-w-[60px]" />
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-black flex">
+                                        <div className="w-[10%]"></div>
+                                        <div className="w-[80%] px-2 flex justify-end">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
+                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]"></div>
+                                    </div>
+                                    <div className="w-full bg-black flex">
+                                        <div className="w-[10%]"></div>
+                                        <div className="w-[80%] px-2 flex justify-end">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
+                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]"></div>
+                                    </div>
+                                    <div className="w-full bg-black flex">
+                                        <div className="w-[10%]"></div>
+                                        <div className="w-[80%] px-2 flex justify-end">
+                                            <div className="bg-gray-600 px-4 max-w-[75%] min-h-[45px] py-2 rounded-lg break-all">
+                                                ABCDEFG ABCDEFG ABCDEFG ABCDEFG
+                                            </div>
+                                        </div>
+                                        <div className="w-[10%]"></div>
                                     </div>
                                 </div>
                             </div>
