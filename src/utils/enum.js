@@ -224,6 +224,8 @@ export const CAPTURED_PIECE = 'XX';
 
 export const MESSAGE = {
     GAME_DELIMITER: ',',
+    HASH_DELIMITER: '-',
+    HASH_LENGTH: 5,
     TRUE: 'T',
     FALSE: 'F',
     CAN_CASTLE_POSITIONS: {
