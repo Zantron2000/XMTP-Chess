@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { createActions, createBoard, createMessage, createPositions, createStarterMessage, createTestBoard } from '../../tools';
+import { createActions, createBoard, createDeadPositions, createMessage, createPositions, createStarterMessage, createTestBoard } from '../../tools';
 
 import { GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES, PIECES } from "../../../src/utils/enum";
 import BoardManager from "../../../src/utils/managers/BoardManager";
@@ -227,6 +227,7 @@ describe('Tests the updateRegistry method', () => {
 
 describe('Tests the executeAction method', () => {
     const toggleTransformFn = jest.fn();
+    const makeMoveFn = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -237,14 +238,16 @@ describe('Tests the executeAction method', () => {
         const nextBoard = createBoard();
         nextBoard[2][0] = PIECES.WHITE_PAWN_1;
         nextBoard[1][0] = PIECE_VALUES.EMPTY;
-        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        const manager = new BoardManager(undefined, undefined, 'A2', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
         manager.canCastle = {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         }
+        manager.positions = createPositions();
+        manager.pawnRegistry = {};
 
-        manager.executeAction('A2', 'A3M', toggleTransformFn);
+        manager.executeAction('A3M', toggleTransformFn, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
         expect(toggleTransformFn).toHaveBeenCalledTimes(0);
@@ -252,6 +255,9 @@ describe('Tests the executeAction method', () => {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         });
+        expect(manager.positions[PIECES.WHITE_PAWN_1]).toBe('A3');
+        expect(makeMoveFn).toHaveBeenCalledTimes(1);
+        expect(makeMoveFn).toHaveBeenCalledWith('A1B1C1D1E1F1G1H1A3B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7,W,TTTT');
     });
 
     it('Should execute a capture action', () => {
@@ -261,14 +267,16 @@ describe('Tests the executeAction method', () => {
         nextBoard[1][3] = PIECE_VALUES.EMPTY;
         nextBoard[0][3] = PIECE_VALUES.EMPTY;
         nextBoard[6][3] = PIECES.WHITE_QUEEN;
-        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        const manager = new BoardManager(undefined, undefined, 'D1', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
         manager.canCastle = {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         }
+        manager.positions = createPositions({ [PIECES.WHITE_PAWN_4]: 'XX' });
+        manager.pawnRegistry = {};
 
-        manager.executeAction('D1', 'D7C', toggleTransformFn);
+        manager.executeAction('D7C', toggleTransformFn, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
         expect(toggleTransformFn).toHaveBeenCalledTimes(0);
@@ -276,6 +284,10 @@ describe('Tests the executeAction method', () => {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         });
+        expect(manager.positions[PIECES.WHITE_QUEEN]).toBe('D7');
+        expect(manager.positions[PIECES.BLACK_PAWN_4]).toBe('XX');
+        expect(makeMoveFn).toHaveBeenCalledTimes(1);
+        expect(makeMoveFn).toHaveBeenCalledWith('A1B1C1D7E1F1G1H1A2B2C2XXE2F2G2H2A8B8C8D8E8F8G8H8A7B7C7XXE7F7G7H7,W,TTTT');
     });
 
     it('Should execute a castle action', () => {
@@ -287,14 +299,16 @@ describe('Tests the executeAction method', () => {
         nextBoard[0][6] = PIECES.WHITE_KING;
         nextBoard[0][5] = PIECES.WHITE_ROOK_2;
 
-        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        const manager = new BoardManager(undefined, undefined, 'E1', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
         manager.canCastle = {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         }
+        manager.positions = createDeadPositions({ [PIECES.WHITE_KING]: 'E1', [PIECES.WHITE_ROOK_2]: 'H1' });
+        manager.pawnRegistry = {};
 
-        manager.executeAction('E1', 'G1' + ACTION_TYPES.CASTLE, toggleTransformFn);
+        manager.executeAction('G1' + ACTION_TYPES.CASTLE, toggleTransformFn, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
         expect(toggleTransformFn).toHaveBeenCalledTimes(0);
@@ -302,6 +316,10 @@ describe('Tests the executeAction method', () => {
             [PIECE_COLORS.WHITE]: { 1: false, 2: false },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         });
+        expect(manager.positions[PIECES.WHITE_KING]).toBe('G1');
+        expect(manager.positions[PIECES.WHITE_ROOK_2]).toBe('F1');
+        expect(makeMoveFn).toHaveBeenCalledTimes(1);
+        expect(makeMoveFn).toHaveBeenCalledWith('XXXXXXXXG1XXXXF1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,W,FFTT');
     });
 
     it('Should execute a transform action', () => {
@@ -309,15 +327,19 @@ describe('Tests the executeAction method', () => {
         const nextBoard = createTestBoard();
 
         board[6][0] = PIECES.WHITE_PAWN_1;
+        board[7][0] = PIECE_VALUES.EMPTY;
         nextBoard[7][0] = PIECES.WHITE_PAWN_1;
 
-        const manager = new BoardManager(undefined, undefined, undefined, undefined, PIECE_COLORS.WHITE);
+        const manager = new BoardManager(undefined, undefined, 'A7', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
         manager.canCastle = {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         }
-        manager.executeAction('A7', 'A8' + ACTION_TYPES.TRANSFORM, toggleTransformFn);
+        manager.positions = createDeadPositions({ [PIECES.WHITE_PAWN_1]: 'A7', [PIECES.BLACK_PAWN_1]: 'XX', [PIECES.BLACK_ROOK_1]: 'XX' });
+        manager.pawnRegistry = {};
+
+        manager.executeAction('A8' + ACTION_TYPES.TRANSFORM, toggleTransformFn, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
         expect(toggleTransformFn).toHaveBeenCalledTimes(1);
@@ -325,6 +347,44 @@ describe('Tests the executeAction method', () => {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
         });
+        expect(manager.positions[PIECES.WHITE_PAWN_1]).toBe('A8');
+        expect(manager.positions[PIECES.BLACK_PAWN_1]).toBe('XX');
+        expect(makeMoveFn).toHaveBeenCalledTimes(1);
+        expect(makeMoveFn).toHaveBeenCalledWith('XXXXXXXXXXXXXXXXA8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,W,TTTT');
+    });
+
+    it('Should execute a transform & capture action', () => {
+        const board = createBoard();
+        const nextBoard = createBoard();
+
+        board[6][0] = PIECES.WHITE_PAWN_1;
+        board[1][0] = PIECE_VALUES.EMPTY;
+        nextBoard[7][1] = PIECES.WHITE_PAWN_1;
+        nextBoard[6][0] = PIECE_VALUES.EMPTY;
+        nextBoard[1][0] = PIECE_VALUES.EMPTY;
+
+        const manager = new BoardManager(undefined, undefined, 'A7', undefined, PIECE_COLORS.WHITE);
+        manager.board = board;
+        manager.canCastle = {
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        }
+        manager.positions = createPositions({ [PIECES.WHITE_PAWN_1]: 'A7', [PIECES.BLACK_PAWN_1]: 'XX' });
+        manager.pawnRegistry = {};
+
+        manager.executeAction('B8' + ACTION_TYPES.TRANSFORM, toggleTransformFn, makeMoveFn);
+
+        expect(manager.board).toEqual(nextBoard);
+        expect(toggleTransformFn).toHaveBeenCalledTimes(1);
+        expect(manager.canCastle).toEqual({
+            [PIECE_COLORS.WHITE]: { 1: true, 2: true },
+            [PIECE_COLORS.BLACK]: { 1: true, 2: true },
+        });
+        expect(manager.positions[PIECES.WHITE_PAWN_1]).toBe('B8');
+        expect(manager.positions[PIECES.BLACK_PAWN_1]).toBe('XX');
+        expect(manager.positions[PIECES.BLACK_KNIGHT_1]).toBe('XX');
+        expect(makeMoveFn).toHaveBeenCalledTimes(1);
+        expect(makeMoveFn).toHaveBeenCalledWith('A1B1C1D1E1F1G1H1B8B2C2D2E2F2G2H2A8XXC8D8E8F8G8H8XXB7C7D7E7F7G7H7,W,TTTT');
     });
 });
 
@@ -1398,8 +1458,8 @@ describe('Tests chess games', () => {
             }
         ]
         const positionsList = [
-            createPositions(), turn2Positions, turn3Positions, turn4Positions, turn5Positions, 
-            turn6Positions, turn7Positions, turn8Positions, turn9Positions, turn10Positions, 
+            createPositions(), turn2Positions, turn3Positions, turn4Positions, turn5Positions,
+            turn6Positions, turn7Positions, turn8Positions, turn9Positions, turn10Positions,
             turn11Positions,
             createPositions({
                 [PIECES.WHITE_KNIGHT_1]: 'XX',
@@ -2471,7 +2531,7 @@ describe('Tests chess games', () => {
             } else {
                 board = movePiece(board, movement[0], movement[1]);
             }
-            
+
             const manager = new BoardManager(turnList[index - 1], turn, undefined, undefined, PIECE_COLORS.WHITE);
             manager.getStatus(setStatusFunc, setMessageFunc);
 
