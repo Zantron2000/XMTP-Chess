@@ -453,7 +453,7 @@ const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ig
 }
 
 const exitsCheck = (board, registry, piecePos, move, kingPos) => {
-    const nextBoard = executeAction(copyBoard(board), piecePos, move);
+    const nextBoard = executeAction(copyBoard(board), piecePos, move, {});
 
     const newKingChessPos = piecePos === kingPos ? move.substring(0, 2) : kingPos;
 
@@ -487,11 +487,11 @@ export const getTurnInfo = (board, player, positions, registry, canCastle) => {
         if (isColor(piece, player)) {
             if (positions[piece] !== 'XX') {
                 actions[piece] = generateMovesForPiece(
-                    board, 
-                    positions[piece], 
-                    canCastle, 
-                    registry, 
-                    positions[player + PIECE_VALUES.KING], 
+                    board,
+                    positions[piece],
+                    canCastle,
+                    registry,
+                    positions[player + PIECE_VALUES.KING],
                     piece
                 );
             } else {

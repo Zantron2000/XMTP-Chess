@@ -54,6 +54,13 @@ export const GAME_STATUS = {
     isCheat: (status) => status === GAME_STATUS.CHEAT,
 }
 
+export const CONNECT_STATUS = {
+    INVITE: 'I',
+    ACCEPT: 'A',
+    DECLINE: 'D',
+    END: 'E',
+}
+
 /**
  * The messages to display to the user for validation errors
  */
@@ -245,7 +252,7 @@ export const ROW_TO_INDEX = {
     8: 7,
 }
 
-export const INDEX_TO_ROW = Object.keys(ROW_TO_INDEX);
+export const INDEX_TO_ROW = Object.keys(ROW_TO_INDEX).sort();
 
 export const COL_TO_INDEX = {
     A: 0,

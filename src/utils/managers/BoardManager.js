@@ -1,5 +1,5 @@
-import { ACTION_TYPES } from "../../tools/enums";
-import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS } from "../enum";
+import { ACTION_TYPES, BOARD_COL_LABELS, BOARD_ROW_LABELS } from "../../tools/enums";
+import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS, INDEX_TO_ROW, INDEX_TO_COL, ROW_TO_INDEX, COL_TO_INDEX } from "../enum";
 import { executeAction, isAction, isTurn, noMoreActions, validateAction } from "../game/action";
 import { getPieceAtChessCoords, getTurnInfo, isSafeMove, validateMove } from "../game/board";
 import { getNextTurn, getPlayerFromMessage, validateTurnContinuity } from "../game/message";
@@ -29,10 +29,10 @@ class BoardManager {
 
         const lastBoard = translateMessageToBoard(this.lastMove);
         const { error: mError } = validateMove(
-            lastBoard, 
-            pData, 
-            cData.last.canCastle[playerColor], 
-            cData.last.pawnRegistry, 
+            lastBoard,
+            pData,
+            cData.last.canCastle[playerColor],
+            cData.last.pawnRegistry,
             cData.last.positions[playerColor + PIECE_VALUES.KING]
         );
 
@@ -72,7 +72,7 @@ class BoardManager {
         const currentMoveMaker = getPlayerFromMessage(this.currentMove);
         const nextMoveMaker = getEnemyColor(currentMoveMaker);
         const nextTurn = getNextTurn(this.currentMove);
-        
+
         if (currentMoveMaker === this.player) {
             const error = this.validatePlayerMove(currentMoveMaker);
 
@@ -121,7 +121,7 @@ class BoardManager {
     getTileDetails(chessPos) {
         const details = {};
         const piece = getPieceAtChessCoords(this.board, chessPos);
-        
+
         if (!isTurn(this.player, this.status)) {
             return { piece, selectable: false };
         }
@@ -167,14 +167,59 @@ class BoardManager {
         }
     }
 
-    executeAction(tile, action, toggleTransformModal) {
-        executeAction(this.board, tile, action);
+    executeAction(action, toggleTransformModal, makeMove) {
+        executeAction(this.board, this.selectedTile, action, this.positions);
 
         if (isAction(action, ACTION_TYPES.TRANSFORM)) {
             toggleTransformModal();
         } else if (isAction(action, ACTION_TYPES.CASTLE)) {
             this.canCastle[this.player] = { 1: false, 2: false };
         }
+
+        console.log(this.board)
+        makeMove(this.translateTurn());
+    }
+
+    getLabelOrder() {
+        const rowLabels = this.player === PIECE_COLORS.BLACK ? BOARD_ROW_LABELS : BOARD_ROW_LABELS.slice().reverse();
+        const colLabels = this.player === PIECE_COLORS.BLACK ? BOARD_COL_LABELS.slice().reverse() : BOARD_COL_LABELS;
+
+        return { rowLabels, colLabels }
+    }
+
+    getBoardDetails() {
+        const tiles = {};
+
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const chessRow = INDEX_TO_ROW[row];
+                const chessCol = INDEX_TO_COL[col];
+                const chessPos = chessCol + chessRow;
+
+                tiles[chessPos] = this.getTileDetails(chessPos);
+            }
+        }
+
+        return tiles;
+    }
+
+    getTileBackground(chessPos) {
+        const row = ROW_TO_INDEX[chessPos[1]];
+        const col = COL_TO_INDEX[chessPos[0]];
+
+        if ((row + col) % 2 === 0) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
+    isSelectedPiece(chessPos) {
+        return this.selectedTile === chessPos;
+    }
+
+    getPieceAt(chessPos) {
+        return getPieceAtChessCoords(this.board, chessPos);
     }
 }
 

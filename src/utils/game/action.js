@@ -218,7 +218,7 @@ export const convertToAction = ([rowIdx, colIdx], action) => {
     return `${col}${row}${action}`;
 }
 
-export const executeAction = (board, originalChessPos, action) => {
+export const executeAction = (board, originalChessPos, action, positions) => {
     const actionChessPos = action.slice(0, 2);
     const actionType = action.slice(2);
 
@@ -229,9 +229,23 @@ export const executeAction = (board, originalChessPos, action) => {
         const rookChessPos = `${rookCol}${rookRow}`;
         const rookChessEndPos = `${rookEndCol}${rookRow}`;
 
+        const king = getPieceAtChessCoords(board, originalChessPos);
+        const rook = getPieceAtChessCoords(board, rookChessPos);
+
+        positions[king] = actionChessPos;
+        positions[rook] = rookChessEndPos;
+
         movePiece(board, originalChessPos, actionChessPos);
         movePiece(board, rookChessPos, rookChessEndPos);
     } else {
+        const actionPiece = getPieceAtChessCoords(board, originalChessPos);
+        const capturedPiece = getPieceAtChessCoords(board, actionChessPos);
+
+        positions[actionPiece] = actionChessPos;
+        if (capturedPiece) {
+            positions[capturedPiece] = 'XX';
+        }
+
         movePiece(board, originalChessPos, actionChessPos);
     }
 
