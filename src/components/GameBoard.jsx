@@ -1,33 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-import { getImageClass, isAlly, isEnemy } from '../tools/tools/piece';
-import { BOARD_ROW_LABELS, BOARD_COL_LABELS, PIECE_COLORS } from '../tools/enums';
-import { generateMoves } from '../tools/tools/moves';
 import GameSquare from './GameSquare';
-import BoardManager from '../tools/managers/BoardManager';
+import BoardManager from '../utils/managers/BoardManager';
+import { INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS } from '../utils/enum';
 
-function Board({ board, setBoard, player }) {
-    const [selectedPiece, setSelectedPiece] = useState(undefined);
-    const moves = selectedPiece ? generateMoves(board, selectedPiece, board[selectedPiece[0]][selectedPiece[1]]) : [];
-    const boardManager = new BoardManager(board, player, selectedPiece, moves);
+function Board({ player, status, setStatus, lastMove, currMove, sendMove }) {
+    const [selectedTile, setSelectedTile] = useState(undefined);
+    const boardManager = new BoardManager(lastMove, currMove, selectedTile, status, player);
+
+    boardManager.getStatus(setStatus, (data) => console.log(data));
     const squares = [];
-    const rowLabelOrder = player === PIECE_COLORS.BLACK ? BOARD_ROW_LABELS : BOARD_ROW_LABELS.slice().reverse();
-    const colLabelOrder = player === PIECE_COLORS.WHITE ? BOARD_COL_LABELS : BOARD_COL_LABELS.slice().reverse();
+    const { rowLabels, colLabels } = boardManager.getLabelOrder();
+    const makeMove = (nextMove) => {
+        setSelectedTile(undefined);
 
-    board.forEach((row, rowIndex) => {
-        row.forEach((square, colIndex) => {
-            const bgColor = (rowIndex + colIndex) % 2 === 0 ? 'bg-checker1' : 'bg-checker2';
+        sendMove(nextMove);
+    }
 
-            squares.push(
-                <GameSquare
-                    position={[rowIndex, colIndex]}
-                    key={`${rowIndex}${colIndex}`}
-                    style={boardManager.getStyle([rowIndex, colIndex])}
-                    action={boardManager.getAction([rowIndex, colIndex], setSelectedPiece, setBoard)}
-                />
-            );
-        });
-    });
+    useEffect(() => {
+        boardManager.getStatus(setStatus, (data) => console.log(data));
+    }, [currMove]);
+
+    const boardDetails = boardManager.getBoardDetails();
+
+    for (let row = 0; row < 8; row += 1) {
+        for (let col = 7; col > -1; col -= 1) {
+            const chessRow = INDEX_TO_ROW[row];
+            const chessCol = INDEX_TO_COL[col];
+            const chessPos = chessCol + chessRow;
+
+            squares.push(<GameSquare
+                details={boardDetails[chessPos]}
+                key={chessPos}
+                manager={boardManager}
+                position={chessPos}
+                makeMove={makeMove}
+                setSelected={setSelectedTile}
+            />)
+        }
+    }
+
     if (player === PIECE_COLORS.WHITE) {
         squares.reverse();
     }
@@ -37,13 +49,13 @@ function Board({ board, setBoard, player }) {
             <div className='w-full bg-[#65a92d] rounded-xl'>
                 <div className='grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] text-center'>
                     <div className='invisible px-2'>X</div>
-                    {colLabelOrder.map((label) => <div className='py-2'>{label}</div>)}
+                    {colLabels.map((label) => <div className='py-2'>{label}</div>)}
                     <div className='invisible px-2'>X</div>
                 </div>
                 <div className='flex w-full'>
                     <div>
                         <div className='h-full grid grid-rows-[8] text-center'>
-                            {rowLabelOrder.map((label) => <div className='px-2 flex items-center'>{label}</div>)}
+                            {rowLabels.map((label) => <div className='px-2 flex items-center'>{label}</div>)}
                         </div>
                     </div>
                     <div className='w-full'>
@@ -53,13 +65,13 @@ function Board({ board, setBoard, player }) {
                     </div>
                     <div>
                         <div className='h-full grid grid-rows-[8] text-center'>
-                            {rowLabelOrder.map((label) => <div className='px-2 flex items-center'>{label}</div>)}
+                            {rowLabels.map((label) => <div className='px-2 flex items-center'>{label}</div>)}
                         </div>
                     </div>
                 </div>
                 <div className='grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] text-center'>
                     <div className='invisible px-2'>X</div>
-                    {colLabelOrder.map((label) => <div className='py-2'>{label}</div>)}
+                    {colLabels.map((label) => <div className='py-2'>{label}</div>)}
                     <div className='invisible px-2'>X</div>
                 </div>
             </div>
