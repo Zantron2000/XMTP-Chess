@@ -34,10 +34,19 @@ export const filterMessages = (messages, hash) => {
     return { gameMessages, convoMessages };
 }
 
-export const sendMessage = async (sendMessage, conversation, content) => {
-    return sendMessage(conversation, content)
+export const sendMessage = async (sendMessageFn, conversation, content) => {
+    return sendMessageFn(conversation, content)
 }
 
 export const createGameMessage = (hash, ...content) => {
     return hash + MESSAGE.HASH_DELIMITER + content.join(MESSAGE.GAME_DELIMITER);
+}
+
+export const generateHash = () => {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let hash = '';
+    for (let i = 0; i < MESSAGE.HASH_LENGTH; i++) {
+        hash += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return hash;
 }
