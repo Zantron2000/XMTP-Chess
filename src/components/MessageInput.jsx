@@ -1,13 +1,13 @@
 import { useState } from "react";
 
-function MessageInput() {
+function MessageInput({ sendMessage }) {
     const [message, setMessage] = useState('');
 
     const submitMessage = (e) => {
         e.preventDefault();
 
         if (e.which === 13) {
-            console.log('Submitting message: ' + message);
+            sendMessage(message)
             setMessage('');
         }
     }
