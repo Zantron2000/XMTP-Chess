@@ -63,6 +63,15 @@ export const createPositions = (positions = {}) => {
     return newPositions;
 }
 
+export const createDeadPositions = (positions = {}) => {
+    const newPositions = {};
+    PIECE_MESSAGE_ORDER.forEach((piece) => {
+        newPositions[piece] = positions[piece] || 'XX';
+    });
+
+    return newPositions;
+}
+
 export const createBoard = () => {
     const board = createTestBoard();
     PIECE_MESSAGE_ORDER.forEach((piece) => {

@@ -112,12 +112,14 @@ export const isIdentical = (piece1, piece2) => piece1 === piece2;
 export const isMatchingPiece = (piece, ...pieces) => pieces.includes(piece[1]);
 
 export const getImageClass = (piece) => {
+    if (!piece) {
+        return "";
+    }
+
     const color = isWhite(piece) ? "white" : "black";
     const type = Object.entries(PIECE_VALUES).find(([, value]) => value === piece[1]);
 
     if (color && type) {
         return `${color}_${type[0].toLowerCase()}`;
     }
-
-    return "";
 }

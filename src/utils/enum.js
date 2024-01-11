@@ -23,41 +23,22 @@ export const PIECE_COLORS = {
     isBlack: (color) => color === PIECE_COLORS.BLACK,
 }
 
-/**
- * @typedef {{
- *  WHITE_TURN: 'W',
- *  BLACK_TURN: 'B',
- *  CHECKMATE: 'C',
- *  STALEMATE: 'S',
- *  CHEAT: 'X',
- * }} GAME_STATUS The statuses of the game
- * 
- * @type {{
- *  WHITE_TURN: GAME_STATUS.WHITE_TURN,
- *  BLACK_TURN: GAME_STATUS.BLACK_TURN,
- *  CHECKMATE: GAME_STATUS.CHECKMATE,
- *  STALEMATE: GAME_STATUS.STALEMATE,
- *  CHEAT: GAME_STATUS.CHEAT,
- * }}
- */
 export const GAME_STATUS = {
+    WAITING: 'M',
+    PLAYING: 'P',
     WHITE_TURN: 'W',
     BLACK_TURN: 'B',
     CHECKMATE: 'C',
     STALEMATE: 'S',
     CHEAT: 'X',
-
-    isWhiteTurn: (status) => status === GAME_STATUS.WHITE_TURN,
-    isBlackTurn: (status) => status === GAME_STATUS.BLACK_TURN,
-    isCheckmate: (status) => status === GAME_STATUS.CHECKMATE,
-    isStalemate: (status) => status === GAME_STATUS.STALEMATE,
-    isCheat: (status) => status === GAME_STATUS.CHEAT,
+    OVER: 'O',
 }
 
 export const CONNECT_STATUS = {
     INVITE: 'I',
     ACCEPT: 'A',
     DECLINE: 'D',
+    GAME_OVER: 'O',
     END: 'E',
 }
 

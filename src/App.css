@@ -94,18 +94,42 @@
     background-repeat: no-repeat;
 }
 
-.board div:nth-child(1) {
+.display_board div:nth-child(1) {
     border-top-left-radius: 0.375rem;
 }
 
-.board div:nth-child(8) {
+.display_board div:nth-child(8) {
     border-top-right-radius: 0.375rem;
 }
 
-.board div:nth-child(57) {
+.display_board div:nth-child(57) {
     border-bottom-left-radius: 0.375rem;
 }
 
-.board div:nth-child(64) {
+.display_board div:nth-child(64) {
     border-bottom-right-radius: 0.375rem;
+}
+
+.game_board button:nth-child(1) {
+    border-top-left-radius: 0.375rem;
+}
+
+.game_board button:nth-child(8) {
+    border-top-right-radius: 0.375rem;
+}
+
+.game_board button:nth-child(57) {
+    border-bottom-left-radius: 0.375rem;
+}
+
+.game_board button:nth-child(64) {
+    border-bottom-right-radius: 0.375rem;
+}
+
+.div-M {
+    background-color: #88B452;
+}
+
+.div-C {
+    background-color: #F0D9B5;
 }
