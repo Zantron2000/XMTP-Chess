@@ -1,12 +1,13 @@
-import { createGameMessage, filterMessages, generateHash, getContent, sendMessage } from "../message/message";
+import { createGameMessage, filterMessages, generateHash, getContent } from "../message/message";
 
 class MessageManager {
-    constructor(conversation, messages, hash = generateHash()) {
+    constructor(conversation, messages, playerAddr, hash = generateHash()) {
         const { gameMessages, convoMessages } = filterMessages(messages, hash);
 
         this.conversation = conversation;
         this.gameMessages = gameMessages;
         this.convoMessages = convoMessages;
+        this.playerAddr = playerAddr;
         this.hash = hash;
     }
 
@@ -25,7 +26,9 @@ class MessageManager {
     }
 
     sendMessage(sendMessageFn, content) {
-        sendMessage(sendMessageFn, this.conversation, content);
+        if (!content.startsWith(this.hash)) {
+            sendMessageFn(this.conversation, content);
+        }
     }
 
     extractContent() {
@@ -33,4 +36,29 @@ class MessageManager {
             return getContent(message.content);
         })
     }
+
+    includeImage(message, prevMessage) {
+        if (!prevMessage || prevMessage.senderAddress !== message.senderAddress) {
+            return true;
+        }
+    }
+
+    getDisplayDetails() {
+        const details = [];
+
+        this.convoMessages.forEach((message, index) => {
+            const prevMessage = this.convoMessages[index - 1];
+            const includeImage = this.includeImage(message, prevMessage);
+
+            details.push({
+                content: message.content,
+                includeImage,
+                isPlayer: message.senderAddress === this.playerAddr,
+            });
+        });
+
+        return details;
+    }
 }
+
+export default MessageManager;

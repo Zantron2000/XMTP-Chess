@@ -82,6 +82,7 @@ class BoardManager {
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
+            if (this.status === GAME_STATUS.WAITING) return;
             const { actions, isKingSafe } = getTurnInfo(this.board, nextMoveMaker, this.positions, this.pawnRegistry, this.canCastle[nextMoveMaker]);
 
             if (noMoreActions(actions) && !isKingSafe) {
@@ -102,6 +103,7 @@ class BoardManager {
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
+            if (this.status === GAME_STATUS.WAITING) return;
             const { actions, isKingSafe } = getTurnInfo(this.board, this.player, this.positions, this.pawnRegistry, this.canCastle[this.player]);
             this.actions = actions;
 
