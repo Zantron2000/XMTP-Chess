@@ -49,13 +49,13 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove }) {
             <div className='w-full bg-[#65a92d] rounded-xl'>
                 <div className='grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] text-center'>
                     <div className='invisible px-2'>X</div>
-                    {colLabels.map((label) => <div className='py-2'>{label}</div>)}
+                    {colLabels.map((label) => <div className='py-2' key={label}>{label}</div>)}
                     <div className='invisible px-2'>X</div>
                 </div>
                 <div className='flex w-full'>
                     <div>
                         <div className='h-full grid grid-rows-[8] text-center'>
-                            {rowLabels.map((label) => <div className='px-2 flex items-center'>{label}</div>)}
+                            {rowLabels.map((label) => <div key={label} className='px-2 flex items-center'>{label}</div>)}
                         </div>
                     </div>
                     <div className='w-full'>
@@ -65,13 +65,13 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove }) {
                     </div>
                     <div>
                         <div className='h-full grid grid-rows-[8] text-center'>
-                            {rowLabels.map((label) => <div className='px-2 flex items-center'>{label}</div>)}
+                            {rowLabels.map((label) => <div key={label} className='px-2 flex items-center'>{label}</div>)}
                         </div>
                     </div>
                 </div>
                 <div className='grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] text-center'>
                     <div className='invisible px-2'>X</div>
-                    {colLabels.map((label) => <div className='py-2'>{label}</div>)}
+                    {colLabels.map((label) => <div key={label} className='py-2'>{label}</div>)}
                     <div className='invisible px-2'>X</div>
                 </div>
             </div>
