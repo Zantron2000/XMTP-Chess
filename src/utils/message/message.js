@@ -1,4 +1,4 @@
-import { MESSAGE } from "../enum";
+import { CONNECT_STATUS, DEV_MODE, MESSAGE } from "../enum";
 
 export const isHashContent = (content, hash) => {
     return content.startsWith(hash + MESSAGE.HASH_DELIMITER);
@@ -23,19 +23,22 @@ export const filterMessages = (messages, hash) => {
     const gameMessages = [];
     const convoMessages = [];
 
+
+
+
     messages.forEach(message => {
         if (isHashContent(message.content, hash)) {
             gameMessages.push(message);
+
+            if (DEV_MODE) {
+                convoMessages.push(message);
+            }
         } else {
             convoMessages.push(message);
         }
     });
 
     return { gameMessages, convoMessages };
-}
-
-export const sendMessage = async (sendMessageFn, conversation, content) => {
-    return sendMessageFn(conversation, content)
 }
 
 export const createGameMessage = (hash, ...content) => {
@@ -49,4 +52,30 @@ export const generateHash = () => {
         hash += chars[Math.floor(Math.random() * chars.length)];
     }
     return hash;
+}
+
+export const isGameContent = (content) => {
+    const data = getContent(content);
+    const components = data.split(MESSAGE.GAME_DELIMITER);
+
+    // Should be 64-80 characters long, made up of characters A-H, 1-8, or KQRBNPX
+    const boardPattern = /^([A-H1-8KQRBNPX]{64,80})$/;
+
+    // Should be 1 character long, made up of characters W or B
+    const playerPattern = /^[WB]$/;
+
+    // Should be 1 character long, made up of characters T or F
+    const canCastlePattern = /^[TF]{4}$/;
+
+    return components.length === 3 &&
+        components[0].match(boardPattern) !== null &&
+        components[1].match(playerPattern) !== null &&
+        components[2].match(canCastlePattern) !== null;
+}
+
+export const isConnectStatus = (content) => {
+    const data = getContent(content);
+    const components = data.split(MESSAGE.GAME_DELIMITER);
+
+    return components.length > 0 && CONNECT_STATUS[components[0]] !== undefined;
 }
