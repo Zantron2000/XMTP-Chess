@@ -1,6 +1,10 @@
 import { mainnet } from 'wagmi/chains';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
 import { WagmiConfig } from "wagmi";
+import {
+  createHashRouter,
+  RouterProvider,
+} from 'react-router-dom'
 
 import './App.css'
 import SSXWatchProvider from './components/SSXWatchProvider';
@@ -8,6 +12,10 @@ import SSXLogin from './components/middleware/SSXLogin';
 import XMTPLogin from './components/middleware/XMTPLogin';
 import Tester from './components/Tester';
 import { XMTPProvider } from '@xmtp/react-sdk';
+import Home from './components/pages/Home';
+import GameList from './components/pages/GameList';
+import Play from './components/pages/Play';
+import { SSX } from '@spruceid/ssx';
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const metadata = {
@@ -25,16 +33,27 @@ const wagmiConfig = defaultWagmiConfig({
 })
 createWeb3Modal({ wagmiConfig, projectId, chains })
 
+const router = createHashRouter([
+  {
+    path: '/games',
+    element: <SSXLogin><XMTPLogin><GameList /></XMTPLogin></SSXLogin>,
+  },
+  {
+    path: '/play',
+    element: <Play />,
+  },
+  {
+    path: '/',
+    element: <SSXLogin><XMTPLogin><Play /></XMTPLogin></SSXLogin>,
+  },
+]);
+
 function App() {
   return (
     <WagmiConfig config={wagmiConfig}>
       <SSXWatchProvider>
         <XMTPProvider>
-          <SSXLogin>
-            <XMTPLogin>
-              <Tester />
-            </XMTPLogin>
-          </SSXLogin>
+          <RouterProvider router={router} />
         </XMTPProvider>
       </SSXWatchProvider>
     </WagmiConfig>
