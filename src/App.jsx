@@ -16,6 +16,7 @@ import Home from './components/pages/Home';
 import GameList from './components/pages/GameList';
 import Play from './components/pages/Play';
 import { SSX } from '@spruceid/ssx';
+import FindGame from './components/middleware/FindGame';
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const metadata = {
@@ -40,11 +41,11 @@ const router = createHashRouter([
   },
   {
     path: '/play',
-    element: <Play />,
+    element: <SSXLogin><XMTPLogin><FindGame><Play /></FindGame></XMTPLogin></SSXLogin>,
   },
   {
     path: '/',
-    element: <SSXLogin><XMTPLogin><Play /></XMTPLogin></SSXLogin>,
+    element: <Home />,
   },
 ]);
 

@@ -9,59 +9,39 @@ import { generateInitalMoves } from "../../utils/game/message"
 import MessageBoard from "../MessageBoard"
 import GameContainer from "../GameContainer"
 import { getContent } from "../../utils/message/message"
+import GameManager from "../../utils/managers/GameManager"
+import { useLocation } from "react-router-dom"
 
 function Play() {
-    const { startConversation } = useStartConversation();
+    const location = useLocation();
+    const { opponent, hash, color, firstLastMove, firstCurrMove } = location.state;
     const { sendMessage } = useSendMessage();
-    const [conversation, setConversation] = useState(null);
+    console.log("DATA", location.state)
+    const [conversation, setConversation] = useState(location.state.convo);
     const { ssx } = useSSX();
-    const opponent = ssx.address() === '0x99FD46b167B0FBB8aC6f79E6f575A6199c2cb536' ? '0x7b653a3BA395275c2e4cB55Dd45Fc041A4074747' : '0x99FD46b167B0FBB8aC6f79E6f575A6199c2cb536'
-    const color = ssx.address() === '0x99FD46b167B0FBB8aC6f79E6f575A6199c2cb536' ? PIECE_COLORS.WHITE : PIECE_COLORS.BLACK;
 
     useStreamAllMessages((message) => console.log("NEW MESSAGE", message))
 
-    const hash = 'abcdf'
-
-    const loadConvo = async () => {
-        const convo = await startConversation(opponent)
-
-        console.log("CONVO:", convo)
-        setConversation(convo.cachedConversation);
-    }
-
-    useEffect(() => {
-        loadConvo();
-    }, [])
-
     const [moveNeg1, move0] = generateInitalMoves();
     const [status, setStatus] = useState(CONNECT_STATUS.ACCEPT);
-    const [lastMove, setLastMove] = useState(moveNeg1);
-    const [currMove, setCurrMove] = useState(move0);
+    const [lastMove, setLastMove] = useState(firstLastMove ?? moveNeg1);
+    const [currMove, setCurrMove] = useState(firstCurrMove ?? move0);
+    const [sendData, setSendData] = useState('');
+    const sets = { setStatus, setLastMove, setCurrMove, setSendData }
+    const manager = new GameManager(lastMove, currMove, status, ssx.address(), color, hash);
+
+    useEffect(() => {
+        if (sendData.trim() !== '') {
+            sendMessage(conversation, sendData.trim())
+            setSendData('')
+        }
+    }, [sendData])
+
     const sendMove = (nextMove) => {
         setLastMove(currMove);
         setCurrMove(nextMove);
 
-        console.log(currMove, nextMove)
-
         sendMessage(conversation, `${hash}-${nextMove}`)
-    }
-
-    const getOpponentMove = (first, second) => {
-        console.log(first, second);
-        const { content: fContent } = first;
-        const ready = true;
-
-        if (ready && getContent(fContent) !== currMove.content) {
-            if (second) {
-                const { content: sContent } = second;
-
-                setLastMove(getContent(sContent));
-                setCurrMove(getContent(fContent));
-            } else {
-                setLastMove(currMove);
-                setCurrMove(getContent(fContent));
-            }
-        }
     }
 
     return (
@@ -76,10 +56,16 @@ function Play() {
                             lastMove={lastMove}
                             player={color}
                             sendMove={sendMove}
+                            gameOver={manager.isGameOver()}
                         />
                     </div>
                     <div className="w-[100%] md:w-[75%] xl:w-1/2 mx-auto h-[450px] md:h-[600px] xl:h-[90%]">
-                        {conversation ? <MessageBoard hash={hash} conversation={conversation} playerAddr={ssx.address()} sendGameDetails={getOpponentMove} /> : null}
+                        {conversation ? <MessageBoard
+                            hash={hash}
+                            conversation={conversation}
+                            playerAddr={ssx.address()}
+                            sendGameDetails={(first) => manager.updateStatus(sets, first)}
+                        /> : null}
                     </div>
                 </div>
             </div>

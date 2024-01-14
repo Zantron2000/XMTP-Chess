@@ -13,18 +13,14 @@ function Game({ conversation }) {
         exec();
     }, [])
 
-    console.log(messages)
-
     const sendInvite = async (e) => {
         e.preventDefault();
 
         const message = await conversation.conversation.send('ABCDEF-INVITE');
-        console.log('Sent:', message)
     }
 
     useStreamMessages(conversation.cachedConversation, {
         onMessage: (message) => {
-            console.log('Recieving:', message)
             setMessages([...messages, message])
         }
     })
