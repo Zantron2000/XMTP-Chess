@@ -9,7 +9,8 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOv
     const [boardDetails, setBoardDetails] = useState({});
     const boardManager = new BoardManager(lastMove, currMove, selectedTile, status, player, gameOver);
 
-    boardManager.getStatus(setStatus, (data) => console.log(data));
+    // boardManager.getStatus(setStatus, (data) => console.log(data));
+
     const squares = [];
     const { rowLabels, colLabels } = boardManager.getLabelOrder();
     const makeMove = (nextMove) => {
@@ -19,32 +20,18 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOv
     }
 
     useEffect(() => {
-        console.log("Starting")
         boardManager.getStatus(setStatus, (data) => console.log(data));
-
-        console.log('STATUS:', boardManager.status)
-        console.log("USING", lastMove, currMove)
 
         if (boardManager.status !== GAME_STATUS.CHEAT) {
             const details = boardManager.getBoardDetails();
 
-            console.log("DETAILS:", details)
-
             setBoardDetails(details);
+        } else {
+            setBoardDetails({});
         }
-    }, [currMove]);
+    }, [currMove, selectedTile]);
 
-    useEffect(() => {
-        if (boardManager.board) {
-            const details = boardManager.getBoardDetails();
-
-            console.log("DETAILS:", details)
-
-            setBoardDetails(details);
-        }
-    }, [selectedTile])
-
-    console.log("Resting", boardDetails)
+    console.log("LOADING", boardDetails)
 
     for (let row = 0; row < 8; row += 1) {
         for (let col = 7; col > -1; col -= 1) {
