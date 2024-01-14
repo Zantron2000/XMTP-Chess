@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 
 import GameSquare from './GameSquare';
 import BoardManager from '../utils/managers/BoardManager';
-import { INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS } from '../utils/enum';
+import { INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, GAME_STATUS } from '../utils/enum';
 
-function Board({ player, status, setStatus, lastMove, currMove, sendMove }) {
+function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOver }) {
     const [selectedTile, setSelectedTile] = useState(undefined);
-    const boardManager = new BoardManager(lastMove, currMove, selectedTile, status, player);
+    const [boardDetails, setBoardDetails] = useState({});
+    const boardManager = new BoardManager(lastMove, currMove, selectedTile, status, player, gameOver);
 
     boardManager.getStatus(setStatus, (data) => console.log(data));
     const squares = [];
@@ -18,10 +19,32 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove }) {
     }
 
     useEffect(() => {
+        console.log("Starting")
         boardManager.getStatus(setStatus, (data) => console.log(data));
+
+        console.log('STATUS:', boardManager.status)
+        console.log("USING", lastMove, currMove)
+
+        if (boardManager.status !== GAME_STATUS.CHEAT) {
+            const details = boardManager.getBoardDetails();
+
+            console.log("DETAILS:", details)
+
+            setBoardDetails(details);
+        }
     }, [currMove]);
 
-    const boardDetails = boardManager.getBoardDetails();
+    useEffect(() => {
+        if (boardManager.board) {
+            const details = boardManager.getBoardDetails();
+
+            console.log("DETAILS:", details)
+
+            setBoardDetails(details);
+        }
+    }, [selectedTile])
+
+    console.log("Resting", boardDetails)
 
     for (let row = 0; row < 8; row += 1) {
         for (let col = 7; col > -1; col -= 1) {
