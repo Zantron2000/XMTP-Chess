@@ -3,6 +3,7 @@ import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useSSX } from "@spruceid/ssx-react"
 
 import logo from '../assets/logo.png'
+import { Link } from "react-router-dom";
 
 function Header() {
     const { ssx } = useSSX();
@@ -23,7 +24,7 @@ function Header() {
         <header className="bg-header py-4 px-8 text-2xl">
             <div className="flex justify-between items-center">
                 <div>
-                    <img src={logo} alt="logo" className="w-[180px] h-[75px]" />
+                    <Link to={'/'} reloadDocument ><img src={logo} alt="logo" className="w-[180px] h-[75px]" /></Link>
                 </div>
                 <div>
                     <button
