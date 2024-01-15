@@ -7,13 +7,14 @@ import { getEnemyColor, isPiece, ownsPiece } from "../game/piece";
 import { translateMessageToBoard, translateTurnToMessage } from "../game/translate";
 
 class BoardManager {
-    constructor(lastMove, currentMove, selectedTile, status, player) {
+    constructor(lastMove, currentMove, selectedTile, status, player, gameOver) {
         this.lastMove = lastMove;
         this.currentMove = currentMove;
         this.selectedTile = selectedTile;
         this.status = status;
         this.player = player;
         this.actions = {};
+        this.gameOver = gameOver;
     }
 
     validatePlayerMove(playerColor) {
@@ -59,6 +60,10 @@ class BoardManager {
     }
 
     getStatus(setStatus, setMessage) {
+        if (this.gameOver) {
+            return;
+        }
+
         // 1. Get who made the current move
         // 2. If it was the player
         // 2a. Check the validity of the move, if it's not valid, the status is CHEAT
@@ -82,7 +87,6 @@ class BoardManager {
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
-            if (this.status === GAME_STATUS.WAITING) return;
             const { actions, isKingSafe } = getTurnInfo(this.board, nextMoveMaker, this.positions, this.pawnRegistry, this.canCastle[nextMoveMaker]);
 
             if (noMoreActions(actions) && !isKingSafe) {
@@ -97,13 +101,13 @@ class BoardManager {
             }
         } else {
             const error = this.validateOpponentMove(currentMoveMaker);
+
             if (error) {
                 setMessage(error)
                 this.status = GAME_STATUS.CHEAT;
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
-            if (this.status === GAME_STATUS.WAITING) return;
             const { actions, isKingSafe } = getTurnInfo(this.board, this.player, this.positions, this.pawnRegistry, this.canCastle[this.player]);
             this.actions = actions;
 
@@ -124,7 +128,7 @@ class BoardManager {
         const details = {};
         const piece = getPieceAtChessCoords(this.board, chessPos);
 
-        if (!isTurn(this.player, this.status)) {
+        if (!isTurn(this.player, this.status) || this.gameOver) {
             return { piece, selectable: false };
         }
 
@@ -178,7 +182,6 @@ class BoardManager {
             this.canCastle[this.player] = { 1: false, 2: false };
         }
 
-        console.log(this.board)
         makeMove(this.translateTurn());
     }
 

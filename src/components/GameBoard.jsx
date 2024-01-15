@@ -9,7 +9,7 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOv
     const [boardDetails, setBoardDetails] = useState({});
     const boardManager = new BoardManager(lastMove, currMove, selectedTile, status, player, gameOver);
 
-    // boardManager.getStatus(setStatus, (data) => console.log(data));
+    boardManager.getStatus(setStatus, (data) => console.log(data));
 
     const squares = [];
     const { rowLabels, colLabels } = boardManager.getLabelOrder();
@@ -30,8 +30,6 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOv
             setBoardDetails({});
         }
     }, [currMove, selectedTile]);
-
-    console.log("LOADING", boardDetails)
 
     for (let row = 0; row < 8; row += 1) {
         for (let col = 7; col > -1; col -= 1) {
