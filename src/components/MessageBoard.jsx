@@ -1,33 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import PlayerMessage from './PlayerMessage';
 import OpponentMessage from './OpponentMessage';
 import MessageInput from './MessageInput';
 import MessageManager from '../utils/managers/MessageManager';
-import { useMessages, useSendMessage } from '@xmtp/react-sdk';
+import { useMessages, useSendMessage, useStreamMessages } from '@xmtp/react-sdk';
 
 function MessageBoard({ conversation, playerAddr, hash, sendGameDetails }) {
     const { sendMessage: sendMessageFn } = useSendMessage();
     const data = useMessages(conversation);
 
     const [messages, setMessages] = useState([]);
+    const [message, setMessage] = useState(undefined);
+
     const manager = new MessageManager(conversation, messages, playerAddr, hash);
     const displayDetails = manager.getDisplayDetails();
 
-    console.log(messages, data?.messages)
+    const onMessage = useCallback((message) => {
+        setMessage((prev) => {
+            return message;
+        });
+    }, [message]);
+
+    useStreamMessages(conversation, { onMessage });
 
     useEffect(() => {
-        if (data?.error === null && data?.isLoaded) {
+        if (message) {
+            manager.processMessage(message, sendGameDetails);
+            setMessages([...messages, message])
+            setMessage(undefined);
+        }
+    }, [message])
+
+    useEffect(() => {
+        if (data?.error === null && data?.isLoaded && messages.length === 0) {
             setMessages(data.messages);
         }
     }, [data?.isLoaded, data?.messages?.length]);
-
-    useEffect(() => {
-        if (manager.gameMessages.length > 0) {
-            sendGameDetails(manager.gameMessages[manager.gameMessages.length - 1], manager.gameMessages[manager.gameMessages.length - 2]);
-        }
-    }, [manager.gameMessages.length])
-
 
     return (
         <div className="w-[85%] md:w-[85%] xl:w-[75%] h-full mx-auto flex flex-col justify-around items-center bg-[#68a239] rounded-xl">
