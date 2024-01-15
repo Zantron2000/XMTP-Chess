@@ -1,8 +1,10 @@
 import { useEnsName, useEnsAvatar } from "wagmi"
 import { useEffect, useState } from "react";
 import { useMessages } from "@xmtp/react-sdk";
+import { useNavigate } from "react-router-dom";
 
-import { isGameMessage } from "../tools/tools/message"
+import { isGameContent } from "../utils/message/message"
+import { PIECE_COLORS } from "../utils/enum";
 
 function GameCard({ conversation }) {
     const cardData = {
@@ -14,11 +16,11 @@ function GameCard({ conversation }) {
     const { data: ensAvatarData, isFetched: ensAvatarIsLoaded } = useEnsAvatar({ name: cardData.primaryName.includes('.eth') ? cardData.primaryName : undefined });
     const { messages, isLoaded: messagesIsLoaded } = useMessages(conversation);
     const [gameFound, setGameFound] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (messagesIsLoaded) {
-            const possibleGame = messages.some(m => isGameMessage(m.content));
-            console.log(possibleGame)
+            const possibleGame = messages.some(m => isGameContent(m.content));
             setGameFound(possibleGame);
         }
 
@@ -36,6 +38,19 @@ function GameCard({ conversation }) {
             cardData.avatar = ensAvatarData;
         }
     }, [ensAvatarIsLoaded]);
+
+    const loadNewGame = (e) => {
+        e.preventDefault();
+        const profiles = {
+            opponent: {
+                name: cardData.secondaryName ? cardData.primaryName : undefined,
+                img: cardData.avatar,
+            }
+        }
+
+        const color = conversation.peerAddress === '0x99FD46b167B0FBB8aC6f79E6f575A6199c2cb536' ? PIECE_COLORS.BLACK : PIECE_COLORS.WHITE;
+        navigate('/play', { state: { convo: conversation, opponent: conversation.peerAddress, hash: 'abcdp', color, profiles } })
+    }
 
     return (
         <div
@@ -66,6 +81,7 @@ function GameCard({ conversation }) {
                 </button>
                 <button
                     className="bg-primary-button text-2xl p-4 rounded-lg hover:bg-primary-button-hover transition duration-300 ease-in-out mx-2"
+                    onClick={loadNewGame}
                 >
                     New Game
                 </button>
