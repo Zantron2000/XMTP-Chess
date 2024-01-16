@@ -1,4 +1,5 @@
-import { createGameMessage, filterMessages, generateHash, getContent } from "../message/message";
+import { DEV_MODE } from "../enum";
+import { createGameMessage, filterMessages, generateHash, getContent, isHashContent } from "../message/message";
 
 class MessageManager {
     constructor(conversation, messages, playerAddr, hash = generateHash()) {
@@ -23,6 +24,19 @@ class MessageManager {
         const message = createGameMessage(this.hash, ...content);
 
         sendMessage(sendMessageFn, this.conversation, message);
+    }
+
+    processMessage(message, sendGameDetailsFn) {
+        if (isHashContent(message.content, this.hash)) {
+            this.gameMessages.push(message);
+            sendGameDetailsFn(message);
+
+            if (DEV_MODE) {
+                this.convoMessages.push(message);
+            }
+        } else {
+            this.convoMessages.push(message);
+        }
     }
 
     sendMessage(sendMessageFn, content) {
