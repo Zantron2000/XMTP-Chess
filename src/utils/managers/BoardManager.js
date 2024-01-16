@@ -1,5 +1,5 @@
 import { ACTION_TYPES, BOARD_COL_LABELS, BOARD_ROW_LABELS } from "../../tools/enums";
-import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS, INDEX_TO_ROW, INDEX_TO_COL, ROW_TO_INDEX, COL_TO_INDEX } from "../enum";
+import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS, INDEX_TO_ROW, INDEX_TO_COL, ROW_TO_INDEX, COL_TO_INDEX, CAPTURED_PIECE } from "../enum";
 import { executeAction, isAction, isTurn, noMoreActions, validateAction } from "../game/action";
 import { getPieceAtChessCoords, getTurnInfo, isSafeMove, validateMove } from "../game/board";
 import { getNextTurn, getPlayerFromMessage, validateTurnContinuity } from "../game/message";
@@ -28,7 +28,13 @@ class BoardManager {
             return pError;
         }
 
-        const lastBoard = translateMessageToBoard(this.lastMove);
+        const lastBoard = Object.entries(cData.last.positions).reduce((acc, [piece, pos]) => {
+            if (pos !== CAPTURED_PIECE) {
+                acc[pos] = piece;
+            }
+
+            return acc;
+        }, {});
         const { error: mError } = validateMove(
             lastBoard,
             pData,
@@ -41,7 +47,13 @@ class BoardManager {
             return mError;
         }
 
-        this.board = translateMessageToBoard(this.currentMove);
+        this.board = Object.entries(cData.curr.positions).reduce((acc, [piece, pos]) => {
+            if (pos !== CAPTURED_PIECE) {
+                acc[pos] = piece;
+            }
+
+            return acc;
+        }, {});
         this.positions = cData.curr.positions;
         this.pawnRegistry = cData.curr.pawnRegistry;
         this.canCastle = cData.curr.canCastle;

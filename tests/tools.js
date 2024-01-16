@@ -10,14 +10,7 @@ const BOARD_SIZE = 8;
  * @returns {String[][]} The empty board
  */
 export const createTestBoard = () => {
-    const board = [];
-    for (let i = 0; i < BOARD_SIZE; i++) {
-        board.push([]);
-        for (let j = 0; j < BOARD_SIZE; j++) {
-            board[i].push(PIECE_VALUES.EMPTY);
-        }
-    }
-    return board;
+    return {};
 };
 
 export const PIECES = {
@@ -73,15 +66,14 @@ export const createDeadPositions = (positions = {}) => {
 }
 
 export const createBoard = () => {
-    const board = createTestBoard();
-    PIECE_MESSAGE_ORDER.forEach((piece) => {
-        const chessPos = INITIAL_BOARD_POSITIONS[piece];
-
-        if (chessPos) {
-            const [row, col] = extractCoords(chessPos);
-            board[row][col] = piece;
+    const positions = createPositions();
+    const board = Object.entries(positions).reduce((acc, [piece, pos]) => {
+        if (pos !== 'XX') {
+            acc[pos] = piece;
         }
-    });
+
+        return acc;
+    }, {});
 
     return board;
 }

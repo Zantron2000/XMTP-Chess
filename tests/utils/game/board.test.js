@@ -1,5 +1,5 @@
-import { validateMove, getTurnInfo, movePiece, placePiece } from "../../../src/utils/game/board";
-import { INITIAL_BOARD_POSITIONS, PIECE_COLORS, PIECE_VALUES } from "../../../src/utils/enum";
+import { validateMove, getTurnInfo, movePiece, placePiece, removePiece } from "../../../src/utils/game/board";
+import { INITIAL_BOARD_POSITIONS, PIECES, PIECE_COLORS, PIECE_VALUES } from "../../../src/utils/enum";
 import { ACTION_TYPES } from "../../../src/tools/enums";
 
 const { KING, KNIGHT, BISHOP, EMPTY, PAWN, QUEEN, ROOK } = PIECE_VALUES;
@@ -7,29 +7,20 @@ const { BLACK, WHITE } = PIECE_COLORS;
 const { MOVE, CAPTURE, TRANSFORM, CASTLE } = ACTION_TYPES;
 
 const createStarterBoard = () => {
-    return [
-        ['WR1', 'WN1', 'WB1', 'WQ', 'WK', 'WB2', 'WN2', 'WR2'],
-        ['WP1', 'WP2', 'WP3', 'WP4', 'WP5', 'WP6', 'WP7', 'WP8'],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        ['BP1', 'BP2', 'BP3', 'BP4', 'BP5', 'BP6', 'BP7', 'BP8'],
-        ['BR1', 'BN1', 'BB1', 'BQ', 'BK', 'BB2', 'BN2', 'BR2'],
-    ]
+    return {
+        'A1': 'WR1', 'B1': 'WN1', 'C1': 'WB1', 'D1': 'WQ',
+        'E1': 'WK', 'F1': 'WB2', 'G1': 'WN2', 'H1': 'WR2',
+        'A2': 'WP1', 'B2': 'WP2', 'C2': 'WP3', 'D2': 'WP4',
+        'E2': 'WP5', 'F2': 'WP6', 'G2': 'WP7', 'H2': 'WP8',
+        'A7': 'BP1', 'B7': 'BP2', 'C7': 'BP3', 'D7': 'BP4',
+        'E7': 'BP5', 'F7': 'BP6', 'G7': 'BP7', 'H7': 'BP8',
+        'A8': 'BR1', 'B8': 'BN1', 'C8': 'BB1', 'D8': 'BQ',
+        'E8': 'BK', 'F8': 'BB2', 'G8': 'BN2', 'H8': 'BR2',
+    }
 }
 
 const createEmptyBoard = () => {
-    return [
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-    ]
+    return {}
 }
 
 const createDeadPositions = () => {
@@ -97,8 +88,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an invalid double move for a white pawn', () => {
             const board = createStarterBoard();
-            board[1][0] = PIECE_VALUES.EMPTY;
-            board[2][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
+            placePiece(board, 'A2', PIECE_VALUES.EMPTY);
+            placePiece(board, 'A3', PIECES.WHITE_PAWN_1);
 
             const doubleMoveData = {
                 piecePos: 'A3',
@@ -124,7 +115,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an enemy 2 spaces away from a white pawn', () => {
             const board = createStarterBoard();
-            board[3][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
+            placePiece(board, 'A4', PIECES.BLACK_PAWN_1);
             const doubleMove = {
                 piecePos: 'A2',
                 action: 'A4' + ACTION_TYPES.MOVE,
@@ -155,7 +146,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an enemy 1 space away from a white pawn', () => {
             const board = createStarterBoard();
-            board[2][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
+            placePiece(board, 'A3', PIECES.BLACK_PAWN_1);
             const doubleMove = {
                 piecePos: 'A2',
                 action: 'A4' + ACTION_TYPES.MOVE,
@@ -180,7 +171,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an ally 2 spaces away from a white pawn', () => {
             const board = createStarterBoard();
-            board[3][0] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK + '1';
+            placePiece(board, 'A4', PIECES.WHITE_ROOK_1);
             const doubleMove = {
                 piecePos: 'A2',
                 action: 'A4' + ACTION_TYPES.MOVE,
@@ -205,7 +196,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an ally 1 space away from a white pawn', () => {
             const board = createStarterBoard();
-            board[2][0] = PIECE_COLORS.WHITE + PIECE_VALUES.ROOK + '1';
+            placePiece(board, 'A3', PIECES.WHITE_ROOK_1);
             const doubleMove = {
                 piecePos: 'A2',
                 action: 'A4' + ACTION_TYPES.MOVE,
@@ -242,11 +233,12 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a white pawn to move in any direction other than south', () => {
             const board = createStarterBoard();
-            board[0][0] = PIECE_VALUES.EMPTY;
-            board[1][0] = PIECE_VALUES.EMPTY;
-            board[0][1] = PIECE_VALUES.EMPTY;
-            board[0][2] = PIECE_VALUES.EMPTY;
-            board[1][2] = PIECE_VALUES.EMPTY;
+            removePiece(board, 'A1');
+            removePiece(board, 'A2');
+            removePiece(board, 'B1');
+            removePiece(board, 'C1');
+            removePiece(board, 'C2');
+
             const invalidMoves = [
                 'A1', 'B1', 'C1', 'A2', 'C2', 'A3', 'C3'
             ]
@@ -279,8 +271,8 @@ describe('Tests validateMove', () => {
 
         it('Should allow a white pawn to transform if a piece is blocking the pawn', () => {
             const board = createStarterBoard();
-            board[1][0] = PIECE_VALUES.EMPTY;
-            board[6][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
+            removePiece(board, 'A2');
+            placePiece(board, 'A7', PIECES.WHITE_PAWN_1);
             const data = {
                 piecePos: 'A7',
                 action: 'A8' + ACTION_TYPES.TRANSFORM,
@@ -293,9 +285,9 @@ describe('Tests validateMove', () => {
 
         it('Should allow a white pawn to transform if it is near the last row', () => {
             const board = createStarterBoard();
-            board[1][0] = PIECE_VALUES.EMPTY;
-            board[6][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[7][0] = PIECE_VALUES.EMPTY;
+            removePiece(board, 'A2');
+            placePiece(board, 'A7', PIECES.WHITE_PAWN_1);
+            removePiece(board, 'A8');
             const data = {
                 piecePos: 'A7',
                 action: 'A8' + ACTION_TYPES.TRANSFORM,
@@ -308,9 +300,9 @@ describe('Tests validateMove', () => {
 
         it('Should allow a white pawn to attack enemy pieces diagonally', () => {
             const board = createEmptyBoard();
-            board[2][2] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[3][3] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[3][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'C3', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'B4', PIECES.BLACK_PAWN_2);
+            placePiece(board, 'D4', PIECES.BLACK_PAWN_1);
             const leftCapture = {
                 piecePos: 'C3',
                 action: 'B4' + ACTION_TYPES.CAPTURE,
@@ -329,9 +321,9 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a white pawn to attack ally pieces diagonally', () => {
             const board = createEmptyBoard();
-            board[2][2] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[3][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'C3', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'B4', PIECES.WHITE_PAWN_2);
+            placePiece(board, 'D4', PIECES.WHITE_PAWN_3);
             const leftCapture = {
                 piecePos: 'C3',
                 action: 'B4' + ACTION_TYPES.CAPTURE,
@@ -350,9 +342,9 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a white pawn to attack enemy pieces if they are too far away', () => {
             const board = createEmptyBoard();
-            board[2][2] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[4][4] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[4][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'C3', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'E5', PIECES.BLACK_PAWN_1);
+            placePiece(board, 'A5', PIECES.BLACK_PAWN_2);
             const leftCapture = {
                 piecePos: 'C3',
                 action: 'A5' + ACTION_TYPES.CAPTURE,
@@ -395,8 +387,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an invalid double move for a black pawn', () => {
             const board = createStarterBoard();
-            board[6][0] = PIECE_VALUES.EMPTY;
-            board[5][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
+            removePiece(board, 'A7');
+            placePiece(board, 'A6', PIECES.BLACK_PAWN_1)
 
             const doubleMoveData = {
                 piecePos: 'A6',
@@ -422,7 +414,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an enemy 2 spaces away from a black pawn', () => {
             const board = createStarterBoard();
-            board[4][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
+            placePiece(board, 'A5', PIECES.WHITE_PAWN_1);
             const doubleMove = {
                 piecePos: 'A7',
                 action: 'A5' + ACTION_TYPES.MOVE,
@@ -453,7 +445,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an enemy 1 space away from a black pawn', () => {
             const board = createStarterBoard();
-            board[5][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
+            placePiece(board, 'A6', PIECES.WHITE_PAWN_1)
             const doubleMove = {
                 piecePos: 'A7',
                 action: 'A5' + ACTION_TYPES.MOVE,
@@ -478,7 +470,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an ally 2 spaces away from a black pawn', () => {
             const board = createStarterBoard();
-            board[4][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'A5', PIECES.BLACK_PAWN_2)
             const doubleMove = {
                 piecePos: 'A7',
                 action: 'A5' + ACTION_TYPES.MOVE,
@@ -509,7 +501,7 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for an ally 1 space away from a black pawn', () => {
             const board = createStarterBoard();
-            board[2][0] = PIECE_COLORS.BLACK + PIECE_VALUES.ROOK + '1';
+            placePiece(board, 'A3', PIECES.BLACK_ROOK_1);
             const doubleMove = {
                 piecePos: 'A2',
                 action: 'A4' + ACTION_TYPES.MOVE,
@@ -546,7 +538,7 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a black pawn to move in any direction other than north', () => {
             const board = createEmptyBoard();
-            board[6][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
+            placePiece(board, 'B7', PIECES.BLACK_PAWN_1);
             const invalidMoves = [
                 'A8', 'B8', 'C8', 'A7', 'C7', 'A6', 'C6'
             ]
@@ -579,8 +571,8 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a black pawn to transform if a piece is blocking the pawn', () => {
             const board = createStarterBoard();
-            board[6][0] = PIECE_VALUES.EMPTY;
-            board[1][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
+            removePiece(board, 'A7');
+            placePiece(board, 'A2', PIECES.BLACK_PAWN_1);
             const data = {
                 piecePos: 'A2',
                 action: 'A1' + ACTION_TYPES.TRANSFORM,
@@ -593,9 +585,9 @@ describe('Tests validateMove', () => {
 
         it('Should allow a black pawn to transform if it is near the last row', () => {
             const board = createStarterBoard();
-            board[6][0] = PIECE_VALUES.EMPTY;
-            board[1][0] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[0][0] = PIECE_VALUES.EMPTY;
+            removePiece(board, 'A7');
+            placePiece(board, 'A2', PIECES.BLACK_PAWN_1);
+            removePiece(board, 'A1');
             const data = {
                 piecePos: 'A2',
                 action: 'A1' + ACTION_TYPES.TRANSFORM,
@@ -608,9 +600,9 @@ describe('Tests validateMove', () => {
 
         it('Should allow a black pawn to attack enemy pieces diagonally', () => {
             const board = createEmptyBoard();
-            board[2][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[1][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[1][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'C3', PIECES.BLACK_PAWN_1);
+            placePiece(board, 'B2', PIECES.WHITE_PAWN_2);
+            placePiece(board, 'D2', PIECES.WHITE_PAWN_1);
             const leftCapture = {
                 piecePos: 'C3',
                 action: 'B2' + ACTION_TYPES.CAPTURE,
@@ -629,9 +621,9 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a black pawn to attack ally pieces diagonally', () => {
             const board = createEmptyBoard();
-            board[2][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[1][3] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[1][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'C3', PIECES.BLACK_PAWN_1);
+            placePiece(board, 'B2', PIECES.BLACK_PAWN_2);
+            placePiece(board, 'D2', PIECES.BLACK_PAWN_3);
             const leftCapture = {
                 piecePos: 'C3',
                 action: 'B2' + ACTION_TYPES.CAPTURE,
@@ -650,9 +642,9 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a black pawn to attack enemy pieces if they are too far away', () => {
             const board = createEmptyBoard();
-            board[2][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[0][0] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[0][4] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'C3', PIECES.BLACK_PAWN_1);
+            placePiece(board, 'A1', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'E1', PIECES.WHITE_PAWN_2);
             const leftCapture = {
                 piecePos: 'C3',
                 action: 'A1' + ACTION_TYPES.CAPTURE,
@@ -673,7 +665,7 @@ describe('Tests validateMove', () => {
     describe('Tests transformed pawns', () => {
         it('Should allow a knight pawn to move like a knight', () => {
             const board = createEmptyBoard();
-            board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
+            placePiece(board, 'D4', PIECES.WHITE_PAWN_1);
             const registry = {
                 [PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1']: PIECE_VALUES.KNIGHT
             }
@@ -695,9 +687,9 @@ describe('Tests validateMove', () => {
 
         it('Should allow a knight pawn to attack like a knight', () => {
             const board = createEmptyBoard();
-            board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[2][5] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[4][4] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '2';
+            placePiece(board, 'D4', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'F3', PIECES.BLACK_PAWN_1);
+            placePiece(board, 'E5', PIECES.BLACK_PAWN_2);
             const registry = {
                 [PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1']: PIECE_VALUES.KNIGHT
             }
@@ -721,7 +713,7 @@ describe('Tests validateMove', () => {
     describe('Tests knights', () => {
         it('Should find no error for moving a knight', () => {
             const board = createEmptyBoard();
-            board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT + '1';
+            placePiece(board, 'D4', PIECES.WHITE_KNIGHT_1);
             const validMoves = [
                 'B3', 'B5', 'C2', 'C6', 'E2', 'E6', 'F3', 'F5'
             ];
@@ -754,15 +746,15 @@ describe('Tests validateMove', () => {
 
         it('Should find no error for capturing enemies with a knight', () => {
             const board = createEmptyBoard();
-            board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT + '1';
-            board[2][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '1';
-            board[2][5] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '2';
-            board[4][1] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '3';
-            board[4][5] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '4';
-            board[1][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '5';
-            board[1][4] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '6';
-            board[5][2] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '7';
-            board[5][4] = PIECE_COLORS.BLACK + PIECE_VALUES.PAWN + '8';
+            placePiece(board, 'D4', PIECES.WHITE_KNIGHT_1);
+            placePiece(board, 'B3', PIECES.BLACK_PAWN_1);
+            placePiece(board, 'F3', PIECES.BLACK_PAWN_2);
+            placePiece(board, 'B5', PIECES.BLACK_PAWN_3);
+            placePiece(board, 'F5', PIECES.BLACK_PAWN_4);
+            placePiece(board, 'C2', PIECES.BLACK_PAWN_5);
+            placePiece(board, 'E2', PIECES.BLACK_PAWN_6);
+            placePiece(board, 'C6', PIECES.BLACK_PAWN_7);
+            placePiece(board, 'E6', PIECES.BLACK_PAWN_8);
             const validCaptures = [
                 'B3', 'B5', 'C2', 'C6', 'E2', 'E6', 'F3', 'F5'
             ];
@@ -795,15 +787,15 @@ describe('Tests validateMove', () => {
 
         it('Should find error for capturing allies with a knight', () => {
             const board = createEmptyBoard();
-            board[3][3] = PIECE_COLORS.WHITE + PIECE_VALUES.KNIGHT + '1';
-            board[2][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '1';
-            board[2][5] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '2';
-            board[4][1] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '3';
-            board[4][5] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '4';
-            board[1][2] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '5';
-            board[1][4] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '6';
-            board[5][2] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '7';
-            board[5][4] = PIECE_COLORS.WHITE + PIECE_VALUES.PAWN + '8';
+            placePiece(board, 'D4', PIECES.WHITE_KNIGHT_1);
+            placePiece(board, 'B3', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'F3', PIECES.WHITE_PAWN_2);
+            placePiece(board, 'B5', PIECES.WHITE_PAWN_3);
+            placePiece(board, 'F5', PIECES.WHITE_PAWN_4);
+            placePiece(board, 'C2', PIECES.WHITE_PAWN_5);
+            placePiece(board, 'E2', PIECES.WHITE_PAWN_6);
+            placePiece(board, 'C6', PIECES.WHITE_PAWN_7);
+            placePiece(board, 'E6', PIECES.WHITE_PAWN_8);
             const validCaptures = [
                 'B3', 'B5', 'C2', 'C6', 'E2', 'E6', 'F3', 'F5'
             ];
@@ -822,11 +814,11 @@ describe('Tests validateMove', () => {
 
         it('Should find no error for moving a knight past other pieces', () => {
             const board = createEmptyBoard();
-            board[3][3] = 'WN1';
-            board[3][4] = 'WP1';
-            board[4][3] = 'WP2';
-            board[2][3] = 'WP3';
-            board[3][2] = 'WP4';
+            placePiece(board, 'D4', PIECES.WHITE_KNIGHT_1);
+            placePiece(board, 'E4', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'D5', PIECES.WHITE_PAWN_2);
+            placePiece(board, 'D3', PIECES.WHITE_PAWN_3);
+            placePiece(board, 'C4', PIECES.WHITE_PAWN_4);
             const data = {
                 piecePos: 'D4',
                 action: 'B5' + ACTION_TYPES.MOVE,
@@ -841,7 +833,7 @@ describe('Tests validateMove', () => {
     describe('Tests queens', () => {
         it('Should find no error for moving a queen diagonally to the other end of the board', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WQ';
+            placePiece(board, 'A1', PIECES.WHITE_QUEEN);
             const data = {
                 piecePos: 'A1',
                 action: 'H8' + ACTION_TYPES.MOVE,
@@ -854,7 +846,7 @@ describe('Tests validateMove', () => {
 
         it('Should find no error for moving a queen horizontally to the other end of the board', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WQ';
+            placePiece(board, 'A1', PIECES.WHITE_QUEEN);
             const data = {
                 piecePos: 'A1',
                 action: 'H1' + ACTION_TYPES.MOVE,
@@ -867,7 +859,7 @@ describe('Tests validateMove', () => {
 
         it('Should find no error for moving a queen vertically to the other end of the board', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WQ';
+            placePiece(board, 'A1', PIECES.WHITE_QUEEN);
             const data = {
                 piecePos: 'A1',
                 action: 'A8' + ACTION_TYPES.MOVE,
@@ -880,8 +872,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a queen diagonally past a piece', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WQ';
-            board[1][1] = 'WP1';
+            placePiece(board, 'A1', PIECES.WHITE_QUEEN);
+            placePiece(board, 'B2', PIECES.WHITE_PAWN_1);
             const data = {
                 piecePos: 'A1',
                 action: 'C3' + ACTION_TYPES.MOVE,
@@ -896,7 +888,7 @@ describe('Tests validateMove', () => {
     describe('Tests kings', () => {
         it('Should find no error for moving a king diagonally', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WK';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
             const data = {
                 piecePos: 'A1',
                 action: 'B2' + ACTION_TYPES.MOVE,
@@ -913,7 +905,7 @@ describe('Tests validateMove', () => {
 
         it('Should find no error for moving a king horizontally', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WK';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
             const data = {
                 piecePos: 'A1',
                 action: 'B1' + ACTION_TYPES.MOVE,
@@ -930,7 +922,7 @@ describe('Tests validateMove', () => {
 
         it('Should find no error for moving a king vertically', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WK';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
             const data = {
                 piecePos: 'A1',
                 action: 'A2' + ACTION_TYPES.MOVE,
@@ -947,8 +939,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a king diagonally past a piece', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WK';
-            board[1][1] = 'WP1';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
+            placePiece(board, 'B2', PIECES.WHITE_PAWN_1);
             const data = {
                 piecePos: 'A1',
                 action: 'C3' + ACTION_TYPES.MOVE,
@@ -965,8 +957,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a king into a dangerous pawn position', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WK';
-            board[2][2] = 'BP1';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
+            placePiece(board, 'C3', PIECES.BLACK_PAWN_1);
             const data = {
                 piecePos: 'A1',
                 action: 'B2' + ACTION_TYPES.MOVE,
@@ -983,8 +975,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a king into a dangerous bishop position', () => {
             const board = createEmptyBoard();
-            board[0][0] = WHITE + KING;
-            board[2][2] = BLACK + BISHOP + '1';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
+            placePiece(board, 'C3', PIECES.BLACK_BISHOP_1);
             const data = {
                 piecePos: 'A1',
                 action: 'B2' + ACTION_TYPES.MOVE,
@@ -1001,8 +993,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a king into a dangerous rook position', () => {
             const board = createEmptyBoard();
-            board[0][0] = WHITE + KING;
-            board[1][7] = BLACK + ROOK + '1';
+            placePiece(board, 'A1', WHITE + KING);
+            placePiece(board, 'H2', PIECES.BLACK_ROOK_1);
             const data = {
                 piecePos: 'A1',
                 action: 'A2' + ACTION_TYPES.MOVE,
@@ -1019,8 +1011,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a king into a dangerous queen position', () => {
             const board = createEmptyBoard();
-            board[0][0] = WHITE + KING;
-            board[7][1] = BLACK + QUEEN;
+            placePiece(board, 'A1', PIECES.WHITE_KING);
+            placePiece(board, 'B8', PIECES.BLACK_QUEEN);
             const data = {
                 piecePos: 'A1',
                 action: 'B1' + ACTION_TYPES.MOVE,
@@ -1033,13 +1025,32 @@ describe('Tests validateMove', () => {
             const { error } = validateMove(board, data, canCastle);
 
             expect(error).not.toBe(null);
-        })
+        });
+
+        it('Should not find an error for moving a king into a dangerous queen position that is an ally', () => {
+            const board = createEmptyBoard();
+            placePiece(board, 'A1', PIECES.BLACK_KING);
+            placePiece(board, 'B8', PIECES.BLACK_QUEEN);
+            const data = {
+                piecePos: 'A1',
+                action: 'B1' + ACTION_TYPES.MOVE,
+            }
+            const canCastle = {
+                1: true,
+                2: true
+            }
+
+            const { error } = validateMove(board, data, canCastle);
+
+            expect(error).toBe(null);
+        });
 
         it('Should find an error for having a king capture a protected queen', () => {
             const board = createEmptyBoard();
-            board[0][0] = WHITE + KING;
-            board[1][1] = BLACK + QUEEN;
-            board[2][2] = BLACK + PAWN + '1';
+            placePiece(board, 'A1', WHITE + KING);
+            placePiece(board, 'B2', BLACK + QUEEN);
+            placePiece(board, 'C3', PIECES.BLACK_PAWN_1);
+
             const data = {
                 piecePos: 'A1',
                 action: 'B2' + ACTION_TYPES.CAPTURE,
@@ -1056,8 +1067,8 @@ describe('Tests validateMove', () => {
 
         it('Should allow a king to kill a queen', () => {
             const board = createEmptyBoard();
-            board[0][0] = WHITE + KING;
-            board[1][1] = BLACK + QUEEN;
+            placePiece(board, 'A1', WHITE + KING);
+            placePiece(board, 'B2', BLACK + QUEEN);
             const data = {
                 piecePos: 'A1',
                 action: 'B2' + ACTION_TYPES.CAPTURE,
@@ -1074,8 +1085,9 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for having a king move into a protected transformed queen pawn position', () => {
             const board = createEmptyBoard();
-            board[0][0] = WHITE + KING;
-            board[7][1] = BLACK + PAWN + '1';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
+            placePiece(board, 'B8', PIECES.BLACK_PAWN_1);
+
             const data = {
                 piecePos: 'A1',
                 action: 'B1' + ACTION_TYPES.MOVE,
@@ -1085,7 +1097,7 @@ describe('Tests validateMove', () => {
                 2: true
             }
             const registry = {
-                [BLACK + PAWN + '1']: QUEEN
+                [PIECES.BLACK_PAWN_1]: QUEEN
             }
 
             const { error } = validateMove(board, data, canCastle, registry);
@@ -1095,8 +1107,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for having a king move into a protected transformed knight pawn position', () => {
             const board = createEmptyBoard();
-            board[0][0] = WHITE + KING;
-            board[0][2] = BLACK + PAWN + '1';
+            placePiece(board, 'A1', PIECES.WHITE_KING);
+            placePiece(board, 'C1', PIECES.BLACK_PAWN_1);
             const data = {
                 piecePos: 'A1',
                 action: 'A2' + ACTION_TYPES.MOVE,
@@ -1116,8 +1128,8 @@ describe('Tests validateMove', () => {
 
         it('Should allow a king make a long castle', () => {
             const board = createEmptyBoard();
-            board[0][4] = WHITE + KING;
-            board[0][0] = WHITE + ROOK + '1';
+            placePiece(board, 'E1', PIECES.WHITE_KING);
+            placePiece(board, 'A1', PIECES.WHITE_ROOK_1);
             const data = {
                 piecePos: 'E1',
                 action: 'C1' + ACTION_TYPES.CASTLE,
@@ -1134,8 +1146,8 @@ describe('Tests validateMove', () => {
 
         it('Should allow a king make a short castle', () => {
             const board = createEmptyBoard();
-            board[7][4] = BLACK + KING;
-            board[7][7] = BLACK + ROOK + '2';
+            placePiece(board, 'E8', PIECES.BLACK_KING);
+            placePiece(board, 'H8', PIECES.BLACK_ROOK_2);
             const data = {
                 piecePos: 'E8',
                 action: 'G8' + ACTION_TYPES.CASTLE,
@@ -1152,9 +1164,9 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a king make a long castle when a piece is in the way', () => {
             const board = createEmptyBoard();
-            board[0][4] = WHITE + KING;
-            board[0][0] = WHITE + ROOK + '1';
-            board[0][2] = WHITE + PAWN + '1';
+            placePiece(board, 'E1', PIECES.WHITE_KING);
+            placePiece(board, 'A1', PIECES.WHITE_ROOK_1);
+            placePiece(board, 'C1', PIECES.WHITE_PAWN_1);
             const data = {
                 piecePos: 'E1',
                 action: 'C1' + ACTION_TYPES.CASTLE,
@@ -1171,9 +1183,9 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a king make a short castle when a spot is not safe', () => {
             const board = createEmptyBoard();
-            board[7][4] = BLACK + KING;
-            board[7][7] = BLACK + ROOK + '2';
-            board[0][5] = WHITE + ROOK + '1';
+            placePiece(board, 'E8', PIECES.BLACK_KING);
+            placePiece(board, 'H8', PIECES.BLACK_ROOK_2);
+            placePiece(board, 'F1', PIECES.WHITE_ROOK_1);
             const data = {
                 piecePos: 'E8',
                 action: 'G8' + ACTION_TYPES.CASTLE,
@@ -1190,8 +1202,8 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a king make a short castle when they lost the ability to', () => {
             const board = createEmptyBoard();
-            board[7][4] = BLACK + KING;
-            board[7][7] = BLACK + ROOK + '2';
+            placePiece(board, 'E8', PIECES.BLACK_KING);
+            placePiece(board, 'H8', PIECES.BLACK_ROOK_2);
             const data = {
                 piecePos: 'E8',
                 action: 'G8' + ACTION_TYPES.CASTLE,
@@ -1208,9 +1220,9 @@ describe('Tests validateMove', () => {
 
         it('Should not allow a king make a short castle when there is an enemy behind them', () => {
             const board = createEmptyBoard();
-            board[7][4] = BLACK + KING;
-            board[7][7] = BLACK + ROOK + '2';
-            board[7][0] = WHITE + ROOK + '1';
+            placePiece(board, 'E8', PIECES.BLACK_KING);
+            placePiece(board, 'H8', PIECES.BLACK_ROOK_2);
+            placePiece(board, 'A8', PIECES.WHITE_ROOK_1);
             const data = {
                 piecePos: 'E8',
                 action: 'G8' + ACTION_TYPES.CASTLE,
@@ -1229,7 +1241,7 @@ describe('Tests validateMove', () => {
     describe('Tests rooks', () => {
         it('Should find no error for moving a rook horizontally', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WR1';
+            placePiece(board, 'A1', PIECES.WHITE_ROOK_1);
             const data = {
                 piecePos: 'A1',
                 action: 'H1' + ACTION_TYPES.MOVE,
@@ -1242,8 +1254,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a rook horizontally past a piece', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WR1';
-            board[0][1] = 'WP1';
+            placePiece(board, 'A1', PIECES.WHITE_ROOK_1);
+            placePiece(board, 'B1', PIECES.WHITE_PAWN_1);
             const data = {
                 piecePos: 'A1',
                 action: 'H1' + ACTION_TYPES.MOVE,
@@ -1256,7 +1268,7 @@ describe('Tests validateMove', () => {
 
         it('Should find no error for moving a rook vertically', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WR1';
+            placePiece(board, 'A1', PIECES.WHITE_ROOK_1);
             const data = {
                 piecePos: 'A1',
                 action: 'A8' + ACTION_TYPES.MOVE,
@@ -1269,8 +1281,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a rook vertically past a piece', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WR1';
-            board[1][0] = 'WP1';
+            placePiece(board, 'A1', PIECES.WHITE_ROOK_1);
+            placePiece(board, 'A2', PIECES.WHITE_PAWN_1);
             const data = {
                 piecePos: 'A1',
                 action: 'A8' + ACTION_TYPES.MOVE,
@@ -1285,7 +1297,7 @@ describe('Tests validateMove', () => {
     describe('Tests bishops', () => {
         it('Should find no error for moving a bishop diagonally', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WB1';
+            placePiece(board, 'A1', PIECES.WHITE_BISHOP_1);
             const data = {
                 piecePos: 'A1',
                 action: 'H8' + ACTION_TYPES.MOVE,
@@ -1298,8 +1310,8 @@ describe('Tests validateMove', () => {
 
         it('Should find an error for moving a bishop diagonally past a piece', () => {
             const board = createEmptyBoard();
-            board[0][0] = 'WB1';
-            board[1][1] = 'WP1';
+            placePiece(board, 'A1', PIECES.WHITE_BISHOP_1);
+            placePiece(board, 'B2', PIECES.WHITE_PAWN_1);
             const data = {
                 piecePos: 'A1',
                 action: 'H8' + ACTION_TYPES.MOVE,

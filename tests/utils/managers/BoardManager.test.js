@@ -3,7 +3,7 @@ import { createActions, createBoard, createDeadPositions, createMessage, createP
 
 import { GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES, PIECES } from "../../../src/utils/enum";
 import BoardManager from "../../../src/utils/managers/BoardManager";
-import { getPieceAtChessCoords, movePiece } from '../../../src/utils/game/board';
+import { getPieceAtChessCoords, movePiece, placePiece, removePiece } from '../../../src/utils/game/board';
 import { ACTION_TYPES } from '../../../src/tools/enums';
 import { generateInitalMoves } from '../../../src/utils/game/message';
 
@@ -64,7 +64,7 @@ describe('Tests the getTileDetails method', () => {
                 const details = manager.getTileDetails(chessPos);
                 const horseMovements = ['B1', 'A4', 'B5', 'E4'];
                 const horseAttack = ['D5'];
-                const piece = manager.board[i][j];
+                const piece = getPieceAtChessCoords(manager.board, chessPos)
 
                 if (horseMovements.includes(chessPos)) {
                     expect(details.action).toBe(chessPos + ACTION_TYPES.MOVE);
@@ -112,7 +112,7 @@ describe('Tests the getTileDetails method', () => {
                 const chessPos = chessCol + chessRow;
 
                 const details = manager.getTileDetails(chessPos);
-                const piece = manager.board[i][j];
+                const piece = getPieceAtChessCoords(manager.board, chessPos)
 
                 expect(details.action).toBe(undefined);
                 expect(details.piece).toBe(piece);
@@ -236,8 +236,8 @@ describe('Tests the executeAction method', () => {
     it('Should execute a move action', () => {
         const board = createBoard();
         const nextBoard = createBoard();
-        nextBoard[2][0] = PIECES.WHITE_PAWN_1;
-        nextBoard[1][0] = PIECE_VALUES.EMPTY;
+        placePiece(nextBoard, 'A3', PIECES.WHITE_PAWN_1);
+        removePiece(nextBoard, 'A2');
         const manager = new BoardManager(undefined, undefined, 'A2', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
         manager.canCastle = {
@@ -263,10 +263,10 @@ describe('Tests the executeAction method', () => {
     it('Should execute a capture action', () => {
         const board = createBoard();
         const nextBoard = createBoard();
-        board[1][3] = PIECE_VALUES.EMPTY;
-        nextBoard[1][3] = PIECE_VALUES.EMPTY;
-        nextBoard[0][3] = PIECE_VALUES.EMPTY;
-        nextBoard[6][3] = PIECES.WHITE_QUEEN;
+        removePiece(board, 'D2');
+        removePiece(nextBoard, 'D2');
+        removePiece(nextBoard, 'D1')
+        placePiece(nextBoard, 'D7', PIECES.WHITE_QUEEN);
         const manager = new BoardManager(undefined, undefined, 'D1', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
         manager.canCastle = {
@@ -294,10 +294,10 @@ describe('Tests the executeAction method', () => {
         const board = createTestBoard();
         const nextBoard = createTestBoard();
 
-        board[0][4] = PIECES.WHITE_KING;
-        board[0][7] = PIECES.WHITE_ROOK_2;
-        nextBoard[0][6] = PIECES.WHITE_KING;
-        nextBoard[0][5] = PIECES.WHITE_ROOK_2;
+        placePiece(board, 'E1', PIECES.WHITE_KING);
+        placePiece(board, 'H1', PIECES.WHITE_ROOK_2);
+        placePiece(nextBoard, 'G1', PIECES.WHITE_KING);
+        placePiece(nextBoard, 'F1', PIECES.WHITE_ROOK_2);
 
         const manager = new BoardManager(undefined, undefined, 'E1', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
@@ -326,9 +326,9 @@ describe('Tests the executeAction method', () => {
         const board = createTestBoard();
         const nextBoard = createTestBoard();
 
-        board[6][0] = PIECES.WHITE_PAWN_1;
-        board[7][0] = PIECE_VALUES.EMPTY;
-        nextBoard[7][0] = PIECES.WHITE_PAWN_1;
+        placePiece(board, 'A7', PIECES.WHITE_PAWN_1);
+        removePiece(board, 'A8');
+        placePiece(nextBoard, 'A8', PIECES.WHITE_PAWN_1);
 
         const manager = new BoardManager(undefined, undefined, 'A7', undefined, PIECE_COLORS.WHITE);
         manager.board = board;
@@ -357,11 +357,11 @@ describe('Tests the executeAction method', () => {
         const board = createBoard();
         const nextBoard = createBoard();
 
-        board[6][0] = PIECES.WHITE_PAWN_1;
-        board[1][0] = PIECE_VALUES.EMPTY;
-        nextBoard[7][1] = PIECES.WHITE_PAWN_1;
-        nextBoard[6][0] = PIECE_VALUES.EMPTY;
-        nextBoard[1][0] = PIECE_VALUES.EMPTY;
+        placePiece(board, 'A7', PIECES.WHITE_PAWN_1);
+        removePiece(board, 'A2')
+        placePiece(nextBoard, 'B8', PIECES.WHITE_PAWN_1);
+        removePiece(nextBoard, 'A7');
+        removePiece(nextBoard, 'A2');
 
         const manager = new BoardManager(undefined, undefined, 'A7', undefined, PIECE_COLORS.WHITE);
         manager.board = board;

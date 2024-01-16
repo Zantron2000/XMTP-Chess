@@ -7,7 +7,7 @@ function MessageInput({ sendMessage }) {
         e.preventDefault();
 
         if (e.which === 13) {
-            sendMessage(message)
+            sendMessage(message.trim())
             setMessage('');
         }
     }

@@ -1,55 +1,51 @@
-import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE } from '../enum';
+import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE, ROW_TO_INDEX, COL_TO_INDEX, INDEX_TO_ROW, INDEX_TO_COL } from '../enum';
 import { isEnemy } from '../../tools/tools/piece';
 import { extractCoords } from './translate';
 import { areAllies, areEnemies, canAttackDirection, isColor, isPiece, ownsPiece } from './piece';
 import { convertToAction, executeAction } from './action';
 import { ACTION_TYPES } from '../../tools/enums';
 
-const isInRange = (board, [row, col]) => {
-    if (0 <= row && row < board.length) {
-        if (0 <= col && col < board[row].length) {
-            return true;
-        }
-    }
-
-    return false;
+const isInRange = (board, chessPos) => {
+    return chessPos !== null;
 }
 
 const copyBoard = (board) => {
-    const newBoard = [];
-
-    board.forEach((row) => {
-        newBoard.push([...row]);
-    });
-
-    return newBoard;
+    return { ...board };
 }
 
-const getPieceAt = (board, [row, col]) => {
-    if (isInRange(board, [row, col])) {
-        return board[row][col];
+const getPieceAt = (board, chessPos) => {
+    return board[chessPos];
+}
+
+const movePos = (chessPos, rowAmt, colAmt) => {
+    const [col, row] = chessPos.split('');
+
+    const newRow = ROW_TO_INDEX[row] + rowAmt;
+    const newCol = COL_TO_INDEX[col] + colAmt;
+
+    if (newRow < 0 || newRow > 7 || newCol < 0 || newCol > 7) {
+        return null;
     }
 
-    return undefined;
+    return INDEX_TO_COL[newCol] + INDEX_TO_ROW[newRow];
 }
 
-const isEmpty = (board, pos, ignore) => {
-    const piece = getPieceAt(board, pos);
+const isEmpty = (board, chessPos, ignore) => {
+    const piece = getPieceAt(board, chessPos);
 
     return !piece || PIECE_VALUES.isEqual(piece, ignore);
 }
 
-const findNearestPiece = (board, [row, col], direction, piece) => {
+const findNearestPiece = (board, chessPos, direction, piece) => {
     const [rowDir, colDir] = direction;
-    let [r, c] = [row + rowDir, col + colDir];
+    let checkPos = movePos(chessPos, rowDir, colDir);
 
-    while (isInRange(board, [r, c])) {
-        if (!isEmpty(board, [r, c], piece)) {
-            return [r, c];
+    while (isInRange(board, checkPos)) {
+        if (!isEmpty(board, checkPos, piece)) {
+            return checkPos;
         }
 
-        r += rowDir;
-        c += colDir;
+        checkPos = movePos(checkPos, rowDir, colDir);
     }
 
     return null;
@@ -68,14 +64,15 @@ const findNearestPiece = (board, [row, col], direction, piece) => {
  * @param {String} piece The piece representation of the pawn
  * @returns {String[]} An array of possible moves
  */
-const generateBlackPawnMoves = (board, [row, col], piece) => {
+const generateBlackPawnMoves = (board, chessPos, piece) => {
     const moves = [];
-    const possibleMove = [row - 1, col];
-    const possibleSpecialMove = [row - 2, col];
+    const possibleMove = movePos(chessPos, -1, 0);
+    const possibleSpecialMove = movePos(chessPos, -2, 0);
     const possibleCaptures = [
-        [row - 1, col + 1],
-        [row - 1, col - 1],
+        movePos(chessPos, -1, 1),
+        movePos(chessPos, -1, -1),
     ];
+    const row = ROW_TO_INDEX[chessPos[1]];
 
     if (isInRange(board, possibleMove) && isEmpty(board, possibleMove, piece)) {
         if (row === 1) {
@@ -90,7 +87,7 @@ const generateBlackPawnMoves = (board, [row, col], piece) => {
     }
 
     possibleCaptures.forEach((capture) => {
-        if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, board[capture[0]][capture[1]])) {
+        if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
             const action = row === 1 ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
 
             moves.push(convertToAction(capture, action));
@@ -110,14 +107,15 @@ const generateBlackPawnMoves = (board, [row, col], piece) => {
  * @param {String} piece The piece representation of the pawn
  * @returns {String[]} An array of possible moves
  */
-const generateWhitePawnMoves = (board, [row, col], piece) => {
+const generateWhitePawnMoves = (board, chessPos, piece) => {
     const moves = [];
-    const possibleMove = [row + 1, col];
-    const possibleSpecialMove = [row + 2, col];
+    const possibleMove = movePos(chessPos, 1, 0);
+    const possibleSpecialMove = movePos(chessPos, 2, 0);
     const possibleCaptures = [
-        [row + 1, col + 1],
-        [row + 1, col - 1],
+        movePos(chessPos, 1, 1),
+        movePos(chessPos, 1, -1),
     ];
+    const row = ROW_TO_INDEX[chessPos[1]];
 
     if (isInRange(board, possibleMove) && isEmpty(board, possibleMove, piece)) {
         if (row === 6) {
@@ -132,7 +130,7 @@ const generateWhitePawnMoves = (board, [row, col], piece) => {
     }
 
     possibleCaptures.forEach((capture) => {
-        if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, board[capture[0]][capture[1]])) {
+        if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
             const action = row === 6 ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
 
             moves.push(convertToAction(capture, action));
@@ -151,62 +149,61 @@ const generateWhitePawnMoves = (board, [row, col], piece) => {
  * @param {String} piece The piece representation of the pawn
  * @returns {String[]} An array of possible moves
  */
-const generatePawnMoves = (board, pos, piece, registry) => {
+const generatePawnMoves = (board, chessPos, piece, registry) => {
     if (registry[piece]) {
         const transformedPiece = piece[0] + registry[piece];
 
         if (isPiece(transformedPiece, PIECE_VALUES.ROOK)) {
-            return generateRookMoves(board, pos, piece);
+            return generateRookMoves(board, chessPos, piece);
         } else if (isPiece(transformedPiece, PIECE_VALUES.KNIGHT)) {
-            return generateKnightMoves(board, pos, piece);
+            return generateKnightMoves(board, chessPos, piece);
         } else if (isPiece(transformedPiece, PIECE_VALUES.BISHOP)) {
-            return generateBishopMoves(board, pos, piece);
+            return generateBishopMoves(board, chessPos, piece);
         } else if (isPiece(transformedPiece, PIECE_VALUES.QUEEN)) {
-            return generateQueenMoves(board, pos, piece);
+            return generateQueenMoves(board, chessPos, piece);
         }
     }
 
     if (isColor(piece, PIECE_COLORS.WHITE)) {
-        return generateWhitePawnMoves(board, pos, piece);
+        return generateWhitePawnMoves(board, chessPos, piece);
     } else {
-        return generateBlackPawnMoves(board, pos, piece);
+        return generateBlackPawnMoves(board, chessPos, piece);
     }
 }
 
-const generateMovesInDirection = (board, [row, col], direction, ignore) => {
+const generateMovesInDirection = (board, chessPos, direction, ignore) => {
     const moves = [];
     const [rowDir, colDir] = direction;
-    let [r, c] = [row + rowDir, col + colDir];
-    const piece = getPieceAt(board, [row, col]);
+    let actionPos = movePos(chessPos, rowDir, colDir);
+    const piece = ignore || getPieceAt(board, chessPos);
 
-    while (isInRange(board, [r, c])) {
-        if (isEmpty(board, [r, c], ignore)) {
-            moves.push(convertToAction([r, c], ACTION_TYPES.MOVE));
-        } else if (isEnemy(piece, getPieceAt(board, [r, c]))) {
-            moves.push(convertToAction([r, c], ACTION_TYPES.CAPTURE));
+    while (isInRange(board, actionPos)) {
+        if (isEmpty(board, actionPos, ignore)) {
+            moves.push(convertToAction(actionPos, ACTION_TYPES.MOVE));
+        } else if (isEnemy(piece, getPieceAt(board, actionPos))) {
+            moves.push(convertToAction(actionPos, ACTION_TYPES.CAPTURE));
             break;
         } else {
             break;
         }
 
-        r += rowDir;
-        c += colDir;
+        actionPos = movePos(actionPos, rowDir, colDir);
     }
 
     return moves;
 }
 
-const generateMovesInDirections = (board, pos, directions, ignore) => {
+const generateMovesInDirections = (board, chessPos, directions, ignore) => {
     const moves = [];
 
     directions.forEach((direction) => {
-        moves.push(...generateMovesInDirection(board, pos, direction, ignore));
+        moves.push(...generateMovesInDirection(board, chessPos, direction, ignore));
     });
 
     return moves;
 }
 
-const generateRookMoves = (board, pos, ignore) => {
+const generateRookMoves = (board, chessPos, ignore) => {
     const directions = [
         DIRECTION_VECTORS.NORTH,
         DIRECTION_VECTORS.EAST,
@@ -214,10 +211,10 @@ const generateRookMoves = (board, pos, ignore) => {
         DIRECTION_VECTORS.WEST,
     ]
 
-    return generateMovesInDirections(board, pos, directions, ignore);
+    return generateMovesInDirections(board, chessPos, directions, ignore);
 }
 
-const generateBishopMoves = (board, pos, ignore) => {
+const generateBishopMoves = (board, chessPos, ignore) => {
     const directions = [
         DIRECTION_VECTORS.NORTH_EAST,
         DIRECTION_VECTORS.SOUTH_EAST,
@@ -225,10 +222,10 @@ const generateBishopMoves = (board, pos, ignore) => {
         DIRECTION_VECTORS.NORTH_WEST,
     ]
 
-    return generateMovesInDirections(board, pos, directions, ignore);
+    return generateMovesInDirections(board, chessPos, directions, ignore);
 }
 
-const generateQueenMoves = (board, pos, ignore) => {
+const generateQueenMoves = (board, chessPos, ignore) => {
     const directions = [
         DIRECTION_VECTORS.NORTH,
         DIRECTION_VECTORS.EAST,
@@ -240,28 +237,28 @@ const generateQueenMoves = (board, pos, ignore) => {
         DIRECTION_VECTORS.NORTH_WEST,
     ]
 
-    return generateMovesInDirections(board, pos, directions, ignore);
+    return generateMovesInDirections(board, chessPos, directions, ignore);
 }
 
-const generateKnightMoves = (board, [row, col], piece) => {
+const generateKnightMoves = (board, chessPos, piece) => {
     const moves = [];
 
     const possibleMoves = [
-        [row - 2, col - 1],
-        [row - 2, col + 1],
-        [row - 1, col - 2],
-        [row - 1, col + 2],
-        [row + 1, col - 2],
-        [row + 1, col + 2],
-        [row + 2, col - 1],
-        [row + 2, col + 1],
+        movePos(chessPos, -2, -1),
+        movePos(chessPos, -2, 1),
+        movePos(chessPos, -1, -2),
+        movePos(chessPos, -1, 2),
+        movePos(chessPos, 1, -2),
+        movePos(chessPos, 1, 2),
+        movePos(chessPos, 2, -1),
+        movePos(chessPos, 2, 1),
     ];
 
     possibleMoves.forEach((move) => {
         if (isInRange(board, move)) {
             if (isEmpty(board, move, piece)) {
                 moves.push(convertToAction(move, ACTION_TYPES.MOVE));
-            } else if (areEnemies(piece, board[move[0]][move[1]])) {
+            } else if (areEnemies(piece, getPieceAt(board, move))) {
                 moves.push(convertToAction(move, ACTION_TYPES.CAPTURE));
             }
         }
@@ -271,16 +268,14 @@ const generateKnightMoves = (board, [row, col], piece) => {
 };
 
 
-const isSafe = (board, pos, ignore, registry) => {
-    const piece = ignore ?? getPieceAt(board, pos);
+const isSafe = (board, chessPos, ignore, registry) => {
+    const piece = ignore ?? getPieceAt(board, chessPos);
     if (!piece) {
         return true;
     }
 
-    const [row, col] = pos;
-
     const directionalDanger = Object.values(DIRECTION_VECTORS).some((direction) => {
-        const nearestPiecePos = findNearestPiece(board, pos, direction, ignore);
+        const nearestPiecePos = findNearestPiece(board, chessPos, direction, ignore);
 
         if (nearestPiecePos) {
             const nearestPiece = getPieceAt(board, nearestPiecePos);
@@ -300,19 +295,19 @@ const isSafe = (board, pos, ignore, registry) => {
     }
 
     const knightMoves = [
-        [row - 2, col - 1],
-        [row - 2, col + 1],
-        [row - 1, col - 2],
-        [row - 1, col + 2],
-        [row + 1, col - 2],
-        [row + 1, col + 2],
-        [row + 2, col - 1],
-        [row + 2, col + 1],
+        movePos(chessPos, -2, -1),
+        movePos(chessPos, -2, 1),
+        movePos(chessPos, -1, -2),
+        movePos(chessPos, -1, 2),
+        movePos(chessPos, 1, -2),
+        movePos(chessPos, 1, 2),
+        movePos(chessPos, 2, -1),
+        movePos(chessPos, 2, 1),
     ];
 
-    const knightDanger = knightMoves.some(([r, c]) => {
-        if (isInRange(board, [r, c])) {
-            const knight = getPieceAt(board, [r, c]);
+    const knightDanger = knightMoves.some((actionPos) => {
+        if (isInRange(board, actionPos)) {
+            const knight = getPieceAt(board, actionPos);
             return isEnemy(piece, knight) && isPiece(knight, PIECE_VALUES.KNIGHT, registry);
         }
     });
@@ -321,10 +316,10 @@ const isSafe = (board, pos, ignore, registry) => {
 
     const pawnDanger = pawnAttacks.some((direction) => {
         const [rowDir, colDir] = direction;
-        const [r, c] = [row + rowDir, col + colDir];
+        const tempPos = movePos(chessPos, rowDir, colDir);
 
-        if (isInRange(board, [r, c]) && !isEmpty(board, [r, c], ignore)) {
-            const pawn = board[r][c];
+        if (isInRange(board, tempPos) && !isEmpty(board, tempPos, ignore)) {
+            const pawn = getPieceAt(board, tempPos);
             return isEnemy(piece, pawn) && isPiece(pawn, PIECE_VALUES.PAWN);
         }
     });
@@ -332,74 +327,82 @@ const isSafe = (board, pos, ignore, registry) => {
     return !knightDanger && !pawnDanger
 };
 
-const validLongCastle = (board, [row, col], piece, canCastle, registry) => {
+const validLongCastle = (board, chessPos, piece, canCastle, registry) => {
     if (!canCastle[1]) {
         return false;
     }
 
     const isAllEmpty = [1, 2, 3, 4].every((castleCol) => {
-        return isEmpty(board, [row, castleCol], piece);
+        const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
+
+        return isEmpty(board, checkPos, piece);
     });
     if (!isAllEmpty) {
         return false;
     }
 
     const isAllSafe = [1, 2, 3, 4].every((castleCol) => {
-        return isSafe(board, [row, castleCol], piece, registry);
+        const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
+
+        return isSafe(board, checkPos, piece, registry);
     });
     if (!isAllSafe) {
         return false;
     }
 
-    if (!isPiece(board[row][0], PIECE_VALUES.ROOK) || !areAllies(piece, board[row][0])) {
+    if (!isPiece(getPieceAt(board, 'A' + chessPos[1]), PIECE_VALUES.ROOK) || !areAllies(piece, getPieceAt(board, 'A' + chessPos[1]))) {
         return false;
     }
 
     return true;
 }
 
-const validShortCastle = (board, [row, col], piece, canCastle, registry) => {
+const validShortCastle = (board, chessPos, piece, canCastle, registry) => {
     if (!canCastle[2]) {
         return false;
     }
 
     const isAllEmpty = [4, 5, 6].every((castleCol) => {
-        return isEmpty(board, [row, castleCol], piece);
+        const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
+
+        return isEmpty(board, checkPos, piece);
     });
     if (!isAllEmpty) {
         return false;
     }
 
     const isAllSafe = [4, 5, 6].every((castleCol) => {
-        return isSafe(board, [row, castleCol], piece, registry);
+        const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
+
+        return isSafe(board, checkPos, piece, registry);
     });
     if (!isAllSafe) {
         return false;
     }
 
-    if (!isPiece(board[row][7], PIECE_VALUES.ROOK) || !areAllies(piece, board[row][7])) {
+    if (!isPiece(getPieceAt(board, 'H' + chessPos[1]), PIECE_VALUES.ROOK) || !areAllies(piece, getPieceAt(board, 'H' + chessPos[1]))) {
         return false;
     }
 
     return true;
 }
 
-const generateKingMoves = (board, [row, col], piece, canCastle, registry) => {
+const generateKingMoves = (board, chessPos, piece, canCastle, registry) => {
     const moves = [];
 
     const possibleMoves = [
-        [row - 1, col - 1],
-        [row - 1, col],
-        [row - 1, col + 1],
-        [row, col - 1],
-        [row, col + 1],
-        [row + 1, col - 1],
-        [row + 1, col],
-        [row + 1, col + 1],
+        movePos(chessPos, -1, -1),
+        movePos(chessPos, -1, 0),
+        movePos(chessPos, -1, 1),
+        movePos(chessPos, 0, -1),
+        movePos(chessPos, 0, 1),
+        movePos(chessPos, 1, -1),
+        movePos(chessPos, 1, 0),
+        movePos(chessPos, 1, 1),
     ];
 
     possibleMoves.forEach((move) => {
-        if (isInRange(board, move) && isSafe(board, move, piece, registry) && !areAllies(piece, board[move[0]][move[1]])) {
+        if (isInRange(board, move) && isSafe(board, move, piece, registry) && !areAllies(piece, getPieceAt(board, move))) {
             if (isEmpty(board, move, piece)) {
                 moves.push(convertToAction(move, ACTION_TYPES.MOVE));
             } else {
@@ -408,11 +411,11 @@ const generateKingMoves = (board, [row, col], piece, canCastle, registry) => {
         }
     });
 
-    if (validLongCastle(board, [row, 0], piece, canCastle, registry)) {
-        moves.push(convertToAction([row, 2], ACTION_TYPES.CASTLE));
+    if (validLongCastle(board, 'A' + chessPos[1], piece, canCastle, registry)) {
+        moves.push(convertToAction('C' + chessPos[1], ACTION_TYPES.CASTLE));
     }
-    if (validShortCastle(board, [row, 7], piece, canCastle, registry)) {
-        moves.push(convertToAction([row, 6], ACTION_TYPES.CASTLE));
+    if (validShortCastle(board, 'H' + chessPos[1], piece, canCastle, registry)) {
+        moves.push(convertToAction('G' + chessPos[1], ACTION_TYPES.CASTLE));
     }
 
 
@@ -421,8 +424,7 @@ const generateKingMoves = (board, [row, col], piece, canCastle, registry) => {
 };
 
 const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ignore) => {
-    const pos = extractCoords(chessPos);
-    const piece = ignore || getPieceAt(board, pos);
+    const piece = ignore || getPieceAt(board, chessPos);
     let actions = [];
 
     if (!piece) {
@@ -430,17 +432,17 @@ const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ig
     }
 
     if (isPiece(piece, PIECE_VALUES.PAWN)) {
-        actions = generatePawnMoves(board, pos, piece, registry);
+        actions = generatePawnMoves(board, chessPos, piece, registry);
     } else if (isPiece(piece, PIECE_VALUES.ROOK)) {
-        actions = generateRookMoves(board, pos, piece);
+        actions = generateRookMoves(board, chessPos, piece);
     } else if (isPiece(piece, PIECE_VALUES.KNIGHT)) {
-        actions = generateKnightMoves(board, pos, piece);
+        actions = generateKnightMoves(board, chessPos, piece);
     } else if (isPiece(piece, PIECE_VALUES.BISHOP)) {
-        actions = generateBishopMoves(board, pos, piece);
+        actions = generateBishopMoves(board, chessPos, piece);
     } else if (isPiece(piece, PIECE_VALUES.QUEEN)) {
-        actions = generateQueenMoves(board, pos, piece);
+        actions = generateQueenMoves(board, chessPos, piece);
     } else if (isPiece(piece, PIECE_VALUES.KING)) {
-        return generateKingMoves(board, pos, piece, canCastle, registry);
+        return generateKingMoves(board, chessPos, piece, canCastle, registry);
     } else {
         return [];
     }
@@ -473,10 +475,9 @@ export const validateMove = (board, { piecePos, action }, canCastle, registry = 
 }
 
 export const isSafeMove = (board, chessPos, registry, ignore) => {
-    const pos = extractCoords(chessPos);
-    const piece = ignore || getPieceAt(board, pos);
+    const piece = ignore || getPieceAt(board, chessPos);
 
-    return isSafe(board, pos, piece, registry);
+    return isSafe(board, chessPos, piece, registry);
 }
 
 export const getTurnInfo = (board, player, positions, registry, canCastle) => {
@@ -512,24 +513,26 @@ export const getTurnInfo = (board, player, positions, registry, canCastle) => {
 }
 
 export const movePiece = (board, start, end) => {
-    const [startRow, startCol] = extractCoords(start);
-    const [endRow, endCol] = extractCoords(end);
-
-    board[endRow][endCol] = board[startRow][startCol];
-    board[startRow][startCol] = PIECE_VALUES.EMPTY;
+    board[end] = board[start];
+    board[start] = PIECE_VALUES.EMPTY;
 
     return board;
 }
 
-export const placePiece = (board, pos, piece) => {
-    if (pos !== CAPTURED_PIECE) {
-        const [row, col] = extractCoords(pos);
-        board[row][col] = piece;
+export const placePiece = (board, chessPos, piece) => {
+    if (chessPos !== CAPTURED_PIECE) {
+        board[chessPos] = piece;
     }
 
     return board;
 }
 
+export const removePiece = (board, chessPos) => {
+    delete board[chessPos];
+
+    return board;
+}
+
 export const getPieceAtChessCoords = (board, coords) => {
-    return getPieceAt(board, extractCoords(coords));
+    return getPieceAt(board, coords);
 }
