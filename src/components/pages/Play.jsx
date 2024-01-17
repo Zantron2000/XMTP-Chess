@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useSendMessage, useStartConversation, useStreamAllMessages } from "@xmtp/react-sdk"
+import { useSendMessage, useStartConversation, useStreamAllMessages, useStreamMessages } from "@xmtp/react-sdk"
 import { useSSX } from "@spruceid/ssx-react"
 
 import Header from "../Header"
@@ -14,13 +14,10 @@ import { useLocation } from "react-router-dom"
 
 function Play() {
     const location = useLocation();
-    const { opponent, hash, color, firstLastMove, firstCurrMove } = location.state;
+    const { hash, color, firstLastMove, firstCurrMove } = location.state;
     const { sendMessage } = useSendMessage();
-    console.log("DATA", location.state)
     const [conversation, setConversation] = useState(location.state.convo);
     const { ssx } = useSSX();
-
-    useStreamAllMessages((message) => console.log("NEW MESSAGE", message))
 
     const [moveNeg1, move0] = generateInitalMoves();
     const [status, setStatus] = useState(CONNECT_STATUS.ACCEPT);
@@ -57,15 +54,18 @@ function Play() {
                             player={color}
                             sendMove={sendMove}
                             gameOver={manager.isGameOver()}
+                            endGame={(gameStatus) => manager.endGame({ setStatus, setSendData }, gameStatus)}
                         />
                     </div>
                     <div className="w-[100%] md:w-[75%] xl:w-1/2 mx-auto h-[450px] md:h-[600px] xl:h-[90%]">
-                        {conversation ? <MessageBoard
+                        <MessageBoard
                             hash={hash}
                             conversation={conversation}
                             playerAddr={ssx.address()}
-                            sendGameDetails={(first) => manager.updateStatus(sets, first)}
-                        /> : null}
+                            sendGameDetails={(first) => {
+                                manager.updateStatus(sets, first)
+                            }}
+                        />
                     </div>
                 </div>
             </div>

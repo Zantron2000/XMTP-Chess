@@ -7,7 +7,7 @@ export const isHashContent = (content, hash) => {
 export const hasHash = (content) => {
     const hash = content.split(MESSAGE.HASH_DELIMITER)[0];
 
-    return hash.length === MESSAGE.HASH_LENGTH && hash.match(/^[a-zA-Z0-9]{5}/) !== null;
+    return hash?.length === MESSAGE.HASH_LENGTH && hash.match(/^[a-zA-Z0-9]{5}/) !== null;
 }
 
 export const getHash = (content) => {
@@ -23,9 +23,6 @@ export const filterMessages = (messages, hash) => {
     const gameMessages = [];
     const convoMessages = [];
 
-
-
-
     messages.forEach(message => {
         if (isHashContent(message.content, hash)) {
             gameMessages.push(message);
@@ -33,7 +30,7 @@ export const filterMessages = (messages, hash) => {
             if (DEV_MODE) {
                 convoMessages.push(message);
             }
-        } else {
+        } else if (!hasHash(message.content)) {
             convoMessages.push(message);
         }
     });
@@ -56,6 +53,9 @@ export const generateHash = () => {
 
 export const isGameContent = (content) => {
     const data = getContent(content);
+
+    if (!data) return false;
+
     const components = data.split(MESSAGE.GAME_DELIMITER);
 
     // Should be 64-80 characters long, made up of characters A-H, 1-8, or KQRBNPX
@@ -75,7 +75,7 @@ export const isGameContent = (content) => {
 
 export const isConnectStatus = (content) => {
     const data = getContent(content);
-    const components = data.split(MESSAGE.GAME_DELIMITER);
+    const [connectStatus] = data?.split(MESSAGE.GAME_DELIMITER);
 
-    return components.length > 0 && CONNECT_STATUS[components[0]] !== undefined;
+    return connectStatus && Object.values(CONNECT_STATUS).includes(connectStatus);
 }
