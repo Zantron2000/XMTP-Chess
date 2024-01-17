@@ -10,6 +10,7 @@ import { generateInitalMoves } from '../../../src/utils/game/message';
 describe('Tests the getStatus method', () => {
     const setStatusFunc = jest.fn();
     const setMessageFunc = jest.fn();
+    const endGameFunc = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -20,12 +21,14 @@ describe('Tests the getStatus method', () => {
         const currMove = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,B,TTTT';
         const manager = new BoardManager(lastMove, currMove, undefined, undefined, PIECE_COLORS.WHITE);
 
-        manager.getStatus(setStatusFunc, setMessageFunc);
+        manager.getStatus(setStatusFunc, setMessageFunc, endGameFunc);
 
         expect(setStatusFunc).toHaveBeenCalledTimes(1);
         expect(setStatusFunc).toHaveBeenCalledWith(GAME_STATUS.CHEAT);
         expect(setMessageFunc).toHaveBeenCalledTimes(1);
         expect(setMessageFunc).toHaveBeenCalledWith(GAME_VALIDATION_MESSAGES.SAME_MESSAGE_COLOR);
+        expect(endGameFunc).toHaveBeenCalledTimes(1);
+        expect(endGameFunc).toHaveBeenCalledWith(GAME_STATUS.CHEAT);
     });
 
     it('Should set the status as CHEAT if castling is re-enabled', () => {
@@ -33,12 +36,14 @@ describe('Tests the getStatus method', () => {
         const currMove = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,B,TTTT';
         const manager = new BoardManager(lastMove, currMove, undefined, undefined, PIECE_COLORS.WHITE);
 
-        manager.getStatus(setStatusFunc, setMessageFunc);
+        manager.getStatus(setStatusFunc, setMessageFunc, endGameFunc);
 
         expect(setStatusFunc).toHaveBeenCalledTimes(1);
         expect(setStatusFunc).toHaveBeenCalledWith(GAME_STATUS.CHEAT);
         expect(setMessageFunc).toHaveBeenCalledTimes(1);
         expect(setMessageFunc).toHaveBeenCalledWith(GAME_VALIDATION_MESSAGES.REENABLE_CASTLING);
+        expect(endGameFunc).toHaveBeenCalledTimes(1);
+        expect(endGameFunc).toHaveBeenCalledWith(GAME_STATUS.CHEAT);
     });
 });
 

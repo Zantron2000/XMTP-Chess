@@ -122,7 +122,6 @@ class BoardManager {
             this.board[this.selectedPiece[0]][this.selectedPiece[1]] = PIECE_VALUES.EMPTY;
             this.board[newX][newY] = piece;
 
-            console.log(this.board)
             setFunction(this.board);
         }
     }

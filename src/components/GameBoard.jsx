@@ -4,12 +4,12 @@ import GameSquare from './GameSquare';
 import BoardManager from '../utils/managers/BoardManager';
 import { INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, GAME_STATUS } from '../utils/enum';
 
-function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOver }) {
+function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOver, endGame }) {
     const [selectedTile, setSelectedTile] = useState(undefined);
     const [boardDetails, setBoardDetails] = useState({});
     const boardManager = new BoardManager(lastMove, currMove, selectedTile, status, player, gameOver);
 
-    boardManager.getStatus(setStatus, (data) => console.log(data));
+    boardManager.getStatus(setStatus, (data) => console.log(data), endGame);
 
     const squares = [];
     const { rowLabels, colLabels } = boardManager.getLabelOrder();
@@ -20,7 +20,7 @@ function Board({ player, status, setStatus, lastMove, currMove, sendMove, gameOv
     }
 
     useEffect(() => {
-        boardManager.getStatus(setStatus, (data) => console.log(data));
+        boardManager.getStatus(setStatus, (data) => console.log(data), endGame);
 
         if (boardManager.status !== GAME_STATUS.CHEAT) {
             const details = boardManager.getBoardDetails();

@@ -3,7 +3,7 @@ import { useState } from "react";
 import GameBoard from "./GameBoard";
 import { CONNECT_STATUS, GAME_STATUS } from "../utils/enum";
 
-function GameContainer({ connectStatus, currMove, lastMove, sendMove, player }) {
+function GameContainer({ connectStatus, currMove, lastMove, sendMove, player, gameOver, endGame }) {
     const connectToGameStatus = {
         [CONNECT_STATUS.INVITE]: GAME_STATUS.WAITING,
         [CONNECT_STATUS.ACCEPT]: GAME_STATUS.PLAYING,
@@ -34,6 +34,8 @@ function GameContainer({ connectStatus, currMove, lastMove, sendMove, player }) 
                 sendMove={sendMove}
                 player={player}
                 setStatus={setGameStatus}
+                gameOver={gameOver}
+                endGame={endGame}
             />
         </div>
     );
