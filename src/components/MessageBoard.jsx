@@ -27,7 +27,7 @@ function MessageBoard({ conversation, playerAddr, hash, sendGameDetails }) {
     useStreamMessages(conversation, { onMessage });
 
     useEffect(() => {
-        if (message) {
+        if (message && message.id !== messages[messages.length - 1]?.id) {
             manager.processMessage(message, sendGameDetails);
             setMessages([...messages, message])
             setMessage(undefined);

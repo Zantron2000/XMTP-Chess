@@ -211,11 +211,8 @@ export const validateAction = ({ player, differences: diff, transformed }) => {
     };
 }
 
-export const convertToAction = ([rowIdx, colIdx], action) => {
-    const row = INDEX_TO_ROW[rowIdx];
-    const col = INDEX_TO_COL[colIdx];
-
-    return `${col}${row}${action}`;
+export const convertToAction = (chessPos, action) => {
+    return `${chessPos}${action}`;
 }
 
 export const executeAction = (board, originalChessPos, action, positions) => {

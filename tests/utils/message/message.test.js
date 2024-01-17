@@ -1,5 +1,5 @@
 import { createTestXMTPMessage } from "../../tools";
-import { hasHash, getHash, getContent, filterMessages, isHashContent } from "../../../src/utils/message/message";
+import { hasHash, getHash, getContent, filterMessages, isHashContent, isConnectStatus } from "../../../src/utils/message/message";
 
 describe('Tests the hasHash function', () => {
     it('Should return true for a valid hash', () => {
@@ -85,5 +85,13 @@ describe('Tests the filterMessages function', () => {
         expect(results.gameMessages).toContainEqual(messages[4]);
         expect(results.convoMessages).toContainEqual(messages[1]);
         expect(results.convoMessages).toContainEqual(messages[3]);
+    });
+});
+
+describe("Tests the isConnectStatus function", () => {
+    it('Should return true when the content is a connect status', () => {
+        const results = isConnectStatus('abcdp-O,C');
+
+        expect(results).toBe(true);
     });
 });
