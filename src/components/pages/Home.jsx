@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 import Footer from "../Footer";
 import Header from "../Header";
-import Board from "../board";
+import Board from "../DisplayBoard";
 import { createInitialBoard } from '../../tools/tools/board';
 import { useNavigate } from "react-router-dom";
 
