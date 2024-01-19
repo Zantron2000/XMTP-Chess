@@ -1,6 +1,6 @@
 import { CONNECT_STATUS, MESSAGE, PIECE_COLORS } from "../enum";
 import { getEnemyColor } from "../game/piece";
-import { createGameMessage, generateHash, getHash, isHashContent } from "../message/message";
+import { createGameMessage, generateHash, getContent, getHash, isHashContent } from "../message/message";
 
 class ConversationManager {
     /**
@@ -24,7 +24,9 @@ class ConversationManager {
     }
 
     getRandomColor() {
-        return Math.random() < 0.5 ? PIECE_COLORS.WHITE : PIECE_COLORS.BLACK;
+        const number = Math.random();
+
+        return number < 0.5 ? PIECE_COLORS.WHITE : PIECE_COLORS.BLACK;
     }
 
     sendInvite(sets) {
@@ -65,7 +67,8 @@ class ConversationManager {
         const isOpponentMsg = message.senderAddress !== this.playerAddr;
 
         if (this.invite.hash && isOpponentMsg) {
-            const [connectStatus, opponentColor] = message.content.split(MESSAGE.GAME_DELIMITER);
+            const content = getContent(message.content);
+            const [connectStatus, opponentColor] = content.split(MESSAGE.GAME_DELIMITER);
 
             if (connectStatus === CONNECT_STATUS.ACCEPT && opponentColor !== this.invite.color) {
                 this.invite.accepted = true;
@@ -83,7 +86,9 @@ class ConversationManager {
         const isOpponentMsg = message.senderAddress !== this.playerAddr;
 
         if (!this.accept.hash && isOpponentMsg) {
-            const [connectStatus, opponentColor] = message.content.split(MESSAGE.GAME_DELIMITER);
+            const hash = getHash(message.content);
+            const content = getContent(message.content);
+            const [connectStatus, opponentColor] = content.split(MESSAGE.GAME_DELIMITER);
 
             if (connectStatus === CONNECT_STATUS.INVITE) {
                 const hash = getHash(message.content);
@@ -105,7 +110,7 @@ class ConversationManager {
         if (!this.accept.accepted || !this.accept.hash) {
             this.accept.accepted = true;
             sets.setAccept({ ...this.accept, accepted: true });
-            sets.setSendData(createGameMessage(this.accept.hash, CONNECT_STATUS.ACCEPT));
+            sets.setSendData(createGameMessage(this.accept.hash, CONNECT_STATUS.ACCEPT, this.accept.color));
         }
     }
 
