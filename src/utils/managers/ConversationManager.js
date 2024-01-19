@@ -1,6 +1,6 @@
-import { CONNECT_STATUS, PIECE_COLORS } from "../enum";
+import { CONNECT_STATUS, MESSAGE, PIECE_COLORS } from "../enum";
 import { getEnemyColor } from "../game/piece";
-import { createGameMessage, getHash, isHashContent } from "../message/message";
+import { createGameMessage, generateHash, getHash, isHashContent } from "../message/message";
 
 class ConversationManager {
     /**
@@ -15,16 +15,11 @@ class ConversationManager {
      *  accepted: Boolean,
      *  color?: String,
      * }} accept The accept option data for starting a game
-     * @param {{
-     *  firstMove?: String,
-     *  secondMove?: String,
-     * }} load The load option data for loading a game
      * @param {String} playerAddr The address of the player
      */
-    constructor(invite, accept, load, playerAddr) {
+    constructor(invite, accept, playerAddr) {
         this.invite = invite;
         this.accept = accept;
-        this.load = load;
         this.playerAddr = playerAddr;
     }
 
@@ -57,7 +52,7 @@ class ConversationManager {
             return isHashContent(message.content, this.accept.hash);
         }
 
-        const regexString = `^[a-zA-Z0-9]{5}-${CONNECT_STATUS.INVITE},[${PIECE_COLORS.WHITE}${PIECE_COLORS.BLACK}]$`;
+        const regexString = `^[a-zA-Z0-9]{5}${MESSAGE.HASH_DELIMITER}${CONNECT_STATUS.INVITE},[${PIECE_COLORS.WHITE}${PIECE_COLORS.BLACK}]$`;
         const hashRegex = new RegExp(regexString);
         if (hashRegex.test(message.content)) {
             return true;
