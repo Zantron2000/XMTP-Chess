@@ -1,5 +1,5 @@
 import { useEnsName, useEnsAvatar } from "wagmi"
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { isGameContent } from "../utils/message/message"
@@ -7,7 +7,7 @@ import { PIECE_COLORS } from "../utils/enum";
 import ConversationManager from "../utils/managers/ConversationManager";
 import { useSendMessage, useStreamMessages } from "@xmtp/react-sdk";
 
-function GameCard({ conversation, playerAddr }) {
+function GameCard({ conversation }) {
     const cardData = {
         primaryName: conversation.peerAddress,
         secondaryName: '',
@@ -17,11 +17,18 @@ function GameCard({ conversation, playerAddr }) {
     const { data: ensAvatarData, isFetched: ensAvatarIsLoaded } = useEnsAvatar({ name: cardData.primaryName.includes('.eth') ? cardData.primaryName : undefined });
     const [invite, setInvite] = useState({ accepted: false, hash: undefined, color: undefined });
     const [accept, setAccept] = useState({ accepted: false, hash: undefined, color: undefined });
+    const [message, setMessage] = useState(undefined);
     const [sendData, setSendData] = useState('');
     const navigate = useNavigate();
-    const manager = new ConversationManager(invite, accept, playerAddr);
+    const manager = new ConversationManager(invite, accept, conversation.walletAddress);
     const sets = { setInvite, setAccept, setSendData };
     const { sendMessage } = useSendMessage();
+    const profiles = {
+        opponent: {
+            name: cardData.secondaryName ? cardData.primaryName : undefined,
+            img: cardData.avatar,
+        }
+    }
 
     useEffect(() => {
         if (ensNameIsLoaded && ensNameData) {
@@ -39,13 +46,22 @@ function GameCard({ conversation, playerAddr }) {
     useEffect(() => {
         if (sendData) {
             sendMessage(conversation, sendData);
-            setSendData('');
         }
     }, [sendData]);
 
-    useStreamMessages(conversation, (message) => {
-        manager.processMessage(message);
-    });
+    const onMessage = useCallback((newMessage) => {
+        if (newMessage.id !== message?.id) {
+            setMessage(newMessage);
+        }
+    }, [message]);
+
+    useEffect(() => {
+        if (message) {
+            manager.processMessage(message, sets);
+        }
+    }, [message]);
+
+    useStreamMessages(conversation, { onMessage });
 
     useEffect(() => {
         if (invite.accepted) {
@@ -96,8 +112,9 @@ function GameCard({ conversation, playerAddr }) {
                 <button
                     className="bg-primary-button text-2xl p-4 rounded-lg hover:bg-primary-button-hover transition duration-300 ease-in-out mx-2"
                     onClick={() => manager.sendInvite(sets)}
+                    disabled={invite.hash}
                 >
-                    New Game
+                    {invite.hash ? 'Invite Sent' : 'Send Invite'}
                 </button>
             </div>
         </div>
