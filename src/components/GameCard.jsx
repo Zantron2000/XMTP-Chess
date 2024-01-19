@@ -1,12 +1,13 @@
 import { useEnsName, useEnsAvatar } from "wagmi"
 import { useEffect, useState } from "react";
-import { useMessages } from "@xmtp/react-sdk";
 import { useNavigate } from "react-router-dom";
 
 import { isGameContent } from "../utils/message/message"
 import { PIECE_COLORS } from "../utils/enum";
+import ConversationManager from "../utils/managers/ConversationManager";
+import { useSendMessage, useStreamMessages } from "@xmtp/react-sdk";
 
-function GameCard({ conversation }) {
+function GameCard({ conversation, playerAddr }) {
     const cardData = {
         primaryName: conversation.peerAddress,
         secondaryName: '',
@@ -14,17 +15,13 @@ function GameCard({ conversation }) {
     }
     const { data: ensNameData, isFetched: ensNameIsLoaded } = useEnsName({ address: conversation.peerAddress });
     const { data: ensAvatarData, isFetched: ensAvatarIsLoaded } = useEnsAvatar({ name: cardData.primaryName.includes('.eth') ? cardData.primaryName : undefined });
-    const { messages, isLoaded: messagesIsLoaded } = useMessages(conversation);
-    const [gameFound, setGameFound] = useState(false);
+    const [invite, setInvite] = useState({ accepted: false, hash: undefined, color: undefined });
+    const [accept, setAccept] = useState({ accepted: false, hash: undefined, color: undefined });
+    const [sendData, setSendData] = useState('');
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if (messagesIsLoaded) {
-            const possibleGame = messages.some(m => isGameContent(m.content));
-            setGameFound(possibleGame);
-        }
-
-    }, [messagesIsLoaded])
+    const manager = new ConversationManager(invite, accept, playerAddr);
+    const sets = { setInvite, setAccept, setSendData };
+    const { sendMessage } = useSendMessage();
 
     useEffect(() => {
         if (ensNameIsLoaded && ensNameData) {
@@ -39,18 +36,34 @@ function GameCard({ conversation }) {
         }
     }, [ensAvatarIsLoaded]);
 
-    const loadNewGame = (e) => {
-        e.preventDefault();
-        const profiles = {
-            opponent: {
-                name: cardData.secondaryName ? cardData.primaryName : undefined,
-                img: cardData.avatar,
-            }
+    useEffect(() => {
+        if (sendData) {
+            sendMessage(conversation, sendData);
+            setSendData('');
         }
+    }, [sendData]);
 
-        const color = conversation.peerAddress === '0x99FD46b167B0FBB8aC6f79E6f575A6199c2cb536' ? PIECE_COLORS.BLACK : PIECE_COLORS.WHITE;
-        navigate('/play', { state: { convo: conversation, opponent: conversation.peerAddress, hash: 'abcdp', color, profiles } })
-    }
+    useStreamMessages(conversation, (message) => {
+        manager.processMessage(message);
+    });
+
+    useEffect(() => {
+        if (invite.accepted) {
+            const color = invite.color;
+            const hash = invite.hash;
+
+            navigate('/play', { state: { convo: conversation, opponent: conversation.peerAddress, hash, color, profiles } })
+        }
+    }, [invite.accepted]);
+
+    useEffect(() => {
+        if (accept.accepted) {
+            const color = accept.color;
+            const hash = accept.hash;
+
+            navigate('/play', { state: { convo: conversation, opponent: conversation.peerAddress, hash, color, profiles } })
+        }
+    }, [accept.accepted]);
 
     return (
         <div
@@ -74,14 +87,15 @@ function GameCard({ conversation }) {
             <div>
                 <button
                     className="bg-primary-button text-2xl p-4 rounded-lg hover:bg-primary-button-hover transition duration-300 ease-in-out mx-2"
-                    disabled={!gameFound}
-                    hidden={!gameFound}
+                    disabled={!accept.hash}
+                    hidden={!accept.hash}
+                    onClick={() => manager.sendAccept(sets)}
                 >
-                    Load Game
+                    Accept Game
                 </button>
                 <button
                     className="bg-primary-button text-2xl p-4 rounded-lg hover:bg-primary-button-hover transition duration-300 ease-in-out mx-2"
-                    onClick={loadNewGame}
+                    onClick={() => manager.sendInvite(sets)}
                 >
                     New Game
                 </button>

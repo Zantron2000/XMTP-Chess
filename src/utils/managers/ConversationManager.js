@@ -102,7 +102,7 @@ class ConversationManager {
     }
 
     sendAccept(sets) {
-        if (!this.accept.accepted) {
+        if (!this.accept.accepted || !this.accept.hash) {
             this.accept.accepted = true;
             sets.setAccept({ ...this.accept, accepted: true });
             sets.setSendData(createGameMessage(this.accept.hash, CONNECT_STATUS.ACCEPT));
