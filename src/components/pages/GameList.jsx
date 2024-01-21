@@ -14,8 +14,6 @@ function GameList() {
 
     useEffect(() => {
         setConversations(xmtpConversations);
-
-        console.log(xmtpConversations)
     }, [isLoaded]);
 
     const addNewConversation = (conversation) => {
@@ -64,7 +62,7 @@ function GameList() {
                             {
                                 conversations.map((conversation, index) => {
                                     return (
-                                        <GameCard conversation={conversation} index={index} />
+                                        <GameCard conversation={conversation} index={index} key={index} />
                                     )
                                 })
                             }
