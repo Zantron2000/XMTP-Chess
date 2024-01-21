@@ -14,8 +14,19 @@ function GameList() {
 
     useEffect(() => {
         setConversations(xmtpConversations);
+
         console.log(xmtpConversations)
     }, [isLoaded]);
+
+    const addNewConversation = (conversation) => {
+        const idential = conversations.find((oldConversation) => oldConversation.peerAddress === conversation.peerAddress);
+
+        if (!idential) {
+            setConversations([conversation, ...conversations]);
+        } else {
+            setConversations([conversation, ...conversations.filter((oldConversation) => oldConversation.peerAddress !== conversation.peerAddress)]);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-foreground grid grid-rows-[auto_1fr_auto]">
@@ -43,7 +54,7 @@ function GameList() {
                                 Play a Bot
                             </button>
                         </div>
-                        <SearchCard search={search} isValid={isAddress(search) || search.endsWith('.eth')} />
+                        <SearchCard search={search} isValid={isAddress(search) || search.endsWith('.eth')} addNewConversation={addNewConversation} />
                     </div>
                     <div className="my-8 text-2xl">
                         <div className="my-4">Player List</div>

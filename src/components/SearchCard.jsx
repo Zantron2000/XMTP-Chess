@@ -1,9 +1,9 @@
-import { useCanMessage } from "@xmtp/react-sdk"
+import { useCanMessage, useStartConversation } from "@xmtp/react-sdk"
 import { useEnsAddress } from "wagmi"
 import { isAddress } from "viem"
 import { useState, useEffect } from "react"
 
-function SearchCard({ search, isValid }) {
+function SearchCard({ search, isValid, addNewConversation }) {
     const { canMessage, isLoading } = useCanMessage();
     const { data, isFetched } = useEnsAddress({ name: search.endsWith('.eth') ? search : undefined });
     const [isOnline, setIsOnline] = useState(false);
@@ -12,6 +12,7 @@ function SearchCard({ search, isValid }) {
         primaryName: search,
     }
     const color = isOnline ? 'green-700' : 'red-700';
+    const { startConversation } = useStartConversation();
 
     useEffect(() => {
         const exec = async () => {
@@ -35,10 +36,20 @@ function SearchCard({ search, isValid }) {
         }
     }, [isLoading, isFetched, search]);
 
+    const addConversation = async () => {
+        const address = search;
+
+        if (isValid) {
+            const convoTypes = await startConversation(address, '');
+
+            addNewConversation(convoTypes.cachedConversation);
+        }
+    }
+
     return (
         <button
             className={`bg-white rounded-lg p-4 text-black border-${color} border ${isValid ? 'visible' : 'invisible'}`}
-            onClick={() => console.log('Search:', search)}
+            onClick={() => addConversation()}
         >
             <div className="flex justify-between items-center">
                 <div className="flex items-center">
