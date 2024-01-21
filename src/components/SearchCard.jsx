@@ -39,7 +39,7 @@ function SearchCard({ search, isValid, addNewConversation }) {
     const addConversation = async () => {
         const address = search;
 
-        if (isValid) {
+        if (isValid && isOnline) {
             const convoTypes = await startConversation(address, '');
 
             addNewConversation(convoTypes.cachedConversation);
@@ -50,6 +50,7 @@ function SearchCard({ search, isValid, addNewConversation }) {
         <button
             className={`bg-white rounded-lg p-4 text-black border-${color} border ${isValid ? 'visible' : 'invisible'}`}
             onClick={() => addConversation()}
+            disabled={!isValid || !isOnline}
         >
             <div className="flex justify-between items-center">
                 <div className="flex items-center">

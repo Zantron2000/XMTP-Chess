@@ -1,4 +1,4 @@
-import { useConversations } from "@xmtp/react-sdk"
+import { useConversations, useStreamConversations } from "@xmtp/react-sdk"
 import { useEffect, useState } from "react";
 import { isAddress } from "viem";
 
@@ -27,6 +27,8 @@ function GameList() {
             setConversations([conversation, ...conversations.filter((oldConversation) => oldConversation.peerAddress !== conversation.peerAddress)]);
         }
     };
+
+    useStreamConversations({ onConversation: (conversation) => addNewConversation(conversation) })
 
     return (
         <div className="min-h-screen bg-foreground grid grid-rows-[auto_1fr_auto]">
