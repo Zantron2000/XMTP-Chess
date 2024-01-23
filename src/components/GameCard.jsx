@@ -2,8 +2,6 @@ import { useEnsName, useEnsAvatar } from "wagmi"
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { isGameContent } from "../utils/message/message"
-import { PIECE_COLORS } from "../utils/enum";
 import ConversationManager from "../utils/managers/ConversationManager";
 import { useSendMessage, useStreamMessages } from "@xmtp/react-sdk";
 
