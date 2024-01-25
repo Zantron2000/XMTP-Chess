@@ -4,17 +4,21 @@ import { useSSX } from "@spruceid/ssx-react"
 
 import logo from '../assets/logo.png'
 import { Link } from "react-router-dom";
+import { useClient } from "@xmtp/react-sdk";
 
 function Header() {
     const { ssx } = useSSX();
     const hasSession = ssx?.session() ? true : false;
     const { open } = useWeb3Modal();
-    const { disconnect } = useDisconnect();
+    const { disconnect: walletDisconect } = useDisconnect();
+    const { disconnect: xmtpDisconnect } = useClient();
 
     const toggleAccount = async () => {
         if (hasSession) {
-            disconnect();
-            await ssx?.signOut();
+            await xmtpDisconnect();
+            localStorage.clear();
+            walletDisconect();
+            await ssx.signOut();
         } else {
             open();
         }
