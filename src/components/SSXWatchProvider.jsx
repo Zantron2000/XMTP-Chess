@@ -36,6 +36,7 @@ function SSXWatchProvider({ children }) {
 
                     // SignOut
                 } else {
+                    localStorage.clear();
                     await ssx.signOut();
                 }
             }
