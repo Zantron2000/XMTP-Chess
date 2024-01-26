@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import ConversationManager from "../utils/managers/ConversationManager";
 import { useSendMessage, useStreamMessages } from "@xmtp/react-sdk";
+import { generateInitalMoves } from "../utils/game/message";
 
 function GameCard({ conversation }) {
     const cardData = {
@@ -63,19 +64,39 @@ function GameCard({ conversation }) {
 
     useEffect(() => {
         if (invite.accepted) {
+            const [moveNeg1, move0] = generateInitalMoves();
             const color = invite.color;
             const hash = invite.hash;
 
-            navigate('/play', { state: { convo: conversation, opponent: conversation.peerAddress, hash, color, profiles } })
+            navigate('/play', {
+                state: {
+                    conversation,
+                    hash,
+                    color,
+                    profiles,
+                    firstLastMove: moveNeg1,
+                    firstCurrMove: move0,
+                }
+            })
         }
     }, [invite.accepted]);
 
     useEffect(() => {
         if (accept.accepted) {
+            const [moveNeg1, move0] = generateInitalMoves();
             const color = accept.color;
             const hash = accept.hash;
 
-            navigate('/play', { state: { convo: conversation, opponent: conversation.peerAddress, hash, color, profiles } })
+            navigate('/play', {
+                state: {
+                    conversation,
+                    hash,
+                    color,
+                    profiles,
+                    firstLastMove: moveNeg1,
+                    firstCurrMove: move0,
+                }
+            })
         }
     }, [accept.accepted]);
 
