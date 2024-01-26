@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useSendMessage, useStartConversation, useStreamAllMessages, useStreamMessages } from "@xmtp/react-sdk"
 import { useSSX } from "@spruceid/ssx-react"
 
@@ -8,15 +8,14 @@ import { CONNECT_STATUS, GAME_STATUS, PIECE_COLORS } from "../../utils/enum"
 import { generateInitalMoves } from "../../utils/game/message"
 import MessageBoard from "../MessageBoard"
 import GameContainer from "../GameContainer"
-import { getContent } from "../../utils/message/message"
+import { GameContext } from "../middleware/FindGame"
 import GameManager from "../../utils/managers/GameManager"
-import { useLocation } from "react-router-dom"
 
 function Play() {
-    const location = useLocation();
-    const { hash, color, firstLastMove, firstCurrMove } = location.state;
+    const gameData = useContext(GameContext);
+
+    const { hash, color, firstLastMove, firstCurrMove, convo: conversation } = gameData;
     const { sendMessage } = useSendMessage();
-    const [conversation, setConversation] = useState(location.state.convo);
     const { ssx } = useSSX();
 
     const [moveNeg1, move0] = generateInitalMoves();

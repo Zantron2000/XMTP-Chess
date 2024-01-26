@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { useMessages, useSendMessage, useStreamMessages } from '@xmtp/react-sdk';
 
+import { GameContext } from './middleware/FindGame';
 import PlayerMessage from './PlayerMessage';
 import OpponentMessage from './OpponentMessage';
 import MessageInput from './MessageInput';
 import MessageManager from '../utils/managers/MessageManager';
-import { useMessages, useSendMessage, useStreamMessages } from '@xmtp/react-sdk';
 
 function MessageBoard({ conversation, playerAddr, hash, sendGameDetails }) {
+    const gameData = useContext(GameContext);
     const { sendMessage: sendMessageFn } = useSendMessage();
     const data = useMessages(conversation);
-    const { state: location } = useLocation();
 
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState(undefined);
@@ -44,7 +44,7 @@ function MessageBoard({ conversation, playerAddr, hash, sendGameDetails }) {
         <div className="w-[85%] md:w-[85%] xl:w-[75%] h-full mx-auto flex flex-col justify-around items-center bg-[#68a239] rounded-xl">
             <div className="bg-[#70c729] h-[80%] w-[95%] rounded-xl px-4 py-2">
                 <div className="border-b border-white mb-4 flex justify-center items-center text-2xl h-[10%]">
-                    {location.profiles?.opponent?.name ?? conversation?.peerAddress.substring(0, 6)}...{conversation?.peerAddress.substring(38, 42)}
+                    {gameData.profiles?.opponent?.name ?? conversation?.peerAddress.substring(0, 6)}...{conversation?.peerAddress.substring(38, 42)}
                 </div>
                 <div className="overflow-y-scroll flex justify-start flex-col h-[85%] textbar space-y-2 max-h-[750px] xl:max-h-[500px]">
                     {
@@ -55,7 +55,7 @@ function MessageBoard({ conversation, playerAddr, hash, sendGameDetails }) {
                                         key={index}
                                         message={details.content}
                                         newThread={details.includeImage}
-                                        profileSrc={location?.profiles?.player?.img ?? `https://noun-api.com/beta/pfp?name=${playerAddr}`}
+                                        profileSrc={gameData?.profiles?.player?.img ?? `https://noun-api.com/beta/pfp?name=${playerAddr}`}
                                     />
                                 );
                             } else {
@@ -64,7 +64,7 @@ function MessageBoard({ conversation, playerAddr, hash, sendGameDetails }) {
                                         key={index}
                                         message={details.content}
                                         newThread={details.includeImage}
-                                        profileSrc={location?.profiles?.opponent?.img ?? `https://noun-api.com/beta/pfp?name=${conversation?.peerAddress}`}
+                                        profileSrc={gameData?.profiles?.opponent?.img ?? `https://noun-api.com/beta/pfp?name=${conversation?.peerAddress}`}
                                     />
                                 );
                             }
