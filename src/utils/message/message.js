@@ -79,3 +79,18 @@ export const isConnectStatus = (content) => {
 
     return connectStatus && Object.values(CONNECT_STATUS).includes(connectStatus);
 }
+
+export const findMostRecentGameMessages = (messages, hash) => {
+    const gameMessages = [];
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+        if (gameMessages.length === 2) {
+            break;
+        } else if (isHashContent(messages[i].content, hash) && isGameContent(messages[i].content)) {
+            const gameContent = getContent(messages[i].content);
+            gameMessages.unshift(gameContent);
+        }
+    }
+
+    return gameMessages;
+}

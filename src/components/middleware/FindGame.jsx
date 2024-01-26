@@ -1,5 +1,8 @@
+import { useMessages } from "@xmtp/react-sdk";
 import { createContext, useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { generateInitalMoves } from "../../utils/game/message";
+import { findMostRecentGameMessages } from "../../utils/message/message";
 
 export const GameContext = createContext();
 
@@ -7,7 +10,7 @@ function FindGame({ children }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [state] = useState(location.state || {});
-    const { color, hash, opponent, convo, firstLastMove, firstCurrMove } = state;
+    const { color, hash, conversation, firstLastMove, firstCurrMove } = state;
     const [initLastMove, setInitLastMove] = useState(firstLastMove);
     const [initCurrMove, setInitCurrMove] = useState(firstCurrMove);
 
@@ -15,8 +18,32 @@ function FindGame({ children }) {
         navigate('.', { replace: true, state: { ...state, firstLastMove: undefined, firstCurrMove: undefined } })
     }, [navigate])
 
-    if ([color, hash, opponent, convo].includes(undefined)) {
+    if ([color, hash, conversation].includes(undefined)) {
         return <Navigate to="/" />
+    }
+
+    const { messages, isLoaded, error } = useMessages(conversation);
+
+    useEffect(() => {
+        if (isLoaded && !error && !initLastMove && !initCurrMove) {
+            console.log('Attempting Search', { messages, hash })
+
+            const searchResults = findMostRecentGameMessages(messages, hash);
+            const [moveNeg1, move0] = generateInitalMoves();
+            if (searchResults.length === 1) {
+                searchResults.unshift(move0)
+            }
+            const [tempFirstLastMove, tempFirstCurrMove] = searchResults;
+
+            setInitLastMove(tempFirstLastMove || moveNeg1);
+            setInitCurrMove(tempFirstCurrMove || move0);
+        }
+    }, [isLoaded]);
+
+    console.log('Find Game', { ...state, initLastMove, initCurrMove });
+
+    if (!initLastMove || !initCurrMove) {
+        return <div>Loading...</div>
     }
 
     return (

@@ -14,14 +14,13 @@ import GameManager from "../../utils/managers/GameManager"
 function Play() {
     const gameData = useContext(GameContext);
 
-    const { hash, color, firstLastMove, firstCurrMove, convo: conversation } = gameData;
+    const { hash, color, initLastMove, initCurrMove, conversation } = gameData;
     const { sendMessage } = useSendMessage();
     const { ssx } = useSSX();
 
-    const [moveNeg1, move0] = generateInitalMoves();
     const [status, setStatus] = useState(CONNECT_STATUS.ACCEPT);
-    const [lastMove, setLastMove] = useState(firstLastMove ?? moveNeg1);
-    const [currMove, setCurrMove] = useState(firstCurrMove ?? move0);
+    const [lastMove, setLastMove] = useState(initLastMove);
+    const [currMove, setCurrMove] = useState(initCurrMove);
     const [sendData, setSendData] = useState('');
     const sets = { setStatus, setLastMove, setCurrMove, setSendData }
     const manager = new GameManager(lastMove, currMove, status, ssx.address(), color, hash);
