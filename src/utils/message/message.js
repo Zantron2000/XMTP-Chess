@@ -1,4 +1,5 @@
 import { CONNECT_STATUS, DEV_MODE, MESSAGE } from "../enum";
+import { getEnemyColor } from "../game/piece";
 
 export const isHashContent = (content, hash) => {
     return content.startsWith(hash + MESSAGE.HASH_DELIMITER);
@@ -142,7 +143,7 @@ export const loadGameHistory = (messages, playerAddr) => {
                 searching.invite = false;
             } else if (!playerMessage && searching.accept && !invalidHashes.includes(hash)) {
                 data.accept.hash = hash;
-                data.accept.color = gameContent.split(MESSAGE.GAME_DELIMITER)[1];
+                data.accept.color = getEnemyColor(gameContent.split(MESSAGE.GAME_DELIMITER)[1]);
                 searching.accept = false;
             }
         } else {

@@ -115,7 +115,9 @@ describe('Tests the loadGameHistory function', () => {
         const results = loadGameHistory(messages, '0x123');
 
         expect(results.invite.hash).toBe('ABCDE');
+        expect(results.invite.color).toBe(PIECE_COLORS.WHITE);
         expect(results.accept.hash).toBe('FGHIJ');
+        expect(results.accept.color).toBe(PIECE_COLORS.BLACK);
     });
 
     it('Should reject invitations that have been accepted', () => {
@@ -128,7 +130,9 @@ describe('Tests the loadGameHistory function', () => {
         const results = loadGameHistory(messages, '0x123');
 
         expect(results.accept.hash).toBe('FGHIJ');
+        expect(results.accept.color).toBe(PIECE_COLORS.BLACK);
         expect(results.invite.hash).toBe(null);
+        expect(results.invite.color).toBe(undefined);
     });
 
     it('Should reject invitations that have been rejected', () => {
@@ -141,7 +145,9 @@ describe('Tests the loadGameHistory function', () => {
         const results = loadGameHistory(messages, '0x123');
 
         expect(results.accept.hash).toBe(null);
+        expect(results.accept.color).toBe(undefined);
         expect(results.invite.hash).toBe('ABCDE');
+        expect(results.invite.color).toBe(PIECE_COLORS.WHITE);
     });
 
     it('Should reject all invitations if a game has started', () => {
@@ -156,7 +162,9 @@ describe('Tests the loadGameHistory function', () => {
         const results = loadGameHistory(messages, '0x123');
 
         expect(results.accept.hash).toBe(null);
+        expect(results.accept.color).toBe(undefined);
         expect(results.invite.hash).toBe(null);
+        expect(results.invite.color).toBe(undefined);
     });
 
     it('Should keep note of invalid hashes and reject them', () => {
@@ -206,7 +214,9 @@ describe('Tests the loadGameHistory function', () => {
         const results = loadGameHistory(messages, '0xC346F8A95Ead977c108cAaBaaC9662c04537a095');
 
         expect(results.invite.hash).toBe(null);
+        expect(results.invite.color).toBe(undefined);
         expect(results.accept.hash).toBe(null);
+        expect(results.accept.color).toBe(undefined);
     })
 
     it('Should not recognize own invites as accepts', () => {
@@ -240,7 +250,9 @@ describe('Tests the loadGameHistory function', () => {
 
         const results = loadGameHistory(messages, '0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F');
 
-        expect(results.invite.hash).toBe(null);
+        expect(results.invite.hash).toBe('2sDJW');
+        expect(results.invite.color).toBe(PIECE_COLORS.BLACK);
         expect(results.accept.hash).toBe(null);
+        expect(results.accept.color).toBe(undefined);
     })
 });
