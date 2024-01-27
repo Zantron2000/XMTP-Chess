@@ -28,7 +28,7 @@ describe('Tests the sendInvite method', () => {
 
     it('Should send an invite if one has not been sent', () => {
         const [invite, accept, playerAddr] = generateConstructorParams();
-        const manager = new ConversationManager(invite, accept, playerAddr);
+        const manager = new ConversationManager({ hash: null }, accept, playerAddr);
 
         manager.sendInvite(mockSets);
 

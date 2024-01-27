@@ -89,7 +89,8 @@ export const createActions = (color, actions = {}) => {
     return newActions;
 }
 
-export const createTestXMTPMessage = (content) => ({
+export const createTestXMTPMessage = (content, senderAddress) => ({
+    senderAddress,
     content,
     sentAt: new Date().getTime(),
 });
