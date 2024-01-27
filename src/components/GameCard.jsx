@@ -1,12 +1,15 @@
 import { useEnsName, useEnsAvatar } from "wagmi"
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSSX } from "@spruceid/ssx-react";
 
 import ConversationManager from "../utils/managers/ConversationManager";
-import { useSendMessage, useStreamMessages } from "@xmtp/react-sdk";
+import { useSendMessage, useStreamMessages, useMessages } from "@xmtp/react-sdk";
 import { generateInitalMoves } from "../utils/game/message";
+import { loadGameHistory } from "../utils/message/message";
 
 function GameCard({ conversation }) {
+    const { messages, isLoaded, error } = useMessages(conversation);
     const cardData = {
         primaryName: conversation.peerAddress,
         secondaryName: '',
@@ -28,6 +31,7 @@ function GameCard({ conversation }) {
             img: cardData.avatar,
         }
     }
+    const { ssx } = useSSX();
 
     useEffect(() => {
         if (ensNameIsLoaded && ensNameData) {
@@ -99,6 +103,21 @@ function GameCard({ conversation }) {
             })
         }
     }, [accept.accepted]);
+
+    useEffect(() => {
+        if (isLoaded && messages.length > 0) {
+            const data = loadGameHistory(messages, ssx.address())
+
+            console.log('Running my mouth', invite, accept, data, messages)
+
+            if (!invite.hash) {
+                setInvite({ ...invite, hash: data.invite.hash, color: data.invite.color });
+            }
+            if (!accept.hash) {
+                setAccept({ ...accept, hash: data.accept.hash, color: data.accept.color });
+            }
+        }
+    }, [isLoaded]);
 
     return (
         <div
