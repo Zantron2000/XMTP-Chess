@@ -26,10 +26,9 @@ function FindGame({ children }) {
 
     useEffect(() => {
         if (isLoaded && !error && !initLastMove && !initCurrMove) {
-            console.log('Attempting Search', { messages, hash })
-
             const searchResults = findMostRecentGameMessages(messages, hash);
             const [moveNeg1, move0] = generateInitalMoves();
+
             if (searchResults.length === 1) {
                 searchResults.unshift(move0)
             }
@@ -39,8 +38,6 @@ function FindGame({ children }) {
             setInitCurrMove(tempFirstCurrMove || move0);
         }
     }, [isLoaded]);
-
-    console.log('Find Game', { ...state, initLastMove, initCurrMove });
 
     if (!initLastMove || !initCurrMove) {
         return <div>Loading...</div>

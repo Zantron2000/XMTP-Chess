@@ -270,4 +270,4 @@ export const DIRECTIONS = {
     NORTH_WEST: 'NW',
 };
 
-export const DEV_MODE = true;
+export const DEV_MODE = false;

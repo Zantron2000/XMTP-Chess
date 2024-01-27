@@ -30,7 +30,7 @@ class ConversationManager {
     }
 
     sendInvite(sets) {
-        if (!this.invite.hash) {
+        if (this.invite.hash === null) {
             const hash = generateHash();
             const color = this.getRandomColor();
 

@@ -94,3 +94,67 @@ export const findMostRecentGameMessages = (messages, hash) => {
 
     return gameMessages;
 }
+
+export const loadGameHistory = (messages, playerAddr) => {
+    const data = {
+        invite: {
+            hash: null,
+            color: undefined,
+        },
+        accept: {
+            hash: null,
+            color: undefined,
+        },
+    }
+
+    const searching = {
+        invite: true,
+        accept: true,
+    }
+
+    const invalidHashes = [];
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+        if (Object.values(searching).every(val => !val)) {
+            break;
+        }
+
+        const { content, senderAddress } = messages[i];
+        const playerMessage = senderAddress === playerAddr;
+
+        if (!hasHash(content)) {
+            continue;
+        }
+
+        const hash = getHash(content);
+        const gameContent = getContent(content);
+
+        if (isGameContent(content)) {
+            searching.invite = false;
+            searching.accept = false;
+        }
+
+        const status = gameContent.split(MESSAGE.GAME_DELIMITER)[0];
+        if (status === CONNECT_STATUS.INVITE) {
+            if (playerMessage && searching.invite && !invalidHashes.includes(hash)) {
+                data.invite.hash = hash;
+                data.invite.color = gameContent.split(MESSAGE.GAME_DELIMITER)[1];
+                searching.invite = false;
+            } else if (!playerMessage && searching.accept && !invalidHashes.includes(hash)) {
+                data.accept.hash = hash;
+                data.accept.color = gameContent.split(MESSAGE.GAME_DELIMITER)[1];
+                searching.accept = false;
+            }
+        } else {
+            if (playerMessage && searching.accept) {
+                invalidHashes.push(hash);
+                searching.accept = false;
+            } else if (!playerMessage && searching.invite) {
+                invalidHashes.push(hash);
+                searching.invite = false;
+            }
+        }
+    }
+
+    return data;
+};
