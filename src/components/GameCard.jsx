@@ -108,8 +108,6 @@ function GameCard({ conversation }) {
         if (isLoaded && messages.length > 0) {
             const data = loadGameHistory(messages, ssx.address())
 
-            console.log('Running my mouth', invite, accept, data, messages)
-
             if (!invite.hash) {
                 setInvite({ ...invite, hash: data.invite.hash, color: data.invite.color });
             }
@@ -139,6 +137,14 @@ function GameCard({ conversation }) {
                 </div>
             </div>
             <div>
+                <button
+                    className="bg-primary-button text-2xl p-4 rounded-lg hover:bg-primary-button-hover transition duration-300 ease-in-out mx-2"
+                    disabled={!accept.hash}
+                    hidden={!accept.hash}
+                    onClick={() => manager.sendDecline(sets)}
+                >
+                    Decline Game
+                </button>
                 <button
                     className="bg-primary-button text-2xl p-4 rounded-lg hover:bg-primary-button-hover transition duration-300 ease-in-out mx-2"
                     disabled={!accept.hash}
