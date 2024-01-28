@@ -114,6 +114,16 @@ class ConversationManager {
         }
     }
 
+    sendDecline(sets) {
+        if (this.accept.hash) {
+            sets.setSendData(createGameMessage(this.accept.hash, CONNECT_STATUS.DECLINE));
+            this.accept.color = undefined;
+            this.accept.hash = undefined;
+            this.accept.accepted = false;
+            sets.setAccept({ accepted: false, hash: undefined, color: undefined });
+        }
+    }
+
     processMessage(message, sets) {
         if (this.isInviteMessage(message)) {
             this.updateInviteStatus(message, sets);
