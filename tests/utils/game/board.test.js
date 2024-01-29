@@ -4,7 +4,7 @@ import { ACTION_TYPES } from "../../../src/tools/enums";
 
 const { KING, KNIGHT, BISHOP, EMPTY, PAWN, QUEEN, ROOK } = PIECE_VALUES;
 const { BLACK, WHITE } = PIECE_COLORS;
-const { MOVE, CAPTURE, TRANSFORM, CASTLE } = ACTION_TYPES;
+const { MOVE, CAPTURE, TRANSFORM, CASTLE, EN_PASSANT } = ACTION_TYPES;
 
 const createStarterBoard = () => {
     return {
@@ -62,6 +62,34 @@ const createDeadPositions = () => {
 
 describe('Tests validateMove', () => {
     describe('Tests untransformed pawns', () => {
+        it('Should find no error for a white pawn who committed en passant', () => {
+            const board = createEmptyBoard();
+            placePiece(board, 'A5', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'B5', PIECES.BLACK_PAWN_1);
+            const data = {
+                piecePos: 'A5',
+                action: 'B6' + ACTION_TYPES.EN_PASSANT,
+            }
+
+            const { error } = validateMove(board, data, undefined, undefined, 'XX', undefined, 'B5');
+
+            expect(error).toBe(null);
+        });
+
+        it('Should find an error for a white pawn who committed en passant when the option expired', () => {
+            const board = createEmptyBoard();
+            placePiece(board, 'A5', PIECES.WHITE_PAWN_1);
+            placePiece(board, 'B5', PIECES.BLACK_PAWN_1);
+            const data = {
+                piecePos: 'A5',
+                action: 'B6' + ACTION_TYPES.EN_PASSANT,
+            }
+
+            const { error } = validateMove(board, data, undefined, undefined, 'XX', undefined, undefined);
+
+            expect(error).not.toBe(null);
+        });
+
         it('Should find no error for a white pawn starting position', () => {
             const board = createStarterBoard();
             const doubleMove = {
@@ -1394,6 +1422,101 @@ describe('Tests getTurnInfo', () => {
         expect(knightActions).toContain('G6' + MOVE);
         expect(knightActions).toContain('F7' + CAPTURE);
         expect(knightActions).toContain('D7' + CAPTURE);
+    });
+
+    it('Should allow a white pawn to commit en passant on the right', () => {
+        const board = createEmptyBoard();
+        const registry = {
+            [PIECES.WHITE_PAWN_1]: 'C5',
+            [PIECES.BLACK_PAWN_1]: 'D5',
+        };
+        placePiece(board, 'C5', PIECES.WHITE_PAWN_1);
+        placePiece(board, 'D5', PIECES.BLACK_PAWN_1);
+
+        const { actions } = getTurnInfo(board, PIECE_COLORS.WHITE, registry, {}, { 1: true, 2: true }, 'D5');
+    
+        expect(actions[PIECES.WHITE_PAWN_1].length).toBe(2);
+        expect(actions[PIECES.WHITE_PAWN_1]).toContain('C6' + MOVE);
+        expect(actions[PIECES.WHITE_PAWN_1]).toContain('D6' + EN_PASSANT);
+    });
+
+    it('Should not allow a white pawn to commit en passant due to the option expiring', () => {
+        const board = createEmptyBoard();
+        const registry = {
+            [PIECES.WHITE_PAWN_1]: 'C5',
+            [PIECES.BLACK_PAWN_1]: 'D5',
+        };
+        placePiece(board, 'C5', PIECES.WHITE_PAWN_1);
+        placePiece(board, 'D5', PIECES.BLACK_PAWN_1);
+
+        const { actions } = getTurnInfo(board, PIECE_COLORS.WHITE, registry, {}, { 1: true, 2: true });
+    
+        expect(actions[PIECES.WHITE_PAWN_1].length).toBe(1);
+        expect(actions[PIECES.WHITE_PAWN_1]).toContain('C6' + MOVE);
+    });
+
+    it('Should allow a white pawn to commit en passant on the left', () => {
+        const board = createEmptyBoard();
+        const registry = {
+            [PIECES.WHITE_PAWN_1]: 'G5',
+            [PIECES.BLACK_PAWN_1]: 'F5',
+        };
+        placePiece(board, 'G5', PIECES.WHITE_PAWN_1);
+        placePiece(board, 'F5', PIECES.BLACK_PAWN_1);
+
+        const { actions } = getTurnInfo(board, PIECE_COLORS.WHITE, registry, {}, { 1: true, 2: true }, 'F5');
+    
+        expect(actions[PIECES.WHITE_PAWN_1].length).toBe(2);
+        expect(actions[PIECES.WHITE_PAWN_1]).toContain('G6' + MOVE);
+        expect(actions[PIECES.WHITE_PAWN_1]).toContain('F6' + EN_PASSANT);
+    });
+
+    it('Should allow a black pawn to commit en passant on the left', () => {
+        const board = createEmptyBoard();
+        const registry = {
+            [PIECES.WHITE_PAWN_1]: 'C4',
+            [PIECES.BLACK_PAWN_1]: 'D4',
+        };
+        placePiece(board, 'C4', PIECES.WHITE_PAWN_1);
+        placePiece(board, 'D4', PIECES.BLACK_PAWN_1);
+
+        const { actions } = getTurnInfo(board, PIECE_COLORS.BLACK, registry, {}, { 1: true, 2: true }, 'C4');
+    
+        expect(actions[PIECES.BLACK_PAWN_1].length).toBe(2);
+        expect(actions[PIECES.BLACK_PAWN_1]).toContain('D3' + MOVE);
+        expect(actions[PIECES.BLACK_PAWN_1]).toContain('C3' + EN_PASSANT);
+    });
+
+    it('Should allow a black pawn to commit en passant on the right', () => {
+        const board = createEmptyBoard();
+        const registry = {
+            [PIECES.WHITE_PAWN_1]: 'B4',
+            [PIECES.BLACK_PAWN_1]: 'A4',
+        };
+        placePiece(board, 'B4', PIECES.WHITE_PAWN_1);
+        placePiece(board, 'A4', PIECES.BLACK_PAWN_1);
+
+        const { actions } = getTurnInfo(board, PIECE_COLORS.BLACK, registry, {}, { 1: true, 2: true }, 'B4');
+    
+        expect(actions[PIECES.BLACK_PAWN_1].length).toBe(2);
+        expect(actions[PIECES.BLACK_PAWN_1]).toContain('A3' + MOVE);
+        expect(actions[PIECES.BLACK_PAWN_1]).toContain('B3' + EN_PASSANT);
+    });
+
+    it('Should not allow a black pawn to commit en passant due to not being on the right rank', () => {
+        const board = createEmptyBoard();
+        const registry = {
+            [PIECES.WHITE_PAWN_1]: 'B4',
+            [PIECES.BLACK_PAWN_1]: 'A5',
+        };
+        placePiece(board, 'B4', PIECES.WHITE_PAWN_1);
+        placePiece(board, 'A5', PIECES.BLACK_PAWN_1);
+
+        const { actions } = getTurnInfo(board, PIECE_COLORS.BLACK, registry, {}, { 1: true, 2: true }, 'B4');
+    
+        expect(actions[PIECES.BLACK_PAWN_1].length).toBe(2);
+        expect(actions[PIECES.BLACK_PAWN_1]).toContain('A4' + MOVE);
+        expect(actions[PIECES.BLACK_PAWN_1]).toContain('B4' + CAPTURE);
     });
 
     it('Should generate only moves that pull the king out of check', () => {
