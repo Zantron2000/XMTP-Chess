@@ -1,7 +1,7 @@
 import { ACTION_TYPES } from "../../tools/enums";
 import { CAPTURED_PIECE, GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES } from "../enum";
 import { getPieceAtChessCoords, movePiece } from "./board";
-import { areAllies, isPiece, ownsPiece } from "./piece";
+import { areAllies, isPawn, isPiece, ownsPiece } from "./piece";
 import { extractCoords } from "./translate";
 
 const findCapturedPiece = (diff) => {
@@ -48,9 +48,7 @@ const validateMove = (player, diff) => {
 
 const isDead = (chessPos) => chessPos === CAPTURED_PIECE;
 
-const validateCapture = (player, captured, diff) => {
-    const capturer = Object.keys(diff).find((key) => key !== captured);
-
+const validateCapture = (player, captured, capturer, diff) => {
     if (!captured) {
         return {
             error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.NO_CAPTURED_PIECE, player)
@@ -185,6 +183,62 @@ const validateCastle = (player, diff) => {
     }
 }
 
+const validateEnPassant = (player, captured, capturer, diff) => {
+    const [lastCapPos, currCapPos] = diff[captured];
+    const [lastAlivePos, currAlivePos] = diff[capturer];
+
+    if (!ownsPiece(player, capturer)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_ACTION, player),
+        };
+    }
+    if (ownsPiece(player, captured)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_ACTION, player),
+        }
+    }
+
+    if ([lastAlivePos, currAlivePos, lastCapPos, currCapPos].some((pos) => pos.length > 2)) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_ACTION, player),
+        }
+    }
+
+    if ([lastCapPos, lastAlivePos, currAlivePos].some((pos) => isDead(pos))) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_ACTION, player),
+        }
+    }
+
+    if (currCapPos !== CAPTURED_PIECE) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_ACTION, player),
+        }
+    }
+
+    const requiredRank = player === PIECE_COLORS.WHITE ? 5 : 4;
+    const requiredEndRank = player === PIECE_COLORS.WHITE ? 6 : 3;
+
+    if ([lastAlivePos, lastCapPos].some((pos) => !pos.includes(requiredRank))) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_ACTION, player),
+        }
+    }
+
+    if (currAlivePos !== `${lastCapPos[0]}${requiredEndRank}`) {
+        return {
+            error: GAME_VALIDATION_MESSAGES.formatMessage(GAME_VALIDATION_MESSAGES.INVALID_ACTION, player),
+        }
+    }
+
+    const data = {
+        action: `${currAlivePos.slice(-2)}${ACTION_TYPES.EN_PASSANT}`,
+        piecePos: lastAlivePos,
+    };
+
+    return { data };
+};
+
 export const validateAction = ({ player, differences: diff, transformed }) => {
     if (transformed) {
         return validateTransform(player, diff);
@@ -198,7 +252,15 @@ export const validateAction = ({ player, differences: diff, transformed }) => {
 
     const capturedPiece = findCapturedPiece(diff);
     if (capturedPiece) {
-        return validateCapture(player, capturedPiece, diff);
+        const capturer = Object.keys(diff).find((key) => key !== capturedPiece);
+        const captuererPostPos = diff[capturer][1].slice(-2);
+        const capturedPrePos = diff[capturedPiece][0].slice(-2);
+
+        if (captuererPostPos !== capturedPrePos && isPawn(capturer) && isPawn(capturedPiece)) {
+            return validateEnPassant(player, capturedPiece, capturer, diff);
+        } else {
+            return validateCapture(player, capturedPiece, capturer, diff);
+        }
     }
 
     const isCastled = isCastle(diff);

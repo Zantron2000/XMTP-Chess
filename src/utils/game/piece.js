@@ -56,10 +56,9 @@ export const isPiece = (piece, type, registry = {}) => {
     }
 
     return false;
-
-    piece[1] === type;
 }
 
+export const isPawn = (piece) => isPiece(piece, PIECE_VALUES.PAWN);
 
 export const canAttackDirection = (piece, direction, registry) => {
     const diagonal = isDiagonal(direction);
