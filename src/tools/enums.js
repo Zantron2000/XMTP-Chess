@@ -33,6 +33,7 @@ export const ACTION_TYPES = {
     CAPTURE: 'C',
     TRANSFORM: 'T',
     CASTLE: 'S',
+    EN_PASSANT: 'E',
 };
 
 export const PIECE_ORDER = {

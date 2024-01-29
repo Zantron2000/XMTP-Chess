@@ -51,6 +51,20 @@ const findNearestPiece = (board, chessPos, direction, piece) => {
     return null;
 }
 
+const canEnpassant = (attackPos, defensePos, rank) => {
+    const [attackRow, attackCol] = extractCoords(attackPos);
+    const [defenseRow, defenseCol] = extractCoords(defensePos);
+
+    return attackRow === defenseRow && attackRow === rank && Math.abs(attackCol - defenseCol) === 1;
+}
+
+const generateEnPassantCoords = (attackPos, defensePos, forward) => {
+    const [attackRow, attackCol] = extractCoords(attackPos);
+    const [defenseRow, defenseCol] = extractCoords(defensePos);
+    
+    return INDEX_TO_COL[defenseCol] + INDEX_TO_ROW[attackRow + forward];
+}
+
 /**
  * Generates possible moves for a pawn. Pawns can move forward one space,
  * or two spaces if it is the first move. Pawns can also capture diagonally.
@@ -64,7 +78,7 @@ const findNearestPiece = (board, chessPos, direction, piece) => {
  * @param {String} piece The piece representation of the pawn
  * @returns {String[]} An array of possible moves
  */
-const generateBlackPawnMoves = (board, chessPos, piece) => {
+const generateBlackPawnMoves = (board, chessPos, piece, enPassant) => {
     const moves = [];
     const possibleMove = movePos(chessPos, -1, 0);
     const possibleSpecialMove = movePos(chessPos, -2, 0);
@@ -94,6 +108,12 @@ const generateBlackPawnMoves = (board, chessPos, piece) => {
         }
     });
 
+    if (enPassant && canEnpassant(chessPos, enPassant, 3)) {
+        const enPassantCoords = generateEnPassantCoords(chessPos, enPassant, -1);
+
+        moves.push(convertToAction(enPassantCoords, ACTION_TYPES.EN_PASSANT));
+    }
+
     return moves;
 };
 
@@ -107,7 +127,7 @@ const generateBlackPawnMoves = (board, chessPos, piece) => {
  * @param {String} piece The piece representation of the pawn
  * @returns {String[]} An array of possible moves
  */
-const generateWhitePawnMoves = (board, chessPos, piece) => {
+const generateWhitePawnMoves = (board, chessPos, piece, enPassant) => {
     const moves = [];
     const possibleMove = movePos(chessPos, 1, 0);
     const possibleSpecialMove = movePos(chessPos, 2, 0);
@@ -137,6 +157,12 @@ const generateWhitePawnMoves = (board, chessPos, piece) => {
         }
     });
 
+    if (enPassant && canEnpassant(chessPos, enPassant, 4)) {
+        const enPassantCoords = generateEnPassantCoords(chessPos, enPassant, 1);
+
+        moves.push(convertToAction(enPassantCoords, ACTION_TYPES.EN_PASSANT));
+    }
+
     return moves;
 };
 
@@ -149,7 +175,7 @@ const generateWhitePawnMoves = (board, chessPos, piece) => {
  * @param {String} piece The piece representation of the pawn
  * @returns {String[]} An array of possible moves
  */
-const generatePawnMoves = (board, chessPos, piece, registry) => {
+const generatePawnMoves = (board, chessPos, piece, registry, enPassant) => {
     if (registry[piece]) {
         const transformedPiece = piece[0] + registry[piece];
 
@@ -165,9 +191,9 @@ const generatePawnMoves = (board, chessPos, piece, registry) => {
     }
 
     if (isColor(piece, PIECE_COLORS.WHITE)) {
-        return generateWhitePawnMoves(board, chessPos, piece);
+        return generateWhitePawnMoves(board, chessPos, piece, enPassant);
     } else {
-        return generateBlackPawnMoves(board, chessPos, piece);
+        return generateBlackPawnMoves(board, chessPos, piece, enPassant);
     }
 }
 
@@ -423,7 +449,7 @@ const generateKingMoves = (board, chessPos, piece, canCastle, registry) => {
     return moves;
 };
 
-const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ignore) => {
+const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ignore, enPassant) => {
     const piece = ignore || getPieceAt(board, chessPos);
     let actions = [];
 
@@ -432,7 +458,7 @@ const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ig
     }
 
     if (isPiece(piece, PIECE_VALUES.PAWN)) {
-        actions = generatePawnMoves(board, chessPos, piece, registry);
+        actions = generatePawnMoves(board, chessPos, piece, registry, enPassant);
     } else if (isPiece(piece, PIECE_VALUES.ROOK)) {
         actions = generateRookMoves(board, chessPos, piece);
     } else if (isPiece(piece, PIECE_VALUES.KNIGHT)) {
@@ -462,8 +488,8 @@ const exitsCheck = (board, registry, piecePos, move, kingPos) => {
     return isSafeMove(nextBoard, newKingChessPos, registry);
 }
 
-export const validateMove = (board, { piecePos, action }, canCastle, registry = {}, kingPos = 'XX', ignore) => {
-    const actions = generateMovesForPiece(board, piecePos, canCastle, registry, kingPos, ignore);
+export const validateMove = (board, { piecePos, action }, canCastle, registry = {}, kingPos = 'XX', ignore, enPassant) => {
+    const actions = generateMovesForPiece(board, piecePos, canCastle, registry, kingPos, ignore, enPassant);
 
     if (!actions.includes(action)) {
         return {
@@ -480,7 +506,7 @@ export const isSafeMove = (board, chessPos, registry, ignore) => {
     return isSafe(board, chessPos, piece, registry);
 }
 
-export const getTurnInfo = (board, player, positions, registry, canCastle) => {
+export const getTurnInfo = (board, player, positions, registry, canCastle, enPassant) => {
     const actions = {};
     const isKingSafe = isSafeMove(board, positions[player + PIECE_VALUES.KING], registry);
 
@@ -493,7 +519,8 @@ export const getTurnInfo = (board, player, positions, registry, canCastle) => {
                     canCastle,
                     registry,
                     positions[player + PIECE_VALUES.KING],
-                    piece
+                    piece,
+                    enPassant,
                 );
             } else {
                 actions[piece] = [];
