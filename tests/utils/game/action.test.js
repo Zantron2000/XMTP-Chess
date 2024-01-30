@@ -1,4 +1,4 @@
-import { PIECE_COLORS } from "../../../src/tools/enums";
+import { ACTION_TYPES, PIECE_COLORS } from "../../../src/tools/enums";
 import { GAME_VALIDATION_MESSAGES, MESSAGE } from "../../../src/utils/enum";
 import { validateAction } from "../../../src/utils/game/action";
 import { validateTurnContinuity } from "../../../src/utils/game/message";
@@ -427,6 +427,180 @@ describe("Tests validateAction", () => {
                 action: 'C1S',
                 piecePos: 'E1',
             })
+        });
+    });
+
+    describe("Tests validateAction with an en passant action", () => {
+        it('Should return an error if the player does not own the piece that captures', async () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'BP1': ['B5', 'A6'],
+                'BP2': ['A5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the player captures their own pawn', async () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['B5', 'A6'],
+                'WP2': ['A5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the player captures with a transformed pawn', async () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['QB5', 'QA6'],
+                'BP2': ['A5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the player captured a transformed pawn', async () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['B5', 'A6'],
+                'BP2': ['QA5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the capturing piece was dead', async () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['XX', 'A6'],
+                'BP2': ['QA5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the capturing piece was dead', async () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['XX', 'A6'],
+                'BP2': ['QA5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the en passant does not occur on the right rank for white', () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['B4', 'A5'],
+                'BP2': ['A4', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the en passant does not occur on the right rank for black', () => {
+            const player = PIECE_COLORS.BLACK;
+            const castled = false;
+            const differences = {
+                'WP1': ['B5', 'XX'],
+                'BP2': ['A5', 'B4'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the en passant does not end on the right rank for white', () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['B5', 'B6'],
+                'BP2': ['A5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should return an error if the en passant does not end on the right rank for black', () => {
+            const player = PIECE_COLORS.BLACK;
+            const castled = false;
+            const differences = {
+                'WP1': ['B4', 'XX'],
+                'BP2': ['A4', 'B2'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
+        });
+
+        it('Should realize a valid en passant for a white pawn', () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['B5', 'A6'],
+                'BP2': ['A5', 'XX'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).not.toBeDefined();
+            expect(result.data).toBeDefined();
+            expect(result.data.action).toBe('A6E');
+            expect(result.data.piecePos).toBe('B5');
+        });
+
+        it('Should realize a valid en passant for a black pawn', () => {
+            const player = PIECE_COLORS.BLACK;
+            const castled = false;
+            const differences = {
+                'WP1': ['B4', 'XX'],
+                'BP2': ['A4', 'B3'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).not.toBeDefined();
+            expect(result.data).toBeDefined();
+            expect(result.data.action).toBe('B3' + ACTION_TYPES.EN_PASSANT);
+            expect(result.data.piecePos).toBe('A4');
         });
     });
 });
