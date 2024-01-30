@@ -22,11 +22,24 @@ describe("Tests validateAction", () => {
             expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.MOVE_OPPONENT_PIECE)
         });
 
+        it('Should generate the right move for a transformed pawn', async () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'BR1': ['A8', 'A7'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.MOVE_OPPONENT_PIECE)
+        });
+
         it('Should return the original location and the move action when valid', () => {
             const player = PIECE_COLORS.WHITE;
             const castled = false;
             const differences = {
-                'WP1': ['A2', 'A3'],
+                'WP1': ['QA2', 'QA3'],
             }
 
             const result = validateAction({ player, castled, differences });
