@@ -39,8 +39,8 @@ const validateMove = (player, diff) => {
     }
 
     const data = {
-        action: `${currPos.substring(0, 2)}${ACTION_TYPES.MOVE}`,
-        piecePos: lastPos,
+        action: `${currPos.slice(-2)}${ACTION_TYPES.MOVE}`,
+        piecePos: lastPos.slice(-2),
     }
 
     return { data }
@@ -108,7 +108,7 @@ const validateCapture = (player, captured, capturer, diff) => {
 
     const data = {
         action: `${currAlivePos.slice(-2)}${ACTION_TYPES.CAPTURE}`,
-        piecePos: lastAlivePos,
+        piecePos: lastAlivePos.slice(-2),
     }
 
     return { data }

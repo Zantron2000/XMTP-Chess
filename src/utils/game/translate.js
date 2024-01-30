@@ -1,4 +1,4 @@
-import { CAPTURED_PIECE, COL_TO_INDEX, INDEX_TO_ROW, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES, ROW_TO_INDEX } from "../enum";
+import { CAPTURED_PIECE, COL_TO_INDEX, INDEX_TO_COL, INDEX_TO_ROW, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES, ROW_TO_INDEX } from "../enum";
 import { placePiece } from "./board";
 import { extractMoveDetails } from "./message";
 import { isPiece } from "./piece";
