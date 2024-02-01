@@ -102,7 +102,7 @@ class BoardManager {
                 return setStatus(GAME_STATUS.CHEAT);
             }
 
-            const { actions, isKingSafe } = getTurnInfo(this.board, nextMoveMaker, this.positions, this.pawnRegistry, this.canCastle[nextMoveMaker]);
+            const { actions, isKingSafe } = getTurnInfo(this.board, nextMoveMaker, this.positions, this.pawnRegistry, this.canCastle[nextMoveMaker], this.enPassant);
 
             if (noMoreActions(actions) && !isKingSafe) {
                 this.status = GAME_STATUS.CHECKMATE;
@@ -125,7 +125,7 @@ class BoardManager {
                 return endGame(this.status);
             }
 
-            const { actions, isKingSafe } = getTurnInfo(this.board, this.player, this.positions, this.pawnRegistry, this.canCastle[this.player]);
+            const { actions, isKingSafe } = getTurnInfo(this.board, this.player, this.positions, this.pawnRegistry, this.canCastle[this.player], this.enPassant);
             this.actions = actions;
 
             if (noMoreActions(actions) && !isKingSafe) {

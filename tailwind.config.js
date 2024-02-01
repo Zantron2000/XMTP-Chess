@@ -18,6 +18,7 @@ export default {
         'selected-piece-background': '#88B452',
         'move-background': '#88B452',
         'capture-background': '#88B452',
+        'en-passant-background': '#88B452',
       }
     },
   },

@@ -1353,6 +1353,100 @@ describe('Tests validateMove', () => {
 });
 
 describe('Tests getTurnInfo', () => {
+    it('Should recognize an en passant opportunity for white', () => {
+        const board = {
+            "A1": "WR1",
+            "B1": "WN1",
+            "C1": "WB1",
+            "D1": "WQ",
+            "E1": "WK",
+            "F1": "WB2",
+            "G1": "WN2",
+            "H1": "WR2",
+            "A3": "WP1",
+            "B4": "WP2",
+            "C2": "WP3",
+            "D2": "WP4",
+            "E2": "WP5",
+            "F2": "WP6",
+            "G2": "WP7",
+            "H4": "WP8",
+            "A8": "BR1",
+            "B8": "BN1",
+            "C8": "BB1",
+            "D8": "BQ",
+            "E8": "BK",
+            "F8": "BB2",
+            "G8": "BN2",
+            "H8": "BR2",
+            "A7": "BP1",
+            "B7": "BP2",
+            "C7": "BP3",
+            "D7": "BP4",
+            "E7": "BP5",
+            "F7": "BP6",
+            "G4": "BP7",
+            "H7": "BP8"
+        }
+        const player = PIECE_COLORS.BLACK;
+        const positions = {
+            "WR1": "A1",
+            "WN1": "B1",
+            "WB1": "C1",
+            "WQ": "D1",
+            "WK": "E1",
+            "WB2": "F1",
+            "WN2": "G1",
+            "WR2": "H1",
+            "WP1": "A3",
+            "WP2": "B4",
+            "WP3": "C2",
+            "WP4": "D2",
+            "WP5": "E2",
+            "WP6": "F2",
+            "WP7": "G2",
+            "WP8": "H4",
+            "BR1": "A8",
+            "BN1": "B8",
+            "BB1": "C8",
+            "BQ": "D8",
+            "BK": "E8",
+            "BB2": "F8",
+            "BN2": "G8",
+            "BR2": "H8",
+            "BP1": "A7",
+            "BP2": "B7",
+            "BP3": "C7",
+            "BP4": "D7",
+            "BP5": "E7",
+            "BP6": "F7",
+            "BP7": "G4",
+            "BP8": "H7"
+        }
+        const enPassant = 'H4'
+
+        const { actions, isKingSafe } = getTurnInfo(board, player, positions, {}, { 1: true, 2: true }, enPassant);
+
+        expect(isKingSafe).toBe(true);
+        expect(Object.keys(actions).length).toBe(16);
+        expect(actions[BLACK + PAWN + '1']).toEqual(['A6' + MOVE, 'A5' + MOVE]);
+        expect(actions[BLACK + PAWN + '2']).toEqual(['B6' + MOVE, 'B5' + MOVE]);
+        expect(actions[BLACK + PAWN + '3']).toEqual(['C6' + MOVE, 'C5' + MOVE]);
+        expect(actions[BLACK + PAWN + '4']).toEqual(['D6' + MOVE, 'D5' + MOVE]);
+        expect(actions[BLACK + PAWN + '5']).toEqual(['E6' + MOVE, 'E5' + MOVE]);
+        expect(actions[BLACK + PAWN + '6']).toEqual(['F6' + MOVE, 'F5' + MOVE]);
+        expect(actions[PIECES.BLACK_PAWN_7]).toEqual(['G3' + MOVE, 'H3' + EN_PASSANT]);
+        expect(actions[BLACK + PAWN + '8']).toEqual(['H6' + MOVE, 'H5' + MOVE]);
+        expect(actions[BLACK + ROOK + '1']).toEqual([]);
+        expect(actions[BLACK + ROOK + '2']).toEqual([]);
+        expect(actions[BLACK + KNIGHT + '1']).toEqual(['A6' + MOVE, 'C6' + MOVE]);
+        expect(actions[BLACK + KNIGHT + '2']).toEqual(['F6' + MOVE, 'H6' + MOVE]);
+        expect(actions[BLACK + BISHOP + '1']).toEqual([]);
+        expect(actions[BLACK + BISHOP + '2']).toEqual(['G7' + MOVE, 'H6' + MOVE]);
+        expect(actions[BLACK + QUEEN]).toEqual([]);
+        expect(actions[BLACK + KING]).toEqual([]);
+    });
+
     it('Should generate all the starter moves for white', () => {
         const board = createStarterBoard();
 
@@ -1434,7 +1528,7 @@ describe('Tests getTurnInfo', () => {
         placePiece(board, 'D5', PIECES.BLACK_PAWN_1);
 
         const { actions } = getTurnInfo(board, PIECE_COLORS.WHITE, registry, {}, { 1: true, 2: true }, 'D5');
-    
+
         expect(actions[PIECES.WHITE_PAWN_1].length).toBe(2);
         expect(actions[PIECES.WHITE_PAWN_1]).toContain('C6' + MOVE);
         expect(actions[PIECES.WHITE_PAWN_1]).toContain('D6' + EN_PASSANT);
@@ -1450,7 +1544,7 @@ describe('Tests getTurnInfo', () => {
         placePiece(board, 'D5', PIECES.BLACK_PAWN_1);
 
         const { actions } = getTurnInfo(board, PIECE_COLORS.WHITE, registry, {}, { 1: true, 2: true });
-    
+
         expect(actions[PIECES.WHITE_PAWN_1].length).toBe(1);
         expect(actions[PIECES.WHITE_PAWN_1]).toContain('C6' + MOVE);
     });
@@ -1465,7 +1559,7 @@ describe('Tests getTurnInfo', () => {
         placePiece(board, 'F5', PIECES.BLACK_PAWN_1);
 
         const { actions } = getTurnInfo(board, PIECE_COLORS.WHITE, registry, {}, { 1: true, 2: true }, 'F5');
-    
+
         expect(actions[PIECES.WHITE_PAWN_1].length).toBe(2);
         expect(actions[PIECES.WHITE_PAWN_1]).toContain('G6' + MOVE);
         expect(actions[PIECES.WHITE_PAWN_1]).toContain('F6' + EN_PASSANT);
@@ -1481,7 +1575,7 @@ describe('Tests getTurnInfo', () => {
         placePiece(board, 'D4', PIECES.BLACK_PAWN_1);
 
         const { actions } = getTurnInfo(board, PIECE_COLORS.BLACK, registry, {}, { 1: true, 2: true }, 'C4');
-    
+
         expect(actions[PIECES.BLACK_PAWN_1].length).toBe(2);
         expect(actions[PIECES.BLACK_PAWN_1]).toContain('D3' + MOVE);
         expect(actions[PIECES.BLACK_PAWN_1]).toContain('C3' + EN_PASSANT);
@@ -1497,7 +1591,7 @@ describe('Tests getTurnInfo', () => {
         placePiece(board, 'A4', PIECES.BLACK_PAWN_1);
 
         const { actions } = getTurnInfo(board, PIECE_COLORS.BLACK, registry, {}, { 1: true, 2: true }, 'B4');
-    
+
         expect(actions[PIECES.BLACK_PAWN_1].length).toBe(2);
         expect(actions[PIECES.BLACK_PAWN_1]).toContain('A3' + MOVE);
         expect(actions[PIECES.BLACK_PAWN_1]).toContain('B3' + EN_PASSANT);
@@ -1513,7 +1607,7 @@ describe('Tests getTurnInfo', () => {
         placePiece(board, 'A5', PIECES.BLACK_PAWN_1);
 
         const { actions } = getTurnInfo(board, PIECE_COLORS.BLACK, registry, {}, { 1: true, 2: true }, 'B4');
-    
+
         expect(actions[PIECES.BLACK_PAWN_1].length).toBe(2);
         expect(actions[PIECES.BLACK_PAWN_1]).toContain('A4' + MOVE);
         expect(actions[PIECES.BLACK_PAWN_1]).toContain('B4' + CAPTURE);

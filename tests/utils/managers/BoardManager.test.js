@@ -58,7 +58,7 @@ describe('Tests the getTileDetails method', () => {
         }, 'B')
 
         const manager = new BoardManager(turn2, turn3, 'C3', GAME_STATUS.WHITE_TURN, PIECE_COLORS.WHITE);
-        manager.getStatus(jest.fn(), jest.fn());
+        manager.getStatus(jest.fn(), jest.fn(), jest.fn(), jest.fn());
 
         for (let i = 0; i < 8; i += 1) {
             for (let j = 0; j < 8; j += 1) {
@@ -108,7 +108,7 @@ describe('Tests the getTileDetails method', () => {
         }, 'W');
 
         const manager = new BoardManager(turn3, turn4, 'C3', GAME_STATUS.BLACK_TURN, PIECE_COLORS.WHITE);
-        manager.getStatus(jest.fn(), jest.fn());
+        manager.getStatus(jest.fn(), jest.fn(), jest.fn(), jest.fn());
 
         for (let i = 0; i < 8; i += 1) {
             for (let j = 0; j < 8; j += 1) {
@@ -143,7 +143,7 @@ describe('Tests the translateTurn method', () => {
         }, 'W')
 
         const manager = new BoardManager(turn2, turn3, 'C3', undefined, PIECE_COLORS.WHITE);
-        manager.getStatus(jest.fn(), jest.fn());
+        manager.getStatus(jest.fn(), jest.fn(), jest.fn(), jest.fn());
 
         expect(manager.translateTurn()).toBe(expectedMessage);
     })
@@ -2538,7 +2538,7 @@ describe('Tests chess games', () => {
             }
 
             const manager = new BoardManager(turnList[index - 1], turn, undefined, undefined, PIECE_COLORS.WHITE);
-            manager.getStatus(setStatusFunc, setMessageFunc);
+            manager.getStatus(setStatusFunc, setMessageFunc, jest.fn(), jest.fn());
 
             const pawnRegistry = pawnRegistryList[index];
             const positions = positionsList[index];
