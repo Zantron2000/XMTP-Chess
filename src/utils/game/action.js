@@ -22,6 +22,20 @@ const isCastle = (diff) => {
     return keys.length === 2 && areAllies(keys[0], keys[1]);
 }
 
+const isEnPassantMove = (player, piece, start, end) => {
+    if ([start, end].some((pos) => pos.length !== 2) || !isPawn(piece)) {
+        return false;
+    }
+
+    const [startRow, startCol] = extractCoords(start);
+    const [endRow, endCol] = extractCoords(end);
+
+    const enPassantStart = player === PIECE_COLORS.WHITE ? 1 : 6;
+    const enPassantEnd = player === PIECE_COLORS.WHITE ? 3 : 4;
+
+    return startRow === enPassantStart && endRow === enPassantEnd && startCol === endCol;
+};
+
 const validateMove = (player, diff) => {
     const piece = Object.keys(diff)[0];
     const [lastPos, currPos] = diff[piece];
@@ -38,9 +52,12 @@ const validateMove = (player, diff) => {
         };
     }
 
+    const enPassant = isEnPassantMove(player, piece, lastPos, currPos) ? currPos.slice(-2) : null;
+
     const data = {
         action: `${currPos.slice(-2)}${ACTION_TYPES.MOVE}`,
         piecePos: lastPos.slice(-2),
+        enPassant,
     }
 
     return { data }
