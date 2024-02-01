@@ -48,8 +48,60 @@ describe("Tests validateAction", () => {
             expect(result.data).toEqual({
                 action: 'A3M',
                 piecePos: 'A2',
+                enPassant: null,
             })
-        })
+        });
+
+        it('Should return a valid move and mark an en passant opening from white', () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['A2', 'A4'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.data).toBeDefined();
+            expect(result.data).toEqual({
+                action: 'A4M',
+                piecePos: 'A2',
+                enPassant: 'A4',
+            });
+        });
+
+        it('Should return a valid move and mark an en passant opening from black', () => {
+            const player = PIECE_COLORS.BLACK;
+            const castled = false;
+            const differences = {
+                'BP1': ['B7', 'B5'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.data).toBeDefined();
+            expect(result.data).toEqual({
+                action: 'B5M',
+                piecePos: 'B7',
+                enPassant: 'B5',
+            });
+        });
+
+        it('Should not mark an en passant opening if the move is not a regular pawn move', () => {
+            const player = PIECE_COLORS.WHITE;
+            const castled = false;
+            const differences = {
+                'WP1': ['QA2', 'QA4'],
+            }
+
+            const result = validateAction({ player, castled, differences });
+
+            expect(result.data).toBeDefined();
+            expect(result.data).toEqual({
+                action: 'A4M',
+                piecePos: 'A2',
+                enPassant: null,
+            });
+        });
 
         it('Should take a processed move message, and return the original location and the move action when valid', () => {
             const lastMove = createMove('A1B1C1D1E1F1G1H1A2B2C2D2E2F2G2H2A8B8C8D8E8F8G8H8A7B7C7D7E7F7G7H7', PIECE_COLORS.BLACK, MESSAGE.TRUE + MESSAGE.FALSE + MESSAGE.TRUE + MESSAGE.FALSE);
@@ -123,6 +175,7 @@ describe("Tests validateAction", () => {
             expect(actionResults.data).not.toBeNull();
             expect(actionResults.data).toEqual({
                 action: 'A3M',
+                enPassant: null,
                 piecePos: 'A2',
             });
         });
