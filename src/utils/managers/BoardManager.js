@@ -7,7 +7,7 @@ import { getEnemyColor, isPiece, ownsPiece } from "../game/piece";
 import { translateMessageToBoard, translateTurnToMessage } from "../game/translate";
 
 class BoardManager {
-    constructor(lastMove, currentMove, selectedTile, status, player, gameOver) {
+    constructor(lastMove, currentMove, selectedTile, status, player, gameOver, enPassant) {
         this.lastMove = lastMove;
         this.currentMove = currentMove;
         this.selectedTile = selectedTile;
@@ -15,9 +15,10 @@ class BoardManager {
         this.player = player;
         this.actions = {};
         this.gameOver = gameOver;
+        this.enPassant = enPassant;
     }
 
-    validatePlayerMove(playerColor) {
+    validatePlayerMove(playerColor, setEnPassant) {
         const { error: cError, data: cData } = validateTurnContinuity(this.lastMove, this.currentMove);
         if (cError) {
             return cError;
@@ -57,10 +58,12 @@ class BoardManager {
         this.positions = cData.curr.positions;
         this.pawnRegistry = cData.curr.pawnRegistry;
         this.canCastle = cData.curr.canCastle;
+        this.enPassant = pData.enPassant;
+        setEnPassant(pData.enPassant);
     }
 
-    validateOpponentMove(opponentColor) {
-        const error = this.validatePlayerMove(opponentColor);
+    validateOpponentMove(opponentColor, setEnPassant) {
+        const error = this.validatePlayerMove(opponentColor, setEnPassant);
 
         if (error) {
             return error;
@@ -71,7 +74,7 @@ class BoardManager {
         }
     }
 
-    getStatus(setStatus, setMessage, endGame) {
+    getStatus(setStatus, setMessage, endGame, setEnPassant) {
         if (this.gameOver) {
             return;
         }
@@ -91,7 +94,7 @@ class BoardManager {
         const nextTurn = getNextTurn(this.currentMove);
 
         if (currentMoveMaker === this.player) {
-            const error = this.validatePlayerMove(currentMoveMaker);
+            const error = this.validatePlayerMove(currentMoveMaker, setEnPassant);
 
             if (error) {
                 setMessage(error)
@@ -112,7 +115,7 @@ class BoardManager {
                 return setStatus(nextTurn);
             }
         } else {
-            const error = this.validateOpponentMove(currentMoveMaker);
+            const error = this.validateOpponentMove(currentMoveMaker, setEnPassant);
 
             if (error) {
                 setMessage(error)
