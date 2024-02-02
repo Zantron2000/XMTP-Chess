@@ -41,7 +41,9 @@ class BoardManager {
             pData,
             cData.last.canCastle[playerColor],
             cData.last.pawnRegistry,
-            cData.last.positions[playerColor + PIECE_VALUES.KING]
+            cData.last.positions[playerColor + PIECE_VALUES.KING],
+            undefined,
+            this.enPassant,
         );
 
         if (mError) {
@@ -145,6 +147,10 @@ class BoardManager {
         }
     }
 
+    setSelectedTile(tile) {
+        this.selectedTile = tile;
+    }
+
     getTileDetails(chessPos) {
         const details = {};
         const piece = getPieceAtChessCoords(this.board, chessPos);
@@ -246,6 +252,14 @@ class BoardManager {
 
     getPieceAt(chessPos) {
         return getPieceAtChessCoords(this.board, chessPos);
+    }
+
+    setLastMove(lastMove) {
+        this.lastMove = lastMove;
+    }
+
+    setCurrMove(currentMove) {
+        this.currentMove = currentMove;
     }
 }
 

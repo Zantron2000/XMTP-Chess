@@ -61,7 +61,7 @@ const canEnpassant = (attackPos, defensePos, rank) => {
 const generateEnPassantCoords = (attackPos, defensePos, forward) => {
     const [attackRow, attackCol] = extractCoords(attackPos);
     const [defenseRow, defenseCol] = extractCoords(defensePos);
-    
+
     return INDEX_TO_COL[defenseCol] + INDEX_TO_ROW[attackRow + forward];
 }
 
