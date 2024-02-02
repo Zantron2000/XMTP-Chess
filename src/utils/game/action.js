@@ -1,7 +1,7 @@
 import { ACTION_TYPES } from "../../tools/enums";
 import { CAPTURED_PIECE, GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES } from "../enum";
-import { getPieceAtChessCoords, movePiece } from "./board";
-import { areAllies, isPawn, isPiece, ownsPiece } from "./piece";
+import { getPieceAtChessCoords, movePiece, removePiece } from "./board";
+import { areAllies, isColor, isPawn, isPiece, ownsPiece } from "./piece";
 import { extractCoords } from "./translate";
 
 const findCapturedPiece = (diff) => {
@@ -313,6 +313,14 @@ export const executeAction = (board, originalChessPos, action, positions) => {
 
         movePiece(board, originalChessPos, actionChessPos);
         movePiece(board, rookChessPos, rookChessEndPos);
+    } else if (actionType === ACTION_TYPES.EN_PASSANT) {
+        const actionPiece = getPieceAtChessCoords(board, originalChessPos);
+        const capturedPiece = getPieceAtChessCoords(board, `${actionChessPos[0]}${originalChessPos[1]}`);
+
+        movePiece(board, originalChessPos, actionChessPos);
+        removePiece(board, `${actionChessPos[0]}${originalChessPos[1]}`);
+        positions[actionPiece] = actionChessPos;
+        positions[capturedPiece] = 'XX';
     } else {
         const actionPiece = getPieceAtChessCoords(board, originalChessPos);
         const capturedPiece = getPieceAtChessCoords(board, actionChessPos);
