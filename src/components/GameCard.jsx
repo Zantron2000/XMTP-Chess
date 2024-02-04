@@ -109,10 +109,10 @@ function GameCard({ conversation }) {
             const data = loadGameHistory(messages, ssx.address())
 
             if (!invite.hash) {
-                setInvite({ ...invite, hash: data.invite.hash, color: data.invite.color });
+                setInvite({ ...invite, hash: data.invite?.hash, color: data.invite?.color });
             }
             if (!accept.hash) {
-                setAccept({ ...accept, hash: data.accept.hash, color: data.accept.color });
+                setAccept({ ...accept, hash: data.accept?.hash, color: data.accept?.color });
             }
         }
     }, [isLoaded]);
