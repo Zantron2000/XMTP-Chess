@@ -9,6 +9,9 @@ import {
     loadGameHistory,
 } from "../../../src/utils/message/message";
 import { CONNECT_STATUS, MESSAGE, PIECE_COLORS } from "../../../src/utils/enum";
+import { generateInitalMoves } from "../../../src/utils/game/message";
+
+const [moveNeg1, move0] = generateInitalMoves();
 
 describe('Tests the hasHash function', () => {
     it('Should return true for a valid hash', () => {
@@ -120,19 +123,18 @@ describe('Tests the loadGameHistory function', () => {
         expect(results.accept.color).toBe(PIECE_COLORS.BLACK);
     });
 
-    it('Should reject invitations that have been accepted', () => {
+    it('Should reject invitations that have been declined', () => {
         const messages = [
             createTestXMTPMessage('ABCDE' + MESSAGE.HASH_DELIMITER + CONNECT_STATUS.INVITE + MESSAGE.GAME_DELIMITER + PIECE_COLORS.WHITE, '0x123'),
             createTestXMTPMessage('FGHIJ' + MESSAGE.HASH_DELIMITER + CONNECT_STATUS.INVITE + MESSAGE.GAME_DELIMITER + PIECE_COLORS.WHITE, '0x456'),
-            createTestXMTPMessage('ABCDE' + MESSAGE.HASH_DELIMITER + CONNECT_STATUS.ACCEPT + MESSAGE.GAME_DELIMITER + PIECE_COLORS.BLACK, '0x456'),
+            createTestXMTPMessage('ABCDE' + MESSAGE.HASH_DELIMITER + CONNECT_STATUS.DECLINE + MESSAGE.GAME_DELIMITER + PIECE_COLORS.BLACK, '0x456'),
         ];
 
         const results = loadGameHistory(messages, '0x123');
 
         expect(results.accept.hash).toBe('FGHIJ');
         expect(results.accept.color).toBe(PIECE_COLORS.BLACK);
-        expect(results.invite.hash).toBe(null);
-        expect(results.invite.color).toBe(undefined);
+        expect(results.invite).toBe(null);
     });
 
     it('Should reject invitations that have been rejected', () => {
@@ -144,8 +146,7 @@ describe('Tests the loadGameHistory function', () => {
 
         const results = loadGameHistory(messages, '0x123');
 
-        expect(results.accept.hash).toBe(null);
-        expect(results.accept.color).toBe(undefined);
+        expect(results.accept).toBe(null);
         expect(results.invite.hash).toBe('ABCDE');
         expect(results.invite.color).toBe(PIECE_COLORS.WHITE);
     });
@@ -161,98 +162,190 @@ describe('Tests the loadGameHistory function', () => {
 
         const results = loadGameHistory(messages, '0x123');
 
-        expect(results.accept.hash).toBe(null);
-        expect(results.accept.color).toBe(undefined);
-        expect(results.invite.hash).toBe(null);
-        expect(results.invite.color).toBe(undefined);
+        expect(results.accept).toBe(null);
+        expect(results.invite).toBe(null);
     });
 
     it('Should keep note of invalid hashes and reject them', () => {
         const messages = [
             {
-                "content": "oPVKq-A1B1C1D1E1F1H3H1A2B2C3D2E2F3G2H2A8B8C8D8E8F8G8H8A6B7C7D5E5F7G7H7,B,TTTT",
-                "senderAddress": "0xd8C3E838E2f3650e576d49f0a54EC13b4869f0f5",
-                "sentAt": "2024-01-26T01:41:59.192Z",
-            },
-            {
-                "content": "oPVKq-A1B1C1D1E1F1F4H1A2B2C3D2E2F3G2H2A8B8C8D8E8F8G8H8A6B7C7D5E5F7G7H7,W,TTTT",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-26T01:42:02.443Z",
-            },
-            {
-                "content": "oPVKq-A1B1C1D1E1F1XXH1A2B2C3D2E2F3G2H2A8B8C8D8E8F8G8H8A6B7C7D5F4F7G7H7,B,TTTT",
-                "senderAddress": "0xd8C3E838E2f3650e576d49f0a54EC13b4869f0f5",
-                "sentAt": "2024-01-26T01:42:04.340Z",
-            },
-            {
                 "content": "oPVKq-A1B1C1D1E1F1XXG1A2B2C3D2E2F3G2H2A8B8C8D8E8F8G8H8A6B7C7D5F4F7G7H7,W,TTTT",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-26T01:42:20.993Z",
+                "senderAddress": "0x1234",
             },
             {
                 "content": "oPVKq-A1B1C1D1E1F1XXG1A2B2C3D2E2F3G2H2A8B8C8D8E8A3G8H8A6B7C7D5F4F7G7H7,B,TTTT",
-                "senderAddress": "0xd8C3E838E2f3650e576d49f0a54EC13b4869f0f5",
-                "sentAt": "2024-01-26T01:42:28.597Z",
+                "senderAddress": "0x5678",
             },
             {
                 "content": "oPVKq-A1B1C1D1E1F1XXG1A2B2C4D2E2F3G2H2A8B8C8D8E8A3G8H8A6B7C7D5F4F7G7H7,W,TTTT",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-26T03:10:15.056Z",
+                "senderAddress": "0x1234",
             },
             {
                 "content": "dYNsw-I,W",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-27T04:12:54.523Z",
+                "senderAddress": "0x1234",
             },
             {
                 "content": "dYNsw-A,W",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-27T04:13:20.395Z",
+                "senderAddress": "0x1234",
             },
         ]
 
-        const results = loadGameHistory(messages, '0xC346F8A95Ead977c108cAaBaaC9662c04537a095');
+        const results = loadGameHistory(messages, '0x1234');
 
-        expect(results.invite.hash).toBe(null);
-        expect(results.invite.color).toBe(undefined);
-        expect(results.accept.hash).toBe(null);
-        expect(results.accept.color).toBe(undefined);
+        expect(results.invite).toBe(null);
+        expect(results.accept).toBe(null);
     })
 
     it('Should not recognize own invites as accepts', () => {
         const messages = [
             {
                 "content": "oPVKq-A1B1C1D1E1F1XXG1A2B2C3D2E2F3G2H2A8B8C8D8E8A3G8H8A6B7C7D5F4F7G7H7,B,TTTT",
-                "senderAddress": "0xd8C3E838E2f3650e576d49f0a54EC13b4869f0f5",
-                "sentAt": "2024-01-26T01:42:28.597Z",
+                "senderAddress": "0x5678",
             },
             {
                 "content": "oPVKq-A1B1C1D1E1F1XXG1A2B2C4D2E2F3G2H2A8B8C8D8E8A3G8H8A6B7C7D5F4F7G7H7,W,TTTT",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-26T03:10:15.056Z",
+                "senderAddress": "0x1234",
             },
             {
                 "content": "dYNsw-I,W",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-27T04:12:54.523Z",
+                "senderAddress": "0x1234",
             },
             {
                 "content": "dYNsw-A,W",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-27T04:13:20.395Z",
+                "senderAddress": "0x1234",
             },
             {
                 "content": "2sDJW-I,B",
-                "senderAddress": "0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F",
-                "sentAt": "2024-01-27T04:29:01.439Z",
+                "senderAddress": "0x1234",
             }
         ]
 
-        const results = loadGameHistory(messages, '0x4C3DD6B4cCc257844E3e55482F6cCa328809c39F');
+        const results = loadGameHistory(messages, '0x1234');
 
         expect(results.invite.hash).toBe('2sDJW');
         expect(results.invite.color).toBe(PIECE_COLORS.BLACK);
-        expect(results.accept.hash).toBe(null);
-        expect(results.accept.color).toBe(undefined);
+        expect(results.accept).toBe(null);
+    });
+
+    it('Should recognize an accepted game and intialize the moves', () => {
+        const messages = [
+            {
+                "content": "oPVKq-A1B1C1D1E1F1XXG1A2B2C3D2E2F3G2H2A8B8C8D8E8A3G8H8A6B7C7D5F4F7G7H7,B,TTTT",
+                "senderAddress": "0x5678",
+            },
+            {
+                "content": "oPVKq-A1B1C1D1E1F1XXG1A2B2C4D2E2F3G2H2A8B8C8D8E8A3G8H8A6B7C7D5F4F7G7H7,W,TTTT",
+                "senderAddress": "0x1234",
+            },
+            {
+                "content": "dYNsw-I,B",
+                "senderAddress": "0x1234",
+            },
+            {
+                "content": "dYNsw-A,W",
+                "senderAddress": "0x5678",
+            },
+            {
+                "content": "2sDJW-I,B",
+                "senderAddress": "0x1234",
+            }
+        ];
+
+        const results = loadGameHistory(messages, '0x1234');
+
+        expect(results.invite).not.toBe(null);
+        expect(results.invite.hash).toBe('2sDJW');
+        expect(results.invite.color).toBe(PIECE_COLORS.BLACK);
+        expect(results.accept).toBe(null);
+        expect(results.load).not.toBe(null);
+        expect(results.load.hash).toBe('dYNsw');
+        expect(results.load.color).toBe(PIECE_COLORS.BLACK);
+        expect(results.load.lastMove).toBe(moveNeg1);
+        expect(results.load.currMove).toBe(move0);
+    });
+
+    it('Should recognize that a player accepted their own invite and should not allow a new game to load', () => {
+        const messages = [
+            {
+                "content": "abcde-I,B",
+                "senderAddress": "0x1234",
+            },
+            {
+                "content": "dYNsw-I,W",
+                "senderAddress": "0x5678",
+            },
+            {
+                "content": "dYNsw-A,B",
+                "senderAddress": "0x5678",
+            },
+            {
+                "content": "2sDJW-I,B",
+                "senderAddress": "0x1234",
+            },
+        ];
+
+        const results = loadGameHistory(messages, '0x1234');
+
+        expect(results.invite).not.toBe(null);
+        expect(results.invite.hash).toBe('2sDJW');
+        expect(results.invite.color).toBe(PIECE_COLORS.BLACK);
+        expect(results.accept).toBe(null);
+        expect(results.load).toBe(null);
+    });
+
+    it('Should recognize that a player accepted their own invite and should not allow a new game to load', () => {
+        const messages = [
+            {
+                "content": "abcde-I,B",
+                "senderAddress": "0x1234",
+            },
+            {
+                "content": "dYNsw-I,W",
+                "senderAddress": "0x1234",
+            },
+            {
+                "content": "dYNsw-A,W",
+                "senderAddress": "0x5678",
+            },
+            {
+                "content": "2sDJW-I,B",
+                "senderAddress": "0x5678",
+            }
+        ];
+
+        const results = loadGameHistory(messages, '0x1234');
+
+        expect(results.accept).not.toBe(null);
+        expect(results.accept.hash).toBe('2sDJW');
+        expect(results.accept.color).toBe(PIECE_COLORS.WHITE);
+        expect(results.invite).toBe(null);
+        expect(results.load).toBe(null);
+    });
+
+    it('Should not allow a loaded game with no accept', () => {
+        const messages = [
+            {
+                "content": "abcde-I,B",
+                "senderAddress": "0x1234",
+            },
+            {
+                "content": "dYNsw-I,W",
+                "senderAddress": "0x1234",
+            },
+            {
+                "content": "2sDJW-I,B",
+                "senderAddress": "0x5678",
+            },
+            {
+                "content": "dYNsw-A1B1C1D1E1F1XXG1A2B2C3D2E2F3G2H2A8B8C8D8E8A3G8H8A6B7C7D5F4F7G7H7,B,TTTT",
+                "senderAddress": "0x5678",
+            }
+        ];
+
+        const results = loadGameHistory(messages, '0x1234');
+
+        expect(results.accept).toBe(null);
+        expect(results.invite).toBe(null);
+        expect(results.load).toBe(null);
     })
 });
