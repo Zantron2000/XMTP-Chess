@@ -1,6 +1,6 @@
-import { CONNECT_STATUS, DEV_MODE, MESSAGE } from "../enum";
+import { CAPTURED_PIECE, CONNECT_STATUS, DEV_MODE, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES } from "../enum";
 import { generateInitalMoves } from "../game/message";
-import { getEnemyColor } from "../game/piece";
+import { getEnemyColor, isPawn } from "../game/piece";
 
 export const isHashContent = (content, hash) => {
     return content.startsWith(hash + MESSAGE.HASH_DELIMITER);
@@ -96,6 +96,130 @@ export const findMostRecentGameMessages = (messages, hash) => {
 
     return gameMessages;
 }
+
+/**
+ * Checks if the content is a game invite. The content is considered a game invite if it
+ * matches the following pattern:
+ * Should build a regex out of a string that works as follows:
+ * The hash is either the hash provided, or any 5 alphanumeric characters, followed
+ * by the hash delimiter, followed by the invite status, followed by the game delimiter,
+ * followed by either W or B
+ * 
+ * @param {String} content The content to check
+ * @param {String?} hash The specific hash to check. If not provided, will check for
+ * the hash pattern in the content
+ * @returns {Boolean} Whether the content is a game invite
+ */
+export const isGameInvite = (content, hash) => {
+    const hashPattern = hash ? hash : `[a-zA-Z0-9]{${MESSAGE.HASH_LENGTH}}`;
+    const colorPattern = `${PIECE_COLORS.WHITE}|${PIECE_COLORS.BLACK}`;
+    const invitePattern = `^(${hashPattern})${MESSAGE.HASH_DELIMITER}${CONNECT_STATUS.INVITE}${MESSAGE.GAME_DELIMITER}[${colorPattern}]$`;
+
+    return content.match(invitePattern) !== null;
+}
+
+/**
+ * Checks if the content is a game accept. The content is considered a game accept if it
+ * matches the following pattern:
+ * Should build a regex out of a string that works as follows:
+ * The hash is either the hash provided, or any 5 alphanumeric characters, followed
+ * by the hash delimiter, followed by the accept status, followed by the game delimiter,
+ * followed by either W or B
+ * 
+ * @param {String} content The content to check
+ * @param {String?} hash The specific hash to check. If not provided, will check for
+ * the hash pattern in the content
+ * @returns {Boolean} Whether the content is a game invite
+ */
+export const isGameAccept = (content, hash) => {
+    const hashPattern = hash ? hash : `[a-zA-Z0-9]{${MESSAGE.HASH_LENGTH}}`;
+    const colorPattern = `${PIECE_COLORS.WHITE}|${PIECE_COLORS.BLACK}`;
+    const invitePattern = `^(${hashPattern})${MESSAGE.HASH_DELIMITER}${CONNECT_STATUS.ACCEPT}${MESSAGE.GAME_DELIMITER}[${colorPattern}]$`;
+
+    return content.match(invitePattern) !== null;
+};
+
+/**
+ * Checks if the content is a game decline. The content is considered a game decline if it
+ * matches the following pattern:
+ * Should build a regex out of a string that works as follows:
+ * The hash is either the hash provided, or any 5 alphanumeric characters, followed
+ * by the hash delimiter, followed by the decline status
+ * 
+ * @param {String} content The content to check
+ * @param {String?} hash The specific hash to check. If not provided, will check for
+ * the hash pattern in the content
+ * @returns {Boolean} Whether the content is a game invite
+ */
+export const isGameDecline = (content, hash) => {
+    const hashPattern = hash ? hash : `[a-zA-Z0-9]{${MESSAGE.HASH_LENGTH}}`;
+    const invitePattern = `^(${hashPattern})${MESSAGE.HASH_DELIMITER}${CONNECT_STATUS.DECLINE}$`;
+
+    return content.match(invitePattern) !== null;
+};
+
+/**
+ * Checks if the content is a game end. The content is considered a game end if it
+ * matches the following pattern:
+ * Should build a regex out of a string that works as follows:
+ * The hash is either the hash provided, or any 5 alphanumeric characters, followed
+ * by the hash delimiter, followed by the end status
+ * 
+ * @param {String} content The content to check
+ * @param {String?} hash The specific hash to check. If not provided, will check for
+ * the hash pattern in the content
+ * @returns {Boolean} Whether the content is a game invite
+ */
+export const isGameEnd = (content, hash) => {
+    const hashPattern = hash ? hash : `[a-zA-Z0-9]{${MESSAGE.HASH_LENGTH}}`;
+    const invitePattern = `^(${hashPattern})${MESSAGE.HASH_DELIMITER}${CONNECT_STATUS.END}$`;
+
+    return content.match(invitePattern) !== null;
+};
+
+/**
+ * Checks if the content is a game over. The content is considered a game over if it
+ * matches the following pattern:
+ * Should build a regex out of a string that works as follows:
+ * The hash is either the hash provided, or any 5 alphanumeric characters, followed
+ * by the hash delimiter, followed by the over status
+ * 
+ * @param {String} content The content to check
+ * @param {String?} hash The specific hash to check. If not provided, will check for
+ * the hash pattern in the content
+ * @returns {Boolean} Whether the content is a game invite
+ */
+export const isGameOver = (content, hash) => {
+    const hashPattern = hash ? hash : `[a-zA-Z0-9]{${MESSAGE.HASH_LENGTH}}`;
+    const invitePattern = `^(${hashPattern})${MESSAGE.HASH_DELIMITER}${CONNECT_STATUS.GAME_OVER}$`;
+
+    return content.match(invitePattern) !== null;
+};
+
+export const isGameMove = (content, hash) => {
+    const hashPattern = hash ? hash : `[a-zA-Z0-9]{${MESSAGE.HASH_LENGTH}}`;
+    const transformedPawnPattern = `[${PIECE_VALUES.BISHOP}${PIECE_VALUES.KNIGHT}${PIECE_VALUES.ROOK}${PIECE_VALUES.QUEEN}]`;
+    const rowPattern = `[1-8]`;
+    const colPattern = `[A-H]`;
+    const colorPattern = `${PIECE_COLORS.WHITE}|${PIECE_COLORS.BLACK}`;
+    const castlingPattern = `[${MESSAGE.TRUE}${MESSAGE.FALSE}]{4}`;
+
+    const boardPattern = PIECE_MESSAGE_ORDER.reduce((acc, piece) => {
+        // If the piece is a pawn, the pattern is that it could first start with a transformed character
+        // and then a row and column OR the string XX. If it's not a pawn, it's just a row and column  OR the string XX
+        if (isPawn(piece)) {
+            return acc + `(${transformedPawnPattern}?${colPattern}${rowPattern}|${CAPTURED_PIECE})`;
+        }
+
+        // If the piece is not a pawn, it's just a row and column OR the string XX
+        return acc + `(${colPattern}${rowPattern}|${CAPTURED_PIECE})`;
+    }, '');
+
+    const gamePattern = `^(${hashPattern})${MESSAGE.HASH_DELIMITER}(${boardPattern})${MESSAGE.GAME_DELIMITER}(${colorPattern})${MESSAGE.GAME_DELIMITER}(${castlingPattern})$`;
+
+    return content.match(gamePattern) !== null;
+}
+
 /**
  * Searches through history of messages to find the most recent game history
  * Under the assumption that the last message is the most recent. The logic is as follows:
@@ -167,15 +291,15 @@ export const loadGameHistory = (messages, playerAddr) => {
         }
 
         const hash = getHash(content);
-        const gameContent = getContent(content);
 
-        if (isGameContent(content)) {
+        if (isGameMove(content)) {
+            const gameContent = getContent(content);
             searching.invite = false;
             searching.accept = false;
             if (searching.load) {
                 if (data.load.hash === hash && data.load.playerWent !== playerMessage) {
                     const determinedColor = gameContent.split(MESSAGE.GAME_DELIMITER)[1];
-                    if ((playerMessage && determinedColor === data.load.color) || (!playerMessage && determinedColor !== getEnemyColor(data.load.color))) {
+                    if ((playerMessage && determinedColor === data.load.color) || (!playerMessage && determinedColor === getEnemyColor(data.load.color))) {
                         data.load.lastMove = gameContent;
                         searching.load = false;
                     } else {
@@ -194,10 +318,8 @@ export const loadGameHistory = (messages, playerAddr) => {
             }
 
             continue;
-        }
-
-        const status = gameContent.split(MESSAGE.GAME_DELIMITER)[0];
-        if (status === CONNECT_STATUS.INVITE) {
+        } else if (isGameInvite(content)) {
+            const gameContent = getContent(content);
             if (playerMessage && searching.invite && !invalidHashes.includes(hash)) {
                 data.invite.hash = hash;
                 data.invite.color = gameContent.split(MESSAGE.GAME_DELIMITER)[1];
@@ -222,10 +344,11 @@ export const loadGameHistory = (messages, playerAddr) => {
                 }
             }
         } else {
-            if (status === CONNECT_STATUS.ACCEPT && searching.load) {
+            if (isGameAccept(content) && searching.load) {
+                const gameContent = getContent(content);
                 if (data.load.hash === hash) {
                     const determinedColor = gameContent.split(MESSAGE.GAME_DELIMITER)[1];
-                    if ((playerMessage && determinedColor === data.load.color) || (!playerMessage && determinedColor !== getEnemyColor(data.load.color))) {
+                    if ((playerMessage && determinedColor === data.load.color) || (!playerMessage && determinedColor === getEnemyColor(data.load.color))) {
                         data.load.lastMove = gameContent;
                         searching.load = false;
                     } else {
@@ -242,7 +365,7 @@ export const loadGameHistory = (messages, playerAddr) => {
 
                 searching.accept = false;
                 searching.invite = false;
-            } else if (status === CONNECT_STATUS.DECLINE) {
+            } else if (isGameDecline(content)) {
                 if (playerMessage && searching.accept) {
                     invalidHashes.push(hash);
                     searching.accept = false;
@@ -250,7 +373,7 @@ export const loadGameHistory = (messages, playerAddr) => {
                     invalidHashes.push(hash);
                     searching.invite = false;
                 }
-            } else {
+            } else if (isGameEnd(content) || isGameOver(content)) {
                 searching.accept = false;
                 searching.invite = false;
                 searching.load = false;
@@ -261,10 +384,11 @@ export const loadGameHistory = (messages, playerAddr) => {
     const [moveNeg1, move0] = generateInitalMoves();
 
     if (data.load.lastMove && data.load.currMove) {
-        if (!isGameContent(data.load.lastMove) && !isGameContent(data.load.currMove)) {
+        const { hash: loadHash } = data.load;
+        if (!isGameContent(loadHash + MESSAGE.HASH_DELIMITER + data.load.lastMove) && !isGameContent(loadHash + MESSAGE.HASH_DELIMITER + data.load.currMove)) {
             data.load.lastMove = moveNeg1;
             data.load.currMove = move0;
-        } else if (!isGameContent(data.load.lastMove) && isGameContent(data.load.currMove)) {
+        } else if (!isGameContent(loadHash + MESSAGE.HASH_DELIMITER + data.load.lastMove) && isGameContent(loadHash + MESSAGE.HASH_DELIMITER + data.load.currMove)) {
             data.load.lastMove = move0;
         }
 
