@@ -19,11 +19,12 @@ function GameCard({ conversation }) {
     const { data: ensAvatarData, isFetched: ensAvatarIsLoaded } = useEnsAvatar({ name: cardData.primaryName.includes('.eth') ? cardData.primaryName : undefined });
     const [invite, setInvite] = useState({ accepted: false, hash: undefined, color: undefined });
     const [accept, setAccept] = useState({ accepted: false, hash: undefined, color: undefined });
+    const [load, setLoad] = useState(null);
     const [message, setMessage] = useState(undefined);
     const [sendData, setSendData] = useState('');
     const navigate = useNavigate();
-    const manager = new ConversationManager(invite, accept, conversation.walletAddress);
-    const sets = { setInvite, setAccept, setSendData };
+    const manager = new ConversationManager(invite, accept, load, conversation.walletAddress);
+    const sets = { setInvite, setAccept, setSendData, setLoad };
     const { sendMessage } = useSendMessage();
     const profiles = {
         opponent: {
@@ -104,6 +105,21 @@ function GameCard({ conversation }) {
         }
     }, [accept.accepted]);
 
+    const loadGame = () => {
+        const { lastMove, currMove, color, hash } = load || {};
+
+        navigate('/play', {
+            state: {
+                conversation,
+                hash,
+                color,
+                profiles,
+                firstLastMove: lastMove,
+                firstCurrMove: currMove,
+            }
+        });
+    }
+
     useEffect(() => {
         if (isLoaded && messages.length > 0) {
             const data = loadGameHistory(messages, ssx.address())
@@ -114,6 +130,8 @@ function GameCard({ conversation }) {
             if (!accept.hash) {
                 setAccept({ ...accept, hash: data.accept?.hash, color: data.accept?.color });
             }
+
+            setLoad(data.load);
         }
     }, [isLoaded]);
 
@@ -159,6 +177,13 @@ function GameCard({ conversation }) {
                     disabled={invite.hash}
                 >
                     {invite.hash ? 'Invite Sent' : 'Send Invite'}
+                </button>
+                <button
+                    className="bg-primary-button text-2xl p-4 rounded-lg hover:bg-primary-button-hover transition duration-300 ease-in-out mx-2"
+                    onClick={() => loadGame()}
+                    hidden={!load}
+                >
+                    Load Game
                 </button>
             </div>
         </div>
