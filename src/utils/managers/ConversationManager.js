@@ -1,6 +1,6 @@
 import { CONNECT_STATUS, MESSAGE, PIECE_COLORS } from "../enum";
 import { getEnemyColor } from "../game/piece";
-import { createGameMessage, generateHash, getContent, getHash, isHashContent } from "../message/message";
+import { createGameMessage, generateHash, getContent, getHash, isGameInvite, isGameMove, isHashContent } from "../message/message";
 
 class ConversationManager {
     /**
@@ -15,11 +15,18 @@ class ConversationManager {
      *  accepted: Boolean,
      *  color?: String,
      * }} accept The accept option data for starting a game
+     * @param {{
+     *  hash: String,
+     *  color: String,
+     *  lastMove: String,
+     *  currMove: String,
+     * }?} load The load option data for starting a game
      * @param {String} playerAddr The address of the player
      */
-    constructor(invite, accept, playerAddr) {
+    constructor(invite, accept, load, playerAddr) {
         this.invite = invite;
         this.accept = accept;
+        this.load = load;
         this.playerAddr = playerAddr;
     }
 
@@ -54,13 +61,7 @@ class ConversationManager {
             return isHashContent(message.content, this.accept.hash);
         }
 
-        const regexString = `^[a-zA-Z0-9]{5}${MESSAGE.HASH_DELIMITER}${CONNECT_STATUS.INVITE},[${PIECE_COLORS.WHITE}${PIECE_COLORS.BLACK}]$`;
-        const hashRegex = new RegExp(regexString);
-        if (hashRegex.test(message.content)) {
-            return true;
-        }
-
-        return false;
+        return isGameInvite(message.content);
     }
 
     updateInviteStatus(message, sets) {
@@ -86,11 +87,9 @@ class ConversationManager {
         const isOpponentMsg = message.senderAddress !== this.playerAddr;
 
         if (!this.accept.hash && isOpponentMsg) {
-            const hash = getHash(message.content);
-            const content = getContent(message.content);
-            const [connectStatus, opponentColor] = content.split(MESSAGE.GAME_DELIMITER);
-
-            if (connectStatus === CONNECT_STATUS.INVITE) {
+            if (isGameInvite(message.content)) {
+                const content = getContent(message.content);
+                const [connectStatus, opponentColor] = content.split(MESSAGE.GAME_DELIMITER);
                 const hash = getHash(message.content);
                 const color = getEnemyColor(opponentColor);
 
@@ -124,11 +123,33 @@ class ConversationManager {
         }
     }
 
+    isGameMessage(messages) {
+        return this.load && isGameMove(messages.content, this.load.hash);
+    }
+
+    updateLoadStatus(message, sets) {
+        const contents = getContent(message.content);
+        const [board, messageColor, castling] = contents.split(MESSAGE.GAME_DELIMITER);
+
+        if (this.load.color === getEnemyColor(messageColor) && this.load.currMove !== contents) {
+            this.load.lastMove = this.load.currMove;
+            this.load.currMove = contents;
+
+            sets.setLoad({ ...this.load });
+        } else if (this.load.color === messageColor) {
+            this.load = null
+
+            sets.setLoad(null);
+        }
+    }
+
     processMessage(message, sets) {
         if (this.isInviteMessage(message)) {
             this.updateInviteStatus(message, sets);
         } else if (this.isAcceptMessage(message)) {
             this.updateAcceptStatus(message, sets);
+        } else if (this.isGameMessage(message)) {
+            this.updateLoadStatus(message, sets);
         }
     }
 }
