@@ -3,7 +3,7 @@ import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS, INDEX_TO_ROW, INDEX_TO_COL, RO
 import { executeAction, isAction, isTurn, noMoreActions, validateAction } from "../game/action";
 import { getPieceAtChessCoords, getTurnInfo, isSafeMove, validateMove } from "../game/board";
 import { getNextTurn, getPlayerFromMessage, validateTurnContinuity } from "../game/message";
-import { getEnemyColor, isPiece, ownsPiece } from "../game/piece";
+import { getEnemyColor, isPawn, isPiece, isWhite, ownsPiece } from "../game/piece";
 import { translateMessageToBoard, translateTurnToMessage } from "../game/translate";
 
 class BoardManager {
@@ -203,13 +203,17 @@ class BoardManager {
     executeAction(action, toggleTransformModal, makeMove) {
         executeAction(this.board, this.selectedTile, action, this.positions);
 
+        console.log('Transform action', action, isAction(action, ACTION_TYPES.TRANSFORM))
+
         if (isAction(action, ACTION_TYPES.TRANSFORM)) {
-            toggleTransformModal();
+            makeMove(this.translateTurn(), action.substring(0, 2));
         } else if (isAction(action, ACTION_TYPES.CASTLE)) {
             this.canCastle[this.player] = { 1: false, 2: false };
-        }
 
-        makeMove(this.translateTurn());
+            makeMove(this.translateTurn());
+        } else {
+            makeMove(this.translateTurn());
+        }
     }
 
     getLabelOrder() {
@@ -260,6 +264,30 @@ class BoardManager {
 
     setCurrMove(currentMove) {
         this.currentMove = currentMove;
+    }
+
+    getImageClass(piece) {
+        if (!piece) {
+            return "";
+        }
+
+        const color = isWhite(piece) ? "white" : "black";
+
+
+        if (!isPawn(piece)) {
+            const type = Object.entries(PIECE_VALUES).find(([, value]) => value === piece[1]);
+
+            if (color && type) {
+                return `${color}_${type[0].toLowerCase()}`;
+            }
+        } else {
+            const transformedType = this.pawnRegistry[piece] || piece[1];
+            const type = Object.entries(PIECE_VALUES).find(([, value]) => value === transformedType);
+
+            if (color && type) {
+                return `${color}_${type[0].toLowerCase()}`;
+            }
+        }
     }
 }
 

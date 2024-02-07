@@ -30,7 +30,7 @@ class GameManager {
         const manager = new BoardManager(this.lastMove, this.currMove, undefined, this.status, this.playerColor);
         let gameStatus = undefined;
 
-        manager.getStatus((status) => gameStatus = status, () => { }, () => { });
+        manager.getStatus((status) => gameStatus = status, () => { }, () => { }, () => { });
 
         return gameStatus;
     }

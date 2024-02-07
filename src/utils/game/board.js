@@ -33,7 +33,7 @@ const movePos = (chessPos, rowAmt, colAmt) => {
 const isEmpty = (board, chessPos, ignore) => {
     const piece = getPieceAt(board, chessPos);
 
-    return !piece || PIECE_VALUES.isEqual(piece, ignore);
+    return !piece || piece === ignore;
 }
 
 const findNearestPiece = (board, chessPos, direction, piece) => {

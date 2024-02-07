@@ -9,7 +9,6 @@
  *  BLACK: PIECE_COLORS.BLACK,
  *  isAlly: (color1: PIECE_COLORS[keyof PIECE_COLORS], color2: PIECE_COLORS[keyof PIECE_COLORS]) => Boolean,
  *  isEnemy: (color1: PIECE_COLORS[keyof PIECE_COLORS], color2: PIECE_COLORS[keyof PIECE_COLORS]) => Boolean,
- *  isWhite: (color: PIECE_COLORS[keyof PIECE_COLORS]) => Boolean,
  *  isBlack: (color: PIECE_COLORS[keyof PIECE_COLORS]) => Boolean,
  * }}
  */
@@ -19,10 +18,21 @@ export const PIECE_COLORS = {
 
     isAlly: (color1, color2) => color1 === color2,
     isEnemy: (color1, color2) => color1 !== color2,
-    isWhite: (color) => color === PIECE_COLORS.WHITE,
     isBlack: (color) => color === PIECE_COLORS.BLACK,
 }
 
+/**
+ * @enum {{
+ *   WAITING: 'M',
+ *   PLAYING: 'P',
+ *   WHITE_TURN: 'W',
+ *   BLACK_TURN: 'B',
+ *   CHECKMATE: 'C',
+ *   STALEMATE: 'S',
+ *   CHEAT: 'X',
+ *   OVER: 'O',
+ * }} The status of the game
+ */
 export const GAME_STATUS = {
     WAITING: 'M',
     PLAYING: 'P',
@@ -41,6 +51,23 @@ export const CONNECT_STATUS = {
     GAME_OVER: 'O',
     END: 'E',
 }
+
+/**
+ * @enum {{
+ *   MOVE: 'M',
+ *   CAPTURE: 'C',
+ *   TRANSFORM: 'T',
+ *   CASTLE: 'S',
+ *   EN_PASSANT: 'E',
+ * }} The types of actions that can be made
+ */
+export const ACTION_TYPES = {
+    MOVE: 'M',
+    CAPTURE: 'C',
+    TRANSFORM: 'T',
+    CASTLE: 'S',
+    EN_PASSANT: 'E',
+};
 
 /**
  * The messages to display to the user for validation errors
@@ -81,6 +108,17 @@ export const GAME_VALIDATION_MESSAGES = {
     formatMessage: (message, color) => message,
 }
 
+/**
+ * @enum {{
+ *   PAWN: 'P',
+ *   KNIGHT: 'N',
+ *   BISHOP: 'B',
+ *   ROOK: 'R', 
+ *   QUEEN: 'Q', 
+ *   KING: 'K', 
+ *   EMPTY: undefined,
+ * }} The values of the pieces
+ */
 export const PIECE_VALUES = {
     PAWN: 'P',
     KNIGHT: 'N',
@@ -89,15 +127,6 @@ export const PIECE_VALUES = {
     QUEEN: 'Q',
     KING: 'K',
     EMPTY: undefined,
-
-    isEqual: (piece1, piece2) => piece1 === piece2,
-    isPawn: (piece) => piece === PIECE_VALUES.PAWN,
-    isKnight: (piece) => piece === PIECE_VALUES.KNIGHT,
-    isBishop: (piece) => piece === PIECE_VALUES.BISHOP,
-    isRook: (piece) => piece === PIECE_VALUES.ROOK,
-    isQueen: (piece) => piece === PIECE_VALUES.QUEEN,
-    isKing: (piece) => piece === PIECE_VALUES.KING,
-    isEmpty: (piece) => piece === PIECE_VALUES.EMPTY,
 };
 
 export const PIECE_MESSAGE_ORDER = [
@@ -248,6 +277,18 @@ export const COL_TO_INDEX = {
 
 export const INDEX_TO_COL = Object.keys(COL_TO_INDEX);
 
+/**
+ * @enum {{
+ *   NORTH: [-1, 0],
+ *   NORTH_EAST: [-1, 1],
+ *   EAST: [0, 1],
+ *   SOUTH_EAST: [1, 1],
+ *   SOUTH: [1, 0],
+ *   SOUTH_WEST: [1, -1],
+ *   WEST: [0, -1],
+ *   NORTH_WEST: [-1, -1],
+ * }} The direction vectors
+ */
 export const DIRECTION_VECTORS = {
     NORTH: [-1, 0],
     NORTH_EAST: [-1, 1],

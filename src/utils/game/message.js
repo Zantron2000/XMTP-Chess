@@ -1,6 +1,6 @@
 import { INITIAL_BOARD_POSITIONS, PIECES } from "../enum";
 import { GAME_STATUS, GAME_VALIDATION_MESSAGES, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES } from "../enum";
-import { isPiece } from "./piece";
+import { isPiece, isWhite } from "./piece";
 import { translateTurnToMessage } from "./translate";
 
 const pawnTypes = PIECE_VALUES.QUEEN + PIECE_VALUES.ROOK + PIECE_VALUES.BISHOP + PIECE_VALUES.KNIGHT;
@@ -92,7 +92,7 @@ export const isOpponentMove = (move, opponent) => {
 export const getNextTurn = (move) => {
     const { player } = extractMoveDetails(move);
 
-    return PIECE_COLORS.isWhite(player) ? GAME_STATUS.BLACK_TURN : GAME_STATUS.WHITE_TURN;
+    return isWhite(player) ? GAME_STATUS.BLACK_TURN : GAME_STATUS.WHITE_TURN;
 }
 
 const validBoardLength = (board) => {
