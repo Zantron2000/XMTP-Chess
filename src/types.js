@@ -60,3 +60,32 @@ import { PIECE_VALUES } from "./utils/enum"
  * The pawn registry keeps track of all transformed pawns. It is a map of
  * pawns to their transformed piece type
  */
+
+/**
+ * @typedef {{
+ *   [position: ChessPos]: [piece: Piece]
+ * }} Board
+ * 
+ * The board is a map of chess positions to pieces. It keeps track of the
+ * chess positions that have pieces on them. Does not keep track of dead
+ * pieces.
+ */
+
+/**
+ * @typedef {{
+ *   [piece: Piece]: [position: ChessPos]
+ * }} Positions
+ * 
+ * The positions is a map of pieces to their current position. It keeps track
+ * of the current position of all pieces. Does keep track of dead pieces.
+ */
+
+/**
+ * @typedef {{
+ *   [piece: Piece]: [lastPos: ChessPos, currPos: ChessPos]
+ * }} TurnDifferences
+ * 
+ * The turn difference is a map of pieces to their last position and their
+ * current position. The key is a chess piece and the value is a tuple of
+ * the last position and the current position.
+ */
