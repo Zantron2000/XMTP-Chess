@@ -3,8 +3,8 @@ import { PIECE_COLORS, PIECE_VALUES, DIRECTION_VECTORS, CAPTURED_PIECE } from ".
 /**
  * Checks if two pieces are enemies
  * 
- * @param {Piece} piece1 The first piece to compare
- * @param {Piece} piece2 The second piece to compare
+ * @param {import('../../types').Piece} piece1 The first piece to compare
+ * @param {import('../../types').Piece} piece2 The second piece to compare
  * @returns {Boolean} Whether or not the two pieces are enemies
  */
 export const areEnemies = (piece1, piece2) => {
@@ -17,8 +17,8 @@ export const areEnemies = (piece1, piece2) => {
 /**
  * Checks if two pieces are allies
  *
- * @param {Piece} piece1 The first piece to compare
- * @param {Piece} piece2 The second piece to compare
+ * @param {import('../../types').Piece} piece1 The first piece to compare
+ * @param {import('../../types').Piece} piece2 The second piece to compare
  * @returns {Boolean} Whether or not the two pieces are allies
  */
 export const areAllies = (piece1, piece2) => {
@@ -31,8 +31,8 @@ export const areAllies = (piece1, piece2) => {
 /**
  * Checks if a piece is any of the types provided
  * 
- * @param {Piece} piece The piece to check
- * @param {Object} registry The registry of the pieces
+ * @param {import('../../types').Piece} piece The piece to check
+ * @param {import('../../types').PawnRegistry} registry The registry of the pieces
  * @param  {PIECE_VALUES[keyof PIECE_VALUES][]} types The types to check
  * @returns {Boolean} Whether or not the piece is any of the types provided
  */
@@ -58,7 +58,7 @@ export const getEnemyColor = (color) => {
  * Checks if a player owns the provided piece
  *
  * @param {PIECE_COLORS[keyof PIECE_COLORS]} player The color of the player
- * @param {Piece} piece The piece to check
+ * @param {import('../../types').Piece} piece The piece to check
  * @returns {Boolean} Whether or not the player owns the piece
  */
 export const ownsPiece = (player, piece) => {
@@ -70,7 +70,7 @@ export const ownsPiece = (player, piece) => {
 /**
  * Checks if a piece is the color provided
  * 
- * @param {Piece} piece The piece to check
+ * @param {import('../../types').Piece} piece The piece to check
  * @param {PIECE_COLORS[keyof PIECE_COLORS]} color The color to check
  * @returns {Boolean} Whether or not the piece is the color provided
  */
@@ -83,7 +83,7 @@ export const isColor = (piece, color) => {
 /**
  * Checks if a piece is white
  * 
- * @param {Piece} piece The piece to check
+ * @param {import('../../types').Piece} piece The piece to check
  * @returns {Boolean} Whether or not the piece is white
  */
 export const isWhite = (piece) => isColor(piece, PIECE_COLORS.WHITE);
@@ -91,7 +91,7 @@ export const isWhite = (piece) => isColor(piece, PIECE_COLORS.WHITE);
 /**
  * Checks if a piece is black
  * 
- * @param {Piece} piece The piece to check
+ * @param {import('../../types').Piece} piece The piece to check
  * @returns {Boolean} Whether or not the piece is black
  */
 export const isBlack = (piece) => isColor(piece, PIECE_COLORS.BLACK);
@@ -99,7 +99,7 @@ export const isBlack = (piece) => isColor(piece, PIECE_COLORS.BLACK);
 /**
  * Checks if a piece is dead
  * 
- * @param {ChessPos} chessPos The position of the piece
+ * @param {import('../../types').ChessPos} chessPos The position of the piece
  * @returns {Boolean} Whether or not the piece is dead
  */
 export const isDead = (chessPos) => chessPos === CAPTURED_PIECE;
@@ -142,7 +142,7 @@ export const isPiece = (piece, type, registry = {}) => {
 /**
  * Checks if a piece is a pawn
  * 
- * @param {Piece} piece The piece to check
+ * @param {import('../../types').Piece} piece The piece to check
  * @returns {Boolean} Whether or not the piece is a pawn
  */
 export const isPawn = (piece) => isPiece(piece, PIECE_VALUES.PAWN);
@@ -150,9 +150,9 @@ export const isPawn = (piece) => isPiece(piece, PIECE_VALUES.PAWN);
 /**
  * Checks if a provided piece can attack infinitely in a direction provided
  *
- * @param {Piece} piece The piece to check
+ * @param {import('../../types').Piece} piece The piece to check
  * @param {DIRECTION_VECTORS[keyof DIRECTION_VECTORS]} direction The direction to check
- * @param {PawnRegistry} registry The registry of the transformed pawns
+ * @param {import('../../types').PawnRegistry} registry The registry of the transformed pawns
  * @returns {Boolean} Whether or not the piece can attack in the direction provided
  */
 export const canAttackDirection = (piece, direction, registry) => {
