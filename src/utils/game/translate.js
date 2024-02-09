@@ -1,24 +1,11 @@
 import { CAPTURED_PIECE, COL_TO_INDEX, INDEX_TO_COL, INDEX_TO_ROW, MESSAGE, PIECE_COLORS, PIECE_MESSAGE_ORDER, PIECE_VALUES, ROW_TO_INDEX } from "../enum";
-import { placePiece } from "./board";
-import { extractMoveDetails } from "./message";
-import { isPiece } from "./piece";
 
-const initializeBoard = () => {
-    const board = [];
-
-    for (let i = 0; i < 8; i++) {
-        const row = [];
-
-        for (let j = 0; j < 8; j++) {
-            row.push(PIECE_VALUES.EMPTY);
-        }
-
-        board.push(row);
-    }
-
-    return board;
-}
-
+/**
+ * Extracts the numberic row and column from a chess position
+ *
+ * @param {import("../../types").ChessPos} piecePos The position of the piece
+ * @returns {[number, number]} The row and column of the piece
+ */
 export const extractCoords = (piecePos) => {
     const col = COL_TO_INDEX[piecePos[0]];
     const row = ROW_TO_INDEX[piecePos[1]];
@@ -26,6 +13,12 @@ export const extractCoords = (piecePos) => {
     return [row, col];
 };
 
+/**
+ * Converts a numeric row and column to a chess position
+ *
+ * @param {[number, number]} piecePos The numeric row and column of the piece
+ * @returns {import("../../types").ChessPos} The position of the piece
+ */
 export const extractNotation = (piecePos) => {
     const row = INDEX_TO_ROW[piecePos[0]];
     const col = INDEX_TO_COL[piecePos[1]];
@@ -33,37 +26,21 @@ export const extractNotation = (piecePos) => {
     return `${col}${row}`;
 };
 
-export const translateMessageToBoard = (message) => {
-    const gameDetails = extractMoveDetails(message);
-    const board = initializeBoard();
-
-    let pawnCharacters = 0;
-    PIECE_MESSAGE_ORDER.forEach((piece, order) => {
-        if (isPiece(piece, PIECE_VALUES.PAWN)) {
-            const isNum = parseInt(gameDetails.board[order * 2 + pawnCharacters + 2]) ? true : false;
-            if (isNum) {
-                pawnCharacters += 1;
-                const piecePos = gameDetails.board.substring(order * 2 + pawnCharacters, order * 2 + 2 + pawnCharacters);
-
-                placePiece(board, piecePos, piece)
-            } else {
-                const piecePos = gameDetails.board.substring(order * 2 + pawnCharacters, order * 2 + 2 + pawnCharacters);
-
-                placePiece(board, piecePos, piece)
-            }
-        } else {
-            const piecePos = gameDetails.board.substring(order * 2 + pawnCharacters, order * 2 + 2 + pawnCharacters);
-            
-            placePiece(board, piecePos, piece)
-        }
-    });
-
-    return board;
-}
-
+/**
+ * Converts a chess turn into a game message to send to the opponent
+ * 
+ * @param {import("../../types").Positions} positions The positions of the pieces
+ * @param {import("../../types").PawnRegistry} registry The registry of transformed pawns
+ * @param {PIECE_COLORS[keyof PIECE_COLORS]} player The player who's turn it is
+ * @param {{
+ *   [key in PIECE_COLORS]: [boolean, boolean]
+ * }} canCastleDetails The details of the castling ability of the players
+ * @returns {import("../../types").GameMessage} The current turn as a game message
+ */
 export const translateTurnToMessage = (positions, registry, player, canCastleDetails) => {
     let board = '';
 
+    // Converts the positions to a string
     PIECE_MESSAGE_ORDER.forEach((piece) => {
         const pos = positions[piece];
         const registryPiece = pos !== CAPTURED_PIECE ? registry[piece] || '' : '';
@@ -71,6 +48,7 @@ export const translateTurnToMessage = (positions, registry, player, canCastleDet
         board += registryPiece + pos;
     });
 
+    // Convert the castling details to a string
     const w1 = canCastleDetails[PIECE_COLORS.WHITE][1] === true ? MESSAGE.TRUE : MESSAGE.FALSE;
     const w2 = canCastleDetails[PIECE_COLORS.WHITE][2] === true ? MESSAGE.TRUE : MESSAGE.FALSE;
     const b1 = canCastleDetails[PIECE_COLORS.BLACK][1] === true ? MESSAGE.TRUE : MESSAGE.FALSE;
