@@ -1,9 +1,8 @@
-import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE, ROW_TO_INDEX, COL_TO_INDEX, INDEX_TO_ROW, INDEX_TO_COL } from '../enum';
+import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE, ROW_TO_INDEX, COL_TO_INDEX, INDEX_TO_ROW, INDEX_TO_COL, ACTION_TYPES } from '../enum';
 import { isEnemy } from '../../tools/tools/piece';
 import { extractCoords } from './translate';
 import { areAllies, areEnemies, canAttackDirection, isColor, isPiece } from './piece';
 import { convertToAction, executeAction } from './action';
-import { ACTION_TYPES } from '../../tools/enums';
 
 /**
  * Checks if a position is in range of the board
@@ -436,12 +435,23 @@ const generateKnightMoves = (board, chessPos, piece) => {
 };
 
 
-const isSafe = (board, chessPos, ignore, registry) => {
+/**
+ * Checks if a position is safe from enemy attacks
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position to check
+ * @param {import('../../types').Piece} ignore The piece to ignore
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @returns {Boolean} Whether the position is safe
+ */
+export const isSafe = (board, chessPos, ignore, registry) => {
+    // Checks if there is a piece to protect
     const piece = ignore ?? getPieceAt(board, chessPos);
     if (!piece) {
         return true;
     }
 
+    // Checks all directions for enemy attacks
     const directionalDanger = Object.values(DIRECTION_VECTORS).some((direction) => {
         const nearestPiecePos = findNearestPiece(board, chessPos, direction, ignore);
 
@@ -462,6 +472,7 @@ const isSafe = (board, chessPos, ignore, registry) => {
         return false;
     }
 
+    // Determines the direction of the knight attacks
     const knightMoves = [
         movePos(chessPos, -2, -1),
         movePos(chessPos, -2, 1),
@@ -473,6 +484,7 @@ const isSafe = (board, chessPos, ignore, registry) => {
         movePos(chessPos, 2, 1),
     ];
 
+    // Checks for enemy knight attacks
     const knightDanger = knightMoves.some((actionPos) => {
         if (isInRange(actionPos)) {
             const knight = getPieceAt(board, actionPos);
@@ -480,8 +492,10 @@ const isSafe = (board, chessPos, ignore, registry) => {
         }
     });
 
+    // Determines the direction of the pawn attacks
     const pawnAttacks = isColor(piece, PIECE_COLORS.BLACK) ? [DIRECTION_VECTORS.NORTH_EAST, DIRECTION_VECTORS.NORTH_WEST] : [DIRECTION_VECTORS.SOUTH_EAST, DIRECTION_VECTORS.SOUTH_WEST];
 
+    // Checks for enemy pawn attacks
     const pawnDanger = pawnAttacks.some((direction) => {
         const [rowDir, colDir] = direction;
         const tempPos = movePos(chessPos, rowDir, colDir);
@@ -495,11 +509,26 @@ const isSafe = (board, chessPos, ignore, registry) => {
     return !knightDanger && !pawnDanger
 };
 
+/**
+ * Checks if a long castle is possible for the player
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position of the king
+ * @param {import('../../types').Piece} piece The piece representation of the king 
+ * @param {{
+ *   1: boolean,
+ *   2: boolean
+ * }} canCastle The details of the castling ability of the player
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @returns {Boolean} Whether the long castle is valid
+ */
 const validLongCastle = (board, chessPos, piece, canCastle, registry) => {
+    // Checks if the player hasn't lost the ability to long castle
     if (!canCastle[1]) {
         return false;
     }
 
+    // Checks if every position between the king and the rook is empty
     const isAllEmpty = [1, 2, 3, 4].every((castleCol) => {
         const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
 
@@ -509,6 +538,7 @@ const validLongCastle = (board, chessPos, piece, canCastle, registry) => {
         return false;
     }
 
+    // Checks if every position between the king and the rook is safe
     const isAllSafe = [1, 2, 3, 4].every((castleCol) => {
         const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
 
@@ -518,6 +548,7 @@ const validLongCastle = (board, chessPos, piece, canCastle, registry) => {
         return false;
     }
 
+    // Checks if the rook is in the correct position and is the correct piece
     if (!isPiece(getPieceAt(board, 'A' + chessPos[1]), PIECE_VALUES.ROOK) || !areAllies(piece, getPieceAt(board, 'A' + chessPos[1]))) {
         return false;
     }
@@ -525,11 +556,26 @@ const validLongCastle = (board, chessPos, piece, canCastle, registry) => {
     return true;
 }
 
+/**
+ * Checks if a short castle is possible for the player
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position of the king
+ * @param {import('../../types').Piece} piece The piece representation of the king
+ * @param {{
+ *  1: boolean,
+ *  2: boolean,
+ * }} canCastle The details of the castling ability of the player
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @returns {Boolean} Whether the short castle is valid
+ */
 const validShortCastle = (board, chessPos, piece, canCastle, registry) => {
+    // Checks if the player hasn't lost the ability to short castle
     if (!canCastle[2]) {
         return false;
     }
 
+    // Checks if every position between the king and the rook is empty
     const isAllEmpty = [4, 5, 6].every((castleCol) => {
         const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
 
@@ -539,6 +585,7 @@ const validShortCastle = (board, chessPos, piece, canCastle, registry) => {
         return false;
     }
 
+    // Checks if every position between the king and the rook is safe
     const isAllSafe = [4, 5, 6].every((castleCol) => {
         const checkPos = INDEX_TO_COL[castleCol] + chessPos[1]
 
@@ -548,6 +595,7 @@ const validShortCastle = (board, chessPos, piece, canCastle, registry) => {
         return false;
     }
 
+    // Checks if the rook is in the correct position and is the correct piece
     if (!isPiece(getPieceAt(board, 'H' + chessPos[1]), PIECE_VALUES.ROOK) || !areAllies(piece, getPieceAt(board, 'H' + chessPos[1]))) {
         return false;
     }
@@ -555,9 +603,25 @@ const validShortCastle = (board, chessPos, piece, canCastle, registry) => {
     return true;
 }
 
+/**
+ * Generates possible moves for a king. Kings can move in any direction
+ * along a rank, file, or diagonal, but only one space at a time. Kings can
+ * also perform castling if the conditions are met.
+ * 
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the king
+ * @param {import('../../types').Piece} piece The piece representation of the king
+ * @param {{
+ *   1: boolean,
+ *   2: boolean
+ * }} canCastle The details of the castling ability of the player
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateKingMoves = (board, chessPos, piece, canCastle, registry) => {
     const moves = [];
 
+    // Generates possible moves for the king
     const possibleMoves = [
         movePos(chessPos, -1, -1),
         movePos(chessPos, -1, 0),
@@ -569,6 +633,7 @@ const generateKingMoves = (board, chessPos, piece, canCastle, registry) => {
         movePos(chessPos, 1, 1),
     ];
 
+    // Checks if the king can move to each position, or capture if there is an enemy
     possibleMoves.forEach((move) => {
         if (isInRange(move) && isSafe(board, move, piece, registry) && !areAllies(piece, getPieceAt(board, move))) {
             if (isEmpty(board, move, piece)) {
@@ -579,26 +644,44 @@ const generateKingMoves = (board, chessPos, piece, canCastle, registry) => {
         }
     });
 
+    // Checks if the king can perform a long castle
     if (validLongCastle(board, 'A' + chessPos[1], piece, canCastle, registry)) {
         moves.push(convertToAction('C' + chessPos[1], ACTION_TYPES.CASTLE));
     }
+
+    // Checks if the king can perform a short castle
     if (validShortCastle(board, 'H' + chessPos[1], piece, canCastle, registry)) {
         moves.push(convertToAction('G' + chessPos[1], ACTION_TYPES.CASTLE));
     }
 
-
-
     return moves;
 };
 
+/**
+ * Generates possible moves for a piece
+ * 
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the piece
+ * @param {{
+ *   1: boolean,
+ *   2: boolean,
+ * }} canCastle The details of the castling ability of the player
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @param {import('../../types').ChessPos} kingPos The position of the king
+ * @param {import('../../types').ChessPos | undefined} ignore The piece to ignore
+ * @param {import('../../types').ChessPos | undefined} enPassant The position of the pawn that opened an en passant move
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ignore, enPassant) => {
     const piece = ignore || getPieceAt(board, chessPos);
     let actions = [];
 
+    // Checks if a piece was found
     if (!piece) {
         return [];
     }
 
+    // Figures out what type of piece it is
     if (isPiece(piece, PIECE_VALUES.PAWN)) {
         actions = generatePawnMoves(board, chessPos, piece, registry, enPassant);
     } else if (isPiece(piece, PIECE_VALUES.ROOK)) {
@@ -615,24 +698,59 @@ const generateMovesForPiece = (board, chessPos, canCastle, registry, kingPos, ig
         return [];
     }
 
+    // Filters out any moves that would put the king in check
     return actions.filter((action) => {
         const nextBoard = movePiece(copyBoard(board), chessPos, action.substring(0, 2));
 
-        return isSafeMove(nextBoard, kingPos, registry);
+        return isSafe(nextBoard, kingPos, undefined, registry);
     })
 }
 
-const exitsCheck = (board, registry, piecePos, move, kingPos) => {
-    const nextBoard = executeAction(copyBoard(board), piecePos, move, {});
+/**
+ * Executes an action on the board and sees if it keeps the king safe
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @param {import('../../types').ChessPos} piecePos The position of the piece to move
+ * @param {import('../../types').Action} action The action to execute
+ * @param {import('../../types').ChessPos} kingPos The position of the king
+ * @returns {Boolean} The updated board
+ */
+const exitsCheck = (board, registry, piecePos, action, kingPos) => {
+    // Executes the action on a clone board
+    const nextBoard = executeAction(copyBoard(board), piecePos, action, {});
 
-    const newKingChessPos = piecePos === kingPos ? move.substring(0, 2) : kingPos;
+    // If the king is not moved, we can use the king's position to check if the move is safe
+    const newKingChessPos = piecePos === kingPos ? action.substring(0, 2) : kingPos;
 
-    return isSafeMove(nextBoard, newKingChessPos, registry);
+    return isSafe(nextBoard, newKingChessPos, undefined, registry);
 }
 
+/**
+ * Validates a given move by generating all possible moves for the piece and checking if the move is in the list
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {{
+ *   piecePos: import('../../types').ChessPos,
+ *   action: import('../../types').Action,
+ * }} actionDetails The details of the action to validate
+ * @param {{
+ *   1: boolean,
+ *   2: boolean,
+ * }} canCastle The details of the castling ability of the player
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @param {import('../../types').ChessPos} kingPos The position of the king
+ * @param {import('../../types').ChessPos | undefined} ignore The piece to ignore
+ * @param {import('../../types').ChessPos | undefined} enPassant The position of the pawn that opened an en passant move
+ * @returns {{
+ *   error: import('../../types').GameValidationMessage | null
+ * }} The result of the validation
+ */
 export const validateMove = (board, { piecePos, action }, canCastle, registry = {}, kingPos = 'XX', ignore, enPassant) => {
+    // Generates all possible moves for the piece
     const actions = generateMovesForPiece(board, piecePos, canCastle, registry, kingPos, ignore, enPassant);
 
+    // Checks if the action is in the list of possible moves
     if (!actions.includes(action)) {
         return {
             error: GAME_VALIDATION_MESSAGES.INVALID_ACTION
@@ -642,16 +760,30 @@ export const validateMove = (board, { piecePos, action }, canCastle, registry = 
     return { error: null };
 }
 
-export const isSafeMove = (board, chessPos, registry, ignore) => {
-    const piece = ignore || getPieceAt(board, chessPos);
-
-    return isSafe(board, chessPos, piece, registry);
-}
-
+/**
+ * Generates all possible moves for a player
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').Piece} player The player to generate moves for
+ * @param {import('../../types').ChessPos} positions The positions of the pieces
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @param {{
+ *   1: boolean,
+ *   2: boolean,
+ * }} canCastle The details of the castling ability of the player
+ * @param {import('../../types').ChessPos | undefined} enPassant The position of the pawn that opened an en passant move
+ * @returns {{
+ *   actions: {
+ *     [key: import('../../types').Piece]: import('../../types').Action[]
+ *   },
+ *   isKingSafe: boolean
+ * }} The possible actions for the player and whether the king is safe
+ */
 export const getTurnInfo = (board, player, positions, registry, canCastle, enPassant) => {
     const actions = {};
-    const isKingSafe = isSafeMove(board, positions[player + PIECE_VALUES.KING], registry);
+    const isKingSafe = isSafe(board, positions[player + PIECE_VALUES.KING], undefined, registry);
 
+    // Generates all possible moves for all pieces controlled by the player
     Object.keys(positions).forEach((piece) => {
         if (isColor(piece, player)) {
             if (positions[piece] !== 'XX') {
@@ -670,6 +802,7 @@ export const getTurnInfo = (board, player, positions, registry, canCastle, enPas
         }
     });
 
+    // Filters out any moves don't save the king if it is in check
     if (!isKingSafe) {
         Object.keys(actions).forEach((piece) => {
             actions[piece] = actions[piece].filter((move) => {
