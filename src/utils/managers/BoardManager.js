@@ -1,7 +1,7 @@
 import { ACTION_TYPES, BOARD_COL_LABELS, BOARD_ROW_LABELS } from "../../tools/enums";
 import { PIECE_COLORS, PIECE_VALUES, GAME_STATUS, INDEX_TO_ROW, INDEX_TO_COL, ROW_TO_INDEX, COL_TO_INDEX, CAPTURED_PIECE } from "../enum";
 import { executeAction, isAction, isTurn, noMoreActions, validateAction } from "../game/action";
-import { getPieceAtChessCoords, getTurnInfo, isSafeMove, validateMove } from "../game/board";
+import { getPieceAt, getTurnInfo, isSafeMove, validateMove } from "../game/board";
 import { getNextTurn, getPlayerFromMessage, validateTurnContinuity } from "../game/message";
 import { getEnemyColor, isPawn, isPiece, isWhite, ownsPiece } from "../game/piece";
 import { translateMessageToBoard, translateTurnToMessage } from "../game/translate";
@@ -153,7 +153,7 @@ class BoardManager {
 
     getTileDetails(chessPos) {
         const details = {};
-        const piece = getPieceAtChessCoords(this.board, chessPos);
+        const piece = getPieceAt(this.board, chessPos);
 
         if (!isTurn(this.player, this.status) || this.gameOver) {
             return { piece, selectable: false };
@@ -165,7 +165,7 @@ class BoardManager {
         }
 
         if (this.selectedTile) {
-            const actionPiece = getPieceAtChessCoords(this.board, this.selectedTile);
+            const actionPiece = getPieceAt(this.board, this.selectedTile);
             const action = this.actions[actionPiece].find((action) => action.includes(chessPos))
             if (action) {
                 details.action = action;
@@ -255,7 +255,7 @@ class BoardManager {
     }
 
     getPieceAt(chessPos) {
-        return getPieceAtChessCoords(this.board, chessPos);
+        return getPieceAt(this.board, chessPos);
     }
 
     setLastMove(lastMove) {

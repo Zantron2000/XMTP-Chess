@@ -1,5 +1,5 @@
 import { ACTION_TYPES, CAPTURED_PIECE, GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES } from "../enum";
-import { getPieceAtChessCoords, movePiece, removePiece } from "./board";
+import { getPieceAt, movePiece, removePiece } from "./board";
 import { areAllies, isDead, isPawn, isPiece, isWhite, ownsPiece } from "./piece";
 import { extractCoords } from "./translate";
 
@@ -383,8 +383,8 @@ export const executeAction = (board, originalChessPos, action, positions) => {
         const rookChessEndPos = `${rookEndCol}${rookRow}`;
 
         // Gets the king and rook pieces
-        const king = getPieceAtChessCoords(board, originalChessPos);
-        const rook = getPieceAtChessCoords(board, rookChessPos);
+        const king = getPieceAt(board, originalChessPos);
+        const rook = getPieceAt(board, rookChessPos);
 
         // Updates the positions of the king and rook
         positions[king] = actionChessPos;
@@ -395,8 +395,8 @@ export const executeAction = (board, originalChessPos, action, positions) => {
         movePiece(board, rookChessPos, rookChessEndPos);
     } else if (actionType === ACTION_TYPES.EN_PASSANT) {
         // Gets the pawn and captured pawn pieces
-        const actionPiece = getPieceAtChessCoords(board, originalChessPos);
-        const capturedPiece = getPieceAtChessCoords(board, `${actionChessPos[0]}${originalChessPos[1]}`);
+        const actionPiece = getPieceAt(board, originalChessPos);
+        const capturedPiece = getPieceAt(board, `${actionChessPos[0]}${originalChessPos[1]}`);
 
         // Updates the positions of the pawn and captured pawn and the board
         movePiece(board, originalChessPos, actionChessPos);
@@ -405,8 +405,8 @@ export const executeAction = (board, originalChessPos, action, positions) => {
         positions[capturedPiece] = 'XX';
     } else {
         // Gets the piece and possible capture piece
-        const actionPiece = getPieceAtChessCoords(board, originalChessPos);
-        const capturedPiece = getPieceAtChessCoords(board, actionChessPos);
+        const actionPiece = getPieceAt(board, originalChessPos);
+        const capturedPiece = getPieceAt(board, actionChessPos);
 
         // Updates the positions of the piece and possible capture piece
         positions[actionPiece] = actionChessPos;
