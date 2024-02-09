@@ -1,5 +1,4 @@
-import { ACTION_TYPES, PIECE_COLORS } from "../../../src/tools/enums";
-import { GAME_VALIDATION_MESSAGES, MESSAGE } from "../../../src/utils/enum";
+import { GAME_VALIDATION_MESSAGES, MESSAGE, PIECE_COLORS, ACTION_TYPES } from "../../../src/utils/enum";
 import { validateAction } from "../../../src/utils/game/action";
 import { validateTurnContinuity } from "../../../src/utils/game/message";
 
@@ -19,7 +18,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.MOVE_OPPONENT_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         });
 
         it('Should generate the right move for a transformed pawn', async () => {
@@ -32,7 +31,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.MOVE_OPPONENT_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         });
 
         it('Should return the original location and the move action when valid', () => {
@@ -250,11 +249,130 @@ describe("Tests validateAction", () => {
 
             expect(actionResults.error).toBeDefined();
             expect(actionResults.error).not.toBeNull();
-            expect(actionResults.error).toEqual(GAME_VALIDATION_MESSAGES.MOVE_OPPONENT_PIECE);
+            expect(actionResults.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION);
         });
     });
 
     describe("Tests validateAction with a capture action", () => {
+        it('Should recognize a white pawn capture', () => {
+            const cData = {
+                "differences": {
+                    "WP8": [
+                        "H6",
+                        "G7"
+                    ],
+                    "BP7": [
+                        "G7",
+                        "XX"
+                    ]
+                },
+                "last": {
+                    "canCastle": {
+                        "W": {
+                            "1": true,
+                            "2": true
+                        },
+                        "B": {
+                            "1": true,
+                            "2": true
+                        }
+                    },
+                    "positions": {
+                        "WR1": "A1",
+                        "WN1": "B1",
+                        "WB1": "C1",
+                        "WQ": "D1",
+                        "WK": "E1",
+                        "WB2": "F1",
+                        "WN2": "G1",
+                        "WR2": "H1",
+                        "WP1": "A2",
+                        "WP2": "B2",
+                        "WP3": "C2",
+                        "WP4": "D2",
+                        "WP5": "E2",
+                        "WP6": "F2",
+                        "WP7": "G2",
+                        "WP8": "H6",
+                        "BR1": "A8",
+                        "BN1": "B8",
+                        "BB1": "C8",
+                        "BQ": "D8",
+                        "BK": "E8",
+                        "BB2": "F8",
+                        "BN2": "G8",
+                        "BR2": "H8",
+                        "BP1": "A3",
+                        "BP2": "B7",
+                        "BP3": "C7",
+                        "BP4": "D7",
+                        "BP5": "E7",
+                        "BP6": "F7",
+                        "BP7": "G7",
+                        "BP8": "H7"
+                    },
+                    "pawnRegistry": {}
+                },
+                "curr": {
+                    "canCastle": {
+                        "W": {
+                            "1": true,
+                            "2": true
+                        },
+                        "B": {
+                            "1": true,
+                            "2": true
+                        }
+                    },
+                    "positions": {
+                        "WR1": "A1",
+                        "WN1": "B1",
+                        "WB1": "C1",
+                        "WQ": "D1",
+                        "WK": "E1",
+                        "WB2": "F1",
+                        "WN2": "G1",
+                        "WR2": "H1",
+                        "WP1": "A2",
+                        "WP2": "B2",
+                        "WP3": "C2",
+                        "WP4": "D2",
+                        "WP5": "E2",
+                        "WP6": "F2",
+                        "WP7": "G2",
+                        "WP8": "G7",
+                        "BR1": "A8",
+                        "BN1": "B8",
+                        "BB1": "C8",
+                        "BQ": "D8",
+                        "BK": "E8",
+                        "BB2": "F8",
+                        "BN2": "G8",
+                        "BR2": "H8",
+                        "BP1": "A3",
+                        "BP2": "B7",
+                        "BP3": "C7",
+                        "BP4": "D7",
+                        "BP5": "E7",
+                        "BP6": "F7",
+                        "BP7": "XX",
+                        "BP8": "H7"
+                    },
+                    "pawnRegistry": {}
+                },
+                "player": "W",
+                "transformed": false
+            }
+
+            const result = validateAction(cData);
+
+            expect(result.data).toBeDefined();
+            expect(result.data).toEqual({
+                action: 'G7C',
+                piecePos: 'H6',
+            })
+        });
+
         it('Should return an error if the player does not own the capterer', () => {
             const player = PIECE_COLORS.WHITE;
             const castled = false;
@@ -266,7 +384,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CAPTURE_WITH_OPPONENT_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         })
 
         it('Should return an error if the player owns the captured', () => {
@@ -280,7 +398,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CAPTURE_FRIENDLY_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         })
 
         it('Should return an error if the capterer died', () => {
@@ -294,7 +412,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CAPTURE_WITH_DEAD_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         });
 
         it('Should generate the capterer starting location and actin when it is valid', () => {
@@ -375,7 +493,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences, transformed });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.OPPONENT_TRANSFORM)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         })
 
         it('Should generate a transform action from a message', () => {
@@ -422,7 +540,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CASTLED_NON_KING)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         })
 
         it('Should generate an error if the player does not own the rook', () => {
@@ -436,7 +554,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CASTLED_NON_ROOK)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         })
 
         it('Should generate an error if the player does not own the king or rook', () => {
@@ -450,7 +568,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CASTLED_ENEMY_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         })
 
         it('Should generate an error if the king is dead', () => {
@@ -464,7 +582,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CASTLED_DEAD_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         })
 
         it('Should generate an error if the rook is dead', () => {
@@ -478,7 +596,7 @@ describe("Tests validateAction", () => {
             const result = validateAction({ player, castled, differences });
 
             expect(result.error).toBeDefined();
-            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.CASTLED_DEAD_PIECE)
+            expect(result.error).toEqual(GAME_VALIDATION_MESSAGES.INVALID_ACTION)
         });
 
         it('Should generate a castle action from a message', () => {

@@ -1,6 +1,5 @@
 import { validateMove, getTurnInfo, movePiece, placePiece, removePiece } from "../../../src/utils/game/board";
-import { INITIAL_BOARD_POSITIONS, PIECES, PIECE_COLORS, PIECE_VALUES } from "../../../src/utils/enum";
-import { ACTION_TYPES } from "../../../src/tools/enums";
+import { INITIAL_BOARD_POSITIONS, PIECES, PIECE_COLORS, PIECE_VALUES, ACTION_TYPES } from "../../../src/utils/enum";
 
 const { KING, KNIGHT, BISHOP, EMPTY, PAWN, QUEEN, ROOK } = PIECE_VALUES;
 const { BLACK, WHITE } = PIECE_COLORS;

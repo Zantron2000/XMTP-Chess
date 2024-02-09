@@ -1,10 +1,9 @@
 import { jest } from '@jest/globals';
 import { createActions, createBoard, createDeadPositions, createMessage, createPositions, createStarterMessage, createTestBoard } from '../../tools';
 
-import { GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES, PIECES } from "../../../src/utils/enum";
+import { GAME_STATUS, GAME_VALIDATION_MESSAGES, INDEX_TO_COL, INDEX_TO_ROW, PIECE_COLORS, PIECE_VALUES, PIECES, ACTION_TYPES } from "../../../src/utils/enum";
 import BoardManager from "../../../src/utils/managers/BoardManager";
-import { getPieceAtChessCoords, movePiece, placePiece, removePiece } from '../../../src/utils/game/board';
-import { ACTION_TYPES } from '../../../src/tools/enums';
+import { getPieceAt, movePiece, placePiece, removePiece } from '../../../src/utils/game/board';
 import { generateInitalMoves } from '../../../src/utils/game/message';
 
 describe('Tests the getStatus method', () => {
@@ -69,7 +68,7 @@ describe('Tests the getTileDetails method', () => {
                 const details = manager.getTileDetails(chessPos);
                 const horseMovements = ['B1', 'A4', 'B5', 'E4'];
                 const horseAttack = ['D5'];
-                const piece = getPieceAtChessCoords(manager.board, chessPos)
+                const piece = getPieceAt(manager.board, chessPos)
 
                 if (horseMovements.includes(chessPos)) {
                     expect(details.action).toBe(chessPos + ACTION_TYPES.MOVE);
@@ -117,7 +116,7 @@ describe('Tests the getTileDetails method', () => {
                 const chessPos = chessCol + chessRow;
 
                 const details = manager.getTileDetails(chessPos);
-                const piece = getPieceAtChessCoords(manager.board, chessPos)
+                const piece = getPieceAt(manager.board, chessPos)
 
                 expect(details.action).toBe(undefined);
                 expect(details.piece).toBe(piece);
@@ -347,7 +346,6 @@ describe('Tests the executeAction method', () => {
         manager.executeAction('A8' + ACTION_TYPES.TRANSFORM, toggleTransformFn, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
-        expect(toggleTransformFn).toHaveBeenCalledTimes(1);
         expect(manager.canCastle).toEqual({
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
@@ -355,7 +353,7 @@ describe('Tests the executeAction method', () => {
         expect(manager.positions[PIECES.WHITE_PAWN_1]).toBe('A8');
         expect(manager.positions[PIECES.BLACK_PAWN_1]).toBe('XX');
         expect(makeMoveFn).toHaveBeenCalledTimes(1);
-        expect(makeMoveFn).toHaveBeenCalledWith('XXXXXXXXXXXXXXXXA8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,W,TTTT');
+        expect(makeMoveFn).toHaveBeenCalledWith('XXXXXXXXXXXXXXXXA8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,W,TTTT', 'A8');
     });
 
     it('Should execute a transform & capture action', () => {
@@ -380,7 +378,6 @@ describe('Tests the executeAction method', () => {
         manager.executeAction('B8' + ACTION_TYPES.TRANSFORM, toggleTransformFn, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
-        expect(toggleTransformFn).toHaveBeenCalledTimes(1);
         expect(manager.canCastle).toEqual({
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
@@ -389,7 +386,7 @@ describe('Tests the executeAction method', () => {
         expect(manager.positions[PIECES.BLACK_PAWN_1]).toBe('XX');
         expect(manager.positions[PIECES.BLACK_KNIGHT_1]).toBe('XX');
         expect(makeMoveFn).toHaveBeenCalledTimes(1);
-        expect(makeMoveFn).toHaveBeenCalledWith('A1B1C1D1E1F1G1H1B8B2C2D2E2F2G2H2A8XXC8D8E8F8G8H8XXB7C7D7E7F7G7H7,W,TTTT');
+        expect(makeMoveFn).toHaveBeenCalledWith('A1B1C1D1E1F1G1H1B8B2C2D2E2F2G2H2A8XXC8D8E8F8G8H8XXB7C7D7E7F7G7H7,W,TTTT', 'B8');
     });
 });
 
