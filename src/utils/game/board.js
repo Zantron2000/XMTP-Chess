@@ -1,22 +1,49 @@
 import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE, ROW_TO_INDEX, COL_TO_INDEX, INDEX_TO_ROW, INDEX_TO_COL } from '../enum';
 import { isEnemy } from '../../tools/tools/piece';
 import { extractCoords } from './translate';
-import { areAllies, areEnemies, canAttackDirection, isColor, isPiece, ownsPiece } from './piece';
+import { areAllies, areEnemies, canAttackDirection, isColor, isPiece } from './piece';
 import { convertToAction, executeAction } from './action';
 import { ACTION_TYPES } from '../../tools/enums';
 
-const isInRange = (board, chessPos) => {
+/**
+ * Checks if a position is in range of the board
+ *
+ * @param {import('../../types').ChessPos} chessPos The position of the piece
+ * @returns {Boolean} Whether the position is in range
+ */
+const isInRange = (chessPos) => {
     return chessPos !== null;
 }
 
+/**
+ * Deep copies a board
+ *
+ * @param {import('../../types').Board} board The board to copy
+ * @returns {import('../../types').Board} A copy of the board
+ */
 const copyBoard = (board) => {
     return { ...board };
 }
 
-const getPieceAt = (board, chessPos) => {
+/**
+ * Gets the piece at a position on the board
+ * 
+ * @param {import('../../types').Board} board The board to get the piece of
+ * @param {import('../../types').ChessPos} chessPos The position of the piece to get
+ * @returns {import('../../types').Piece | undefined} The piece at the position
+ */
+export const getPieceAt = (board, chessPos) => {
     return board[chessPos];
 }
 
+/**
+ * Moves a position by a certain amount of rows and columns. Returns null if the position is out of range
+ * 
+ * @param {import('../../types').ChessPos} chessPos The original position of the piece
+ * @param {Number} rowAmt The amount of rows to move
+ * @param {Number} colAmt The amount of columns to move
+ * @returns {import('../../types').ChessPos | null} The new position of the piece, or null if the position is out of range
+ */
 const movePos = (chessPos, rowAmt, colAmt) => {
     const [col, row] = chessPos.split('');
 
@@ -30,17 +57,34 @@ const movePos = (chessPos, rowAmt, colAmt) => {
     return INDEX_TO_COL[newCol] + INDEX_TO_ROW[newRow];
 }
 
+/**
+ * Checks if a position is empty
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position to check
+ * @param {import('../../types').Piece | undefined} ignore The piece to ignore
+ * @returns {Boolean} Whether the position is empty
+ */
 const isEmpty = (board, chessPos, ignore) => {
     const piece = getPieceAt(board, chessPos);
 
     return !piece || piece === ignore;
 }
 
+/**
+ * Finds the nearest piece in a given direction
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position to start at
+ * @param {DIRECTION_VECTORS[keyof DIRECTION_VECTORS]} direction The direction to search in
+ * @param {import('../../types').Piece} piece The piece to ignore
+ * @returns {import('../../types').ChessPos | null} The position of the nearest piece in the direction, or null if there is none
+ */
 const findNearestPiece = (board, chessPos, direction, piece) => {
     const [rowDir, colDir] = direction;
     let checkPos = movePos(chessPos, rowDir, colDir);
 
-    while (isInRange(board, checkPos)) {
+    while (isInRange(checkPos)) {
         if (!isEmpty(board, checkPos, piece)) {
             return checkPos;
         }
@@ -51,6 +95,15 @@ const findNearestPiece = (board, chessPos, direction, piece) => {
     return null;
 }
 
+/**
+ * Checks if en passant is possible based on the positions of the attacking and defending pawns
+ * and the required rank to perform en passant
+ *
+ * @param {import('../../types').ChessPos} attackPos The position of the attacking pawn
+ * @param {import('../../types').ChessPos} defensePos The position of the defending pawn
+ * @param {Number} rank The required rank to perform en passant
+ * @returns {Boolean} Whether en passant is possible
+ */
 const canEnpassant = (attackPos, defensePos, rank) => {
     const [attackRow, attackCol] = extractCoords(attackPos);
     const [defenseRow, defenseCol] = extractCoords(defensePos);
@@ -58,6 +111,14 @@ const canEnpassant = (attackPos, defensePos, rank) => {
     return attackRow === defenseRow && attackRow === rank && Math.abs(attackCol - defenseCol) === 1;
 }
 
+/**
+ * Determines the end position of an en passant move for the attacking pawn
+ *
+ * @param {import('../../types').ChessPos} attackPos The position of the attacking pawn
+ * @param {import('../../types').ChessPos} defensePos The position of the defending pawn
+ * @param {-1 | 1} forward The forward direction of the attacking pawn
+ * @returns {import('../../types').ChessPos} The end position of the en passant move
+ */
 const generateEnPassantCoords = (attackPos, defensePos, forward) => {
     const [attackRow, attackCol] = extractCoords(attackPos);
     const [defenseRow, defenseCol] = extractCoords(defensePos);
@@ -66,49 +127,56 @@ const generateEnPassantCoords = (attackPos, defensePos, forward) => {
 }
 
 /**
- * Generates possible moves for a pawn. Pawns can move forward one space,
- * or two spaces if it is the first move. Pawns can also capture diagonally.
- * Each string in the array should be in the following format:
- *  <row><col><type> where <row> is the row of the move, <col> is the column of the move,
- *  and <type> is the type of move, which can be: 'M' for a move, 'C' for a capture,
+ * Generates possible moves for a black pawn. Pawns can move forward one space,
+ * or two spaces if it is their first move. Pawns can also capture diagonally.
+ * Pawns can transform when they reach the end of the board. Pawns can also
+ * perform en passant.
  * 
- * @param {String[][]} board The board in array format
- * @param {Number} row The row of the pawn
- * @param {Number} col The column of the pawn
- * @param {String} piece The piece representation of the pawn
- * @returns {String[]} An array of possible moves
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the pawn
+ * @param {import('../../types').Piece} piece The piece representation of the pawn
+ * @param {import('../../types').ChessPos | undefined} enPassant The position of the pawn that opened an en passant move
+ * @returns {import('../../types').Action[]} An array of possible moves
  */
 const generateBlackPawnMoves = (board, chessPos, piece, enPassant) => {
-    const moves = [];
-    const possibleMove = movePos(chessPos, -1, 0);
-    const possibleSpecialMove = movePos(chessPos, -2, 0);
+    const REQUIRED_DOUBLE_MOVE_ROW = 6; // The row where the pawn can move forward two spaces
+    const REQUIRED_TRANSFORM_ROW = 1; // The row where the pawn can transform
+    const REQUIRED_EN_PASSANT_ROW = 3; // The row where the pawn can perform en passant
+    const moves = []; // The array of possible moves
+    const possibleMove = movePos(chessPos, -1, 0); // The position of the pawn moving forward one space
+    const possibleSpecialMove = movePos(chessPos, -2, 0); // The position of the pawn moving forward two spaces
     const possibleCaptures = [
-        movePos(chessPos, -1, 1),
-        movePos(chessPos, -1, -1),
+        movePos(chessPos, -1, 1), // The position of the pawn capturing diagonally to the right
+        movePos(chessPos, -1, -1), // The position of the pawn capturing diagonally to the left
     ];
-    const row = ROW_TO_INDEX[chessPos[1]];
+    const [row] = extractCoords(chessPos);
 
-    if (isInRange(board, possibleMove) && isEmpty(board, possibleMove, piece)) {
-        if (row === 1) {
+    // Checks if the pawn can move forward one space
+    if (isInRange(possibleMove) && isEmpty(board, possibleMove, piece)) {
+        // Checks if the pawn is ready to transform or just moving forward
+        if (row === REQUIRED_TRANSFORM_ROW) {
             moves.push(convertToAction(possibleMove, ACTION_TYPES.TRANSFORM));
         } else {
             moves.push(convertToAction(possibleMove, ACTION_TYPES.MOVE));
         }
 
-        if (row === 6 && isEmpty(board, possibleSpecialMove, piece)) {
+        // Checks if the pawn can move forward two spaces
+        if (row === REQUIRED_DOUBLE_MOVE_ROW && isEmpty(board, possibleSpecialMove, piece)) {
             moves.push(convertToAction(possibleSpecialMove, ACTION_TYPES.MOVE));
         }
     }
 
+    // Checks if the pawns can capture on either side
     possibleCaptures.forEach((capture) => {
-        if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
-            const action = row === 1 ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
+        if (isInRange(capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
+            const action = row === REQUIRED_TRANSFORM_ROW ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
 
             moves.push(convertToAction(capture, action));
         }
     });
 
-    if (enPassant && canEnpassant(chessPos, enPassant, 3)) {
+    // Checks if the pawn can perform en passant
+    if (enPassant && canEnpassant(chessPos, enPassant, REQUIRED_EN_PASSANT_ROW)) {
         const enPassantCoords = generateEnPassantCoords(chessPos, enPassant, -1);
 
         moves.push(convertToAction(enPassantCoords, ACTION_TYPES.EN_PASSANT));
@@ -118,46 +186,55 @@ const generateBlackPawnMoves = (board, chessPos, piece, enPassant) => {
 };
 
 /**
- * Generates possible moves for a pawn. Pawns can move forward one space,
- * or two spaces if it is the first move. Pawns can also capture diagonally.
+ * Generates possible moves for a white pawn. Pawns can move forward one space,
+ * or two spaces if it is their first move. Pawns can also capture diagonally.
+ * Pawns can transform when they reach the end of the board. Pawns can also
+ * perform en passant.
  * 
- * @param {String[][]} board The board in array format
- * @param {Number} row The row of the pawn
- * @param {Number} col The column of the pawn
- * @param {String} piece The piece representation of the pawn
- * @returns {String[]} An array of possible moves
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the pawn
+ * @param {import('../../types').Piece} piece The piece representation of the pawn
+ * @param {import('../../types').ChessPos | undefined} enPassant The position of the pawn that opened an en passant move
+ * @returns {import('../../types').Action[]} An array of possible moves
  */
 const generateWhitePawnMoves = (board, chessPos, piece, enPassant) => {
-    const moves = [];
-    const possibleMove = movePos(chessPos, 1, 0);
-    const possibleSpecialMove = movePos(chessPos, 2, 0);
+    const REQUIRED_DOUBLE_MOVE_ROW = 1; // The row where the pawn can move forward two spaces
+    const REQUIRED_TRANSFORM_ROW = 6; // The row where the pawn can transform
+    const REQUIRED_EN_PASSANT_ROW = 4; // The row where the pawn can perform en passant
+    const moves = []; // The array of possible moves
+    const possibleMove = movePos(chessPos, 1, 0); // The position of the pawn moving forward one space
+    const possibleSpecialMove = movePos(chessPos, 2, 0); // The position of the pawn moving forward two spaces
     const possibleCaptures = [
-        movePos(chessPos, 1, 1),
-        movePos(chessPos, 1, -1),
+        movePos(chessPos, 1, 1), // The position of the pawn capturing diagonally to the right
+        movePos(chessPos, 1, -1), // The position of the pawn capturing diagonally to the left
     ];
-    const row = ROW_TO_INDEX[chessPos[1]];
+    const [row] = extractCoords(chessPos);
 
-    if (isInRange(board, possibleMove) && isEmpty(board, possibleMove, piece)) {
-        if (row === 6) {
+    // Checks if the pawn can move forward one space
+    if (isInRange(possibleMove) && isEmpty(board, possibleMove, piece)) {
+        // Checks if the pawn is ready to transform or just moving forward
+        if (row === REQUIRED_TRANSFORM_ROW) {
             moves.push(convertToAction(possibleMove, ACTION_TYPES.TRANSFORM));
         } else {
             moves.push(convertToAction(possibleMove, ACTION_TYPES.MOVE));
         }
 
-        if (row === 1 && isEmpty(board, possibleSpecialMove, piece)) {
+        if (row === REQUIRED_DOUBLE_MOVE_ROW && isEmpty(board, possibleSpecialMove, piece)) {
             moves.push(convertToAction(possibleSpecialMove, ACTION_TYPES.MOVE));
         }
     }
 
+    // Checks if the pawns can capture on either side
     possibleCaptures.forEach((capture) => {
-        if (isInRange(board, capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
-            const action = row === 6 ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
+        if (isInRange(capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
+            const action = row === REQUIRED_TRANSFORM_ROW ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
 
             moves.push(convertToAction(capture, action));
         }
     });
 
-    if (enPassant && canEnpassant(chessPos, enPassant, 4)) {
+    // Checks if the pawn can perform en passant
+    if (enPassant && canEnpassant(chessPos, enPassant, REQUIRED_EN_PASSANT_ROW)) {
         const enPassantCoords = generateEnPassantCoords(chessPos, enPassant, 1);
 
         moves.push(convertToAction(enPassantCoords, ACTION_TYPES.EN_PASSANT));
@@ -169,16 +246,22 @@ const generateWhitePawnMoves = (board, chessPos, piece, enPassant) => {
 /**
  * Generates possible moves for a pawn. Pawns can move forward one space,
  * or two spaces if it is the first move. Pawns can also capture diagonally.
+ * Pawns can transform when they reach the end of the board. Pawns can also
+ * perform en passant.
  * 
- * @param {String[][]} board The board in array format
- * @param {Number[]} position The position of the pawn
- * @param {String} piece The piece representation of the pawn
- * @returns {String[]} An array of possible moves
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the pawn
+ * @param {import('../../types').Piece} piece The piece representation of the pawn
+ * @param {import('../../types').PawnRegistry} registry The pawn registry
+ * @param {import('../../types').ChessPos | undefined} enPassant The position of the pawn that opened an en passant move
+ * @returns {import('../../types').Action[]} An array of possible moves
  */
 const generatePawnMoves = (board, chessPos, piece, registry, enPassant) => {
+    // Checks if the pawn is transformed
     if (registry[piece]) {
         const transformedPiece = piece[0] + registry[piece];
 
+        // Sees what type of transformed piece it is
         if (isPiece(transformedPiece, PIECE_VALUES.ROOK)) {
             return generateRookMoves(board, chessPos, piece);
         } else if (isPiece(transformedPiece, PIECE_VALUES.KNIGHT)) {
@@ -190,6 +273,7 @@ const generatePawnMoves = (board, chessPos, piece, registry, enPassant) => {
         }
     }
 
+    // Checks if the pawn is white or black
     if (isColor(piece, PIECE_COLORS.WHITE)) {
         return generateWhitePawnMoves(board, chessPos, piece, enPassant);
     } else {
@@ -197,13 +281,24 @@ const generatePawnMoves = (board, chessPos, piece, registry, enPassant) => {
     }
 }
 
+/**
+ * Generates possible moves in a given direction
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position to start at
+ * @param {DIRECTION_VECTORS[keyof DIRECTION_VECTORS]} direction The direction to search in
+ * @param {import('../../types').Piece | undefined} ignore The piece to ignore
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateMovesInDirection = (board, chessPos, direction, ignore) => {
-    const moves = [];
-    const [rowDir, colDir] = direction;
-    let actionPos = movePos(chessPos, rowDir, colDir);
-    const piece = ignore || getPieceAt(board, chessPos);
+    const moves = []; // The array of possible moves
+    const [rowDir, colDir] = direction; // The row and column direction to move in
+    let actionPos = movePos(chessPos, rowDir, colDir); // The first position to check
+    const piece = ignore || getPieceAt(board, chessPos); // The piece to ignore
 
-    while (isInRange(board, actionPos)) {
+    // Loops through the direction until it reaches the end of the board or a piece
+    while (isInRange(actionPos)) {
+        // Adds a move if the position is empty, a capture if it is an enemy, or stops if it is an ally
         if (isEmpty(board, actionPos, ignore)) {
             moves.push(convertToAction(actionPos, ACTION_TYPES.MOVE));
         } else if (isEnemy(piece, getPieceAt(board, actionPos))) {
@@ -213,15 +308,26 @@ const generateMovesInDirection = (board, chessPos, direction, ignore) => {
             break;
         }
 
+        // Moves to the next position
         actionPos = movePos(actionPos, rowDir, colDir);
     }
 
     return moves;
 }
 
+/**
+ * Generates possible moves in multiple directions
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position to start at
+ * @param {DIRECTION_VECTORS[keyof DIRECTION_VECTORS][]} directions The directions to search in
+ * @param {import('../../types').Piece | undefined} ignore The piece to ignore
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateMovesInDirections = (board, chessPos, directions, ignore) => {
     const moves = [];
 
+    // Loops through each direction and adds the moves to the array
     directions.forEach((direction) => {
         moves.push(...generateMovesInDirection(board, chessPos, direction, ignore));
     });
@@ -229,6 +335,15 @@ const generateMovesInDirections = (board, chessPos, directions, ignore) => {
     return moves;
 }
 
+/**
+ * Generates possible moves for a rook. Rooks can move in any direction
+ * along a rank or file.
+ * 
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the rook
+ * @param {import('../../types').Piece | undefined} ignore The piece to ignore
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateRookMoves = (board, chessPos, ignore) => {
     const directions = [
         DIRECTION_VECTORS.NORTH,
@@ -240,6 +355,15 @@ const generateRookMoves = (board, chessPos, ignore) => {
     return generateMovesInDirections(board, chessPos, directions, ignore);
 }
 
+/**
+ * Generates possible moves for a bishop. Bishops can move in any direction
+ * along a diagonal.
+ *
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the bishop
+ * @param {import('../../types').Piece} ignore The piece to ignore
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateBishopMoves = (board, chessPos, ignore) => {
     const directions = [
         DIRECTION_VECTORS.NORTH_EAST,
@@ -251,6 +375,15 @@ const generateBishopMoves = (board, chessPos, ignore) => {
     return generateMovesInDirections(board, chessPos, directions, ignore);
 }
 
+/**
+ * Generates possible moves for a queen. Queens can move in any direction
+ * along a rank, file, or diagonal.
+ * 
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the queen
+ * @param {import('../../types').Piece} ignore The piece to ignore
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateQueenMoves = (board, chessPos, ignore) => {
     const directions = [
         DIRECTION_VECTORS.NORTH,
@@ -266,6 +399,15 @@ const generateQueenMoves = (board, chessPos, ignore) => {
     return generateMovesInDirections(board, chessPos, directions, ignore);
 }
 
+/**
+ * Generates possible moves for a knight. Knights can move in an L shape
+ * in any direction, and can jump over other pieces.
+ * 
+ * @param {import('../../types').Board} board The board to generate moves from
+ * @param {import('../../types').ChessPos} chessPos The position of the knight
+ * @param {import('../../types').Piece} piece The piece representation of the knight
+ * @returns {import('../../types').Action[]} An array of possible moves
+ */
 const generateKnightMoves = (board, chessPos, piece) => {
     const moves = [];
 
@@ -281,7 +423,7 @@ const generateKnightMoves = (board, chessPos, piece) => {
     ];
 
     possibleMoves.forEach((move) => {
-        if (isInRange(board, move)) {
+        if (isInRange(move)) {
             if (isEmpty(board, move, piece)) {
                 moves.push(convertToAction(move, ACTION_TYPES.MOVE));
             } else if (areEnemies(piece, getPieceAt(board, move))) {
@@ -332,7 +474,7 @@ const isSafe = (board, chessPos, ignore, registry) => {
     ];
 
     const knightDanger = knightMoves.some((actionPos) => {
-        if (isInRange(board, actionPos)) {
+        if (isInRange(actionPos)) {
             const knight = getPieceAt(board, actionPos);
             return isEnemy(piece, knight) && isPiece(knight, PIECE_VALUES.KNIGHT, registry);
         }
@@ -344,7 +486,7 @@ const isSafe = (board, chessPos, ignore, registry) => {
         const [rowDir, colDir] = direction;
         const tempPos = movePos(chessPos, rowDir, colDir);
 
-        if (isInRange(board, tempPos) && !isEmpty(board, tempPos, ignore)) {
+        if (isInRange(tempPos) && !isEmpty(board, tempPos, ignore)) {
             const pawn = getPieceAt(board, tempPos);
             return isEnemy(piece, pawn) && isPiece(pawn, PIECE_VALUES.PAWN);
         }
@@ -428,7 +570,7 @@ const generateKingMoves = (board, chessPos, piece, canCastle, registry) => {
     ];
 
     possibleMoves.forEach((move) => {
-        if (isInRange(board, move) && isSafe(board, move, piece, registry) && !areAllies(piece, getPieceAt(board, move))) {
+        if (isInRange(move) && isSafe(board, move, piece, registry) && !areAllies(piece, getPieceAt(board, move))) {
             if (isEmpty(board, move, piece)) {
                 moves.push(convertToAction(move, ACTION_TYPES.MOVE));
             } else {
@@ -539,6 +681,14 @@ export const getTurnInfo = (board, player, positions, registry, canCastle, enPas
     return { actions, isKingSafe };
 }
 
+/**
+ * Moves a piece on the board
+ *
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} start The position to move the piece from
+ * @param {import('../../types').ChessPos} end The position to move the piece to
+ * @returns {import('../../types').Board} The updated board
+ */
 export const movePiece = (board, start, end) => {
     board[end] = board[start];
     board[start] = PIECE_VALUES.EMPTY;
@@ -546,7 +696,16 @@ export const movePiece = (board, start, end) => {
     return board;
 }
 
+/**
+ * Places a piece on the board
+ *
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position to place the piece
+ * @param {import('../../types').Piece} piece The piece to place
+ * @returns {import('../../types').Board} The updated board
+ */
 export const placePiece = (board, chessPos, piece) => {
+    // Only place the piece if it is not a captured piece
     if (chessPos !== CAPTURED_PIECE) {
         board[chessPos] = piece;
     }
@@ -554,12 +713,15 @@ export const placePiece = (board, chessPos, piece) => {
     return board;
 }
 
+/**
+ * Removes a piece from the board
+ * 
+ * @param {import('../../types').Board} board The board to use
+ * @param {import('../../types').ChessPos} chessPos The position to remove the piece from
+ * @returns {import('../../types').Board} The updated board
+ */
 export const removePiece = (board, chessPos) => {
     delete board[chessPos];
 
     return board;
-}
-
-export const getPieceAtChessCoords = (board, coords) => {
-    return getPieceAt(board, coords);
 }
