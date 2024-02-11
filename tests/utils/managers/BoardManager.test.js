@@ -251,10 +251,9 @@ describe('Tests the executeAction method', () => {
         manager.positions = createPositions();
         manager.pawnRegistry = {};
 
-        manager.executeAction('A3M', toggleTransformFn, makeMoveFn);
+        manager.executeAction('A3M', makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
-        expect(toggleTransformFn).toHaveBeenCalledTimes(0);
         expect(manager.canCastle).toEqual({
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
@@ -280,10 +279,9 @@ describe('Tests the executeAction method', () => {
         manager.positions = createPositions({ [PIECES.WHITE_PAWN_4]: 'XX' });
         manager.pawnRegistry = {};
 
-        manager.executeAction('D7C', toggleTransformFn, makeMoveFn);
+        manager.executeAction('D7C', makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
-        expect(toggleTransformFn).toHaveBeenCalledTimes(0);
         expect(manager.canCastle).toEqual(manager.canCastle = {
             [PIECE_COLORS.WHITE]: { 1: true, 2: true },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
@@ -312,10 +310,9 @@ describe('Tests the executeAction method', () => {
         manager.positions = createDeadPositions({ [PIECES.WHITE_KING]: 'E1', [PIECES.WHITE_ROOK_2]: 'H1' });
         manager.pawnRegistry = {};
 
-        manager.executeAction('G1' + ACTION_TYPES.CASTLE, toggleTransformFn, makeMoveFn);
+        manager.executeAction('G1' + ACTION_TYPES.CASTLE, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
-        expect(toggleTransformFn).toHaveBeenCalledTimes(0);
         expect(manager.canCastle).toEqual({
             [PIECE_COLORS.WHITE]: { 1: false, 2: false },
             [PIECE_COLORS.BLACK]: { 1: true, 2: true },
@@ -343,7 +340,7 @@ describe('Tests the executeAction method', () => {
         manager.positions = createDeadPositions({ [PIECES.WHITE_PAWN_1]: 'A7', [PIECES.BLACK_PAWN_1]: 'XX', [PIECES.BLACK_ROOK_1]: 'XX' });
         manager.pawnRegistry = {};
 
-        manager.executeAction('A8' + ACTION_TYPES.TRANSFORM, toggleTransformFn, makeMoveFn);
+        manager.executeAction('A8' + ACTION_TYPES.TRANSFORM, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
         expect(manager.canCastle).toEqual({
@@ -375,7 +372,7 @@ describe('Tests the executeAction method', () => {
         manager.positions = createPositions({ [PIECES.WHITE_PAWN_1]: 'A7', [PIECES.BLACK_PAWN_1]: 'XX' });
         manager.pawnRegistry = {};
 
-        manager.executeAction('B8' + ACTION_TYPES.TRANSFORM, toggleTransformFn, makeMoveFn);
+        manager.executeAction('B8' + ACTION_TYPES.TRANSFORM, makeMoveFn);
 
         expect(manager.board).toEqual(nextBoard);
         expect(manager.canCastle).toEqual({
