@@ -4,6 +4,7 @@ import { createGameMessage, generateHash, getContent, getHash, isGameInvite, isG
 
 class ConversationManager {
     /**
+     * The constructor for the ConversationManager class
      * 
      * @param {{
      *  hash?: String,
@@ -30,12 +31,26 @@ class ConversationManager {
         this.playerAddr = playerAddr;
     }
 
+    /**
+     * Gets a random color for the game
+     * 
+     * @private
+     * @returns {PIECE_COLORS[keyof PIECE_COLORS]} The random color for the game
+     */
     getRandomColor() {
         const number = Math.random();
 
         return number < 0.5 ? PIECE_COLORS.WHITE : PIECE_COLORS.BLACK;
     }
 
+    /**
+     * Sends an invite to the opponent if one has not been sent already
+     * 
+     * @param {{
+     *   setInvite: Function,
+     *   setSendData: Function,
+     * }} sets The object containing the functions to set the invite and send data
+     */
     sendInvite(sets) {
         if (this.invite.hash == null) {
             const hash = generateHash();
@@ -48,6 +63,14 @@ class ConversationManager {
         }
     }
 
+    /**
+     * Determines if the message is an invite message. Can only be an invite message
+     * if the invite hash is set and the message content contains the invite hash
+     * 
+     * @private
+     * @param {import('@xmtp/react-sdk').MessageV2} message The message to check
+     * @returns {Boolean} If the message is an invite message
+     */
     isInviteMessage(message) {
         if (this.invite.hash) {
             return isHashContent(message.content, this.invite.hash);
@@ -56,6 +79,15 @@ class ConversationManager {
         return false;
     }
 
+    /**
+     * Determines if the message is an accept message. Can be an accept message if
+     * the accept hash is set and the message content contains the accept hash or
+     * if the message content is a game invite from the opponent
+     * 
+     * @private
+     * @param {import('@xmtp/react-sdk').MessageV2} message The message to check
+     * @returns {Boolean} If the message is an accept message
+     */
     isAcceptMessage(message) {
         if (this.accept.hash) {
             return isHashContent(message.content, this.accept.hash);
@@ -64,6 +96,15 @@ class ConversationManager {
         return isGameInvite(message.content);
     }
 
+    /**
+     * Updates the invite status based on the message content
+     * 
+     * @private
+     * @param {import('@xmtp/react-sdk').MessageV2} message The message to update the invite status with
+     * @param {{
+     *   setInvite: Function,
+     * }} sets The object containing the functions to set the invite, send data, accept, and load
+     */
     updateInviteStatus(message, sets) {
         const isOpponentMsg = message.senderAddress !== this.playerAddr;
 
@@ -71,6 +112,8 @@ class ConversationManager {
             const content = getContent(message.content);
             const [connectStatus, opponentColor] = content.split(MESSAGE.GAME_DELIMITER);
 
+            // If the opponent accepts the invite and the opponent color is not the same as the invite color
+            // then the invite is accepted, otherwise the invite is declined and the invite hash is reset
             if (connectStatus === CONNECT_STATUS.ACCEPT && opponentColor !== this.invite.color) {
                 this.invite.accepted = true;
                 sets.setInvite({ ...this.invite, accepted: true });
@@ -83,10 +126,21 @@ class ConversationManager {
         }
     }
 
+    /**
+     * Updates the accept status based on the message content
+     * 
+     * @private
+     * @param {import('@xmtp/react-sdk').MessageV2} message The message to update the accept status with
+     * @param {{
+     *   setAccept: Function,
+     * }} sets The object containing the functions to set the accept, send data, accept, and load
+     */
     updateAcceptStatus(message, sets) {
         const isOpponentMsg = message.senderAddress !== this.playerAddr;
 
+        // Only update the accept status if the accept hash is not set and the message is from the opponent
         if (!this.accept.hash && isOpponentMsg) {
+            // Update the accept status if the message is a game invite otherwise reset the accept status
             if (isGameInvite(message.content)) {
                 const content = getContent(message.content);
                 const [connectStatus, opponentColor] = content.split(MESSAGE.GAME_DELIMITER);
@@ -105,6 +159,14 @@ class ConversationManager {
         }
     }
 
+    /**
+     * Sends an accept to the opponent's invite
+     * 
+     * @param {{
+     *   setAccept: Function,
+     *   setSendData: Function,
+     * }} sets The object containing the functions to set the accept and send data
+     */
     sendAccept(sets) {
         if (!this.accept.accepted || !this.accept.hash) {
             this.accept.accepted = true;
@@ -113,6 +175,14 @@ class ConversationManager {
         }
     }
 
+    /**
+     * Sends a decline to the opponent's invite
+     * 
+     * @param {{
+     *   setAccept: Function,
+     *   setSendData: Function,
+     * }} sets The object containing the functions to set the accept and send data
+     */
     sendDecline(sets) {
         if (this.accept.hash) {
             sets.setSendData(createGameMessage(this.accept.hash, CONNECT_STATUS.DECLINE));
@@ -123,14 +193,33 @@ class ConversationManager {
         }
     }
 
-    isGameMessage(messages) {
-        return this.load && isGameMove(messages.content, this.load.hash);
+    /**
+     * Determines if the message is a game message.
+     * 
+     * @private
+     * @param {import('@xmtp/react-sdk').MessageV2} message The message to check
+     * @returns {Boolean} If the message is a game message
+     */
+    isGameMessage(message) {
+        return this.load && isGameMove(message.content, this.load.hash);
     }
 
+    /**
+     * Updates the load status based on the message content. Only works if a loaded game
+     * was already found. Used to update a loaded game as moves are made in app
+     * 
+     * @private
+     * @param {import('@xmtp/react-sdk').MessageV2} message The message to update the load status with
+     * @param {{
+     *   setLoad: Function,
+     * }} sets The object containing the functions to set the load
+     */
     updateLoadStatus(message, sets) {
         const contents = getContent(message.content);
         const [board, messageColor, castling] = contents.split(MESSAGE.GAME_DELIMITER);
 
+        // If the message color is the same as the load color and the current move is not the same as the message content
+        // then update the last move and current move, otherwise reset the load status
         if (this.load.color === getEnemyColor(messageColor) && this.load.currMove !== contents) {
             this.load.lastMove = this.load.currMove;
             this.load.currMove = contents;
@@ -143,6 +232,18 @@ class ConversationManager {
         }
     }
 
+    /**
+     * Processes a message to update the invite, accept, and load status if the message
+     * content is related to the invite, accept, or load
+     * 
+     * @param {import('@xmtp/react-sdk').MessageV2} message The message to process
+     * @param {{
+     *   setInvite: Function,
+     *   setAccept: Function,
+     *   setLoad: Function,
+     *   setSendData: Function,
+     * }} sets The object containing the functions to set the invite, accept, load, and send data
+     */
     processMessage(message, sets) {
         if (this.isInviteMessage(message)) {
             this.updateInviteStatus(message, sets);
