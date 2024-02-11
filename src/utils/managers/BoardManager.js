@@ -12,6 +12,39 @@ import { translateTurnToMessage } from "../game/translate";
 
 class BoardManager {
     /**
+     * Gets the image class for the given piece
+     * 
+     * @param {import("../../types").Piece?} piece The piece to get the image class for
+     * @param {import("../../types").PawnRegistry} pawnRegistry The pawn registry to get the transformed value from
+     * @returns {String} The image class for the given piece
+     */
+    static getImageClass(piece, pawnRegistry = {}) {
+        if (!piece) {
+            return "";
+        }
+
+        // Determines the color of the piece
+        const color = isWhite(piece) ? "white" : "black";
+
+        // If the piece is not a pawn, the image class is the color and type of the piece
+        // otherwise check the pawn registry for the transformed value or use the pawn value
+        if (!isPawn(piece)) {
+            const type = Object.entries(PIECE_VALUES).find(([, value]) => value === piece[1]);
+
+            if (color && type) {
+                return `${color}_${type[0].toLowerCase()}`;
+            }
+        } else {
+            const transformedType = pawnRegistry[piece] || piece[1];
+            const type = Object.entries(PIECE_VALUES).find(([, value]) => value === transformedType);
+
+            if (color && type) {
+                return `${color}_${type[0].toLowerCase()}`;
+            }
+        }
+    }
+
+    /**
      * The constructor for the BoardManager class
      * 
      * @param {import("../../types").GameMessage} lastMove The last move made in the game
@@ -427,29 +460,7 @@ class BoardManager {
      * @returns {String} The image class for the given piece
      */
     getImageClass(piece) {
-        if (!piece) {
-            return "";
-        }
-
-        // Determines the color of the piece
-        const color = isWhite(piece) ? "white" : "black";
-
-        // If the piece is not a pawn, the image class is the color and type of the piece
-        // otherwise check the pawn registry for the transformed value or use the pawn value
-        if (!isPawn(piece)) {
-            const type = Object.entries(PIECE_VALUES).find(([, value]) => value === piece[1]);
-
-            if (color && type) {
-                return `${color}_${type[0].toLowerCase()}`;
-            }
-        } else {
-            const transformedType = this.pawnRegistry[piece] || piece[1];
-            const type = Object.entries(PIECE_VALUES).find(([, value]) => value === transformedType);
-
-            if (color && type) {
-                return `${color}_${type[0].toLowerCase()}`;
-            }
-        }
+        return BoardManager.getImageClass(piece, this.pawnRegistry);
     }
 }
 

@@ -3,12 +3,12 @@ import { useWalletClient } from "wagmi";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useSSX } from "@spruceid/ssx-react";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Footer from "../Footer";
 import Header from "../Header";
 import Board from "../DisplayBoard";
-import { createInitialBoard } from '../../tools/tools/board';
-import { useNavigate } from "react-router-dom";
+import { createInitialBoard } from "../../utils/game/board";
 
 function Home() {
     const { initialize, client } = useClient();

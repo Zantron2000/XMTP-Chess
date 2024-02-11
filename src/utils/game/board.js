@@ -1,5 +1,4 @@
-import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE, ROW_TO_INDEX, COL_TO_INDEX, INDEX_TO_ROW, INDEX_TO_COL, ACTION_TYPES } from '../enum';
-import { isEnemy } from '../../tools/tools/piece';
+import { GAME_VALIDATION_MESSAGES, PIECE_VALUES, DIRECTION_VECTORS, PIECE_COLORS, CAPTURED_PIECE, ROW_TO_INDEX, COL_TO_INDEX, INDEX_TO_ROW, INDEX_TO_COL, ACTION_TYPES, INITIAL_BOARD_POSITIONS } from '../enum';
 import { extractCoords } from './translate';
 import { areAllies, areEnemies, canAttackDirection, isColor, isPiece } from './piece';
 import { convertToAction, executeAction } from './action';
@@ -167,7 +166,7 @@ const generateBlackPawnMoves = (board, chessPos, piece, enPassant) => {
 
     // Checks if the pawns can capture on either side
     possibleCaptures.forEach((capture) => {
-        if (isInRange(capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
+        if (isInRange(capture) && !isEmpty(board, capture, piece) && areEnemies(piece, getPieceAt(board, capture))) {
             const action = row === REQUIRED_TRANSFORM_ROW ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
 
             moves.push(convertToAction(capture, action));
@@ -225,7 +224,7 @@ const generateWhitePawnMoves = (board, chessPos, piece, enPassant) => {
 
     // Checks if the pawns can capture on either side
     possibleCaptures.forEach((capture) => {
-        if (isInRange(capture) && !isEmpty(board, capture, piece) && isEnemy(piece, getPieceAt(board, capture))) {
+        if (isInRange(capture) && !isEmpty(board, capture, piece) && areEnemies(piece, getPieceAt(board, capture))) {
             const action = row === REQUIRED_TRANSFORM_ROW ? ACTION_TYPES.TRANSFORM : ACTION_TYPES.CAPTURE;
 
             moves.push(convertToAction(capture, action));
@@ -300,7 +299,7 @@ const generateMovesInDirection = (board, chessPos, direction, ignore) => {
         // Adds a move if the position is empty, a capture if it is an enemy, or stops if it is an ally
         if (isEmpty(board, actionPos, ignore)) {
             moves.push(convertToAction(actionPos, ACTION_TYPES.MOVE));
-        } else if (isEnemy(piece, getPieceAt(board, actionPos))) {
+        } else if (areEnemies(piece, getPieceAt(board, actionPos))) {
             moves.push(convertToAction(actionPos, ACTION_TYPES.CAPTURE));
             break;
         } else {
@@ -458,7 +457,7 @@ export const isSafe = (board, chessPos, ignore, registry) => {
         if (nearestPiecePos) {
             const nearestPiece = getPieceAt(board, nearestPiecePos);
 
-            if (isEnemy(piece, nearestPiece)) {
+            if (areEnemies(piece, nearestPiece)) {
                 if (canAttackDirection(nearestPiece, direction, registry)) {
                     return true;
                 }
@@ -488,7 +487,7 @@ export const isSafe = (board, chessPos, ignore, registry) => {
     const knightDanger = knightMoves.some((actionPos) => {
         if (isInRange(actionPos)) {
             const knight = getPieceAt(board, actionPos);
-            return isEnemy(piece, knight) && isPiece(knight, PIECE_VALUES.KNIGHT, registry);
+            return areEnemies(piece, knight) && isPiece(knight, PIECE_VALUES.KNIGHT, registry);
         }
     });
 
@@ -502,7 +501,7 @@ export const isSafe = (board, chessPos, ignore, registry) => {
 
         if (isInRange(tempPos) && !isEmpty(board, tempPos, ignore)) {
             const pawn = getPieceAt(board, tempPos);
-            return isEnemy(piece, pawn) && isPiece(pawn, PIECE_VALUES.PAWN);
+            return areEnemies(piece, pawn) && isPiece(pawn, PIECE_VALUES.PAWN);
         }
     });
 
@@ -855,6 +854,21 @@ export const placePiece = (board, chessPos, piece) => {
  */
 export const removePiece = (board, chessPos) => {
     delete board[chessPos];
+
+    return board;
+}
+
+/**
+ * Creates the initial board state
+ * 
+ * @returns {import('../../types').Board} The initial board state
+ */
+export const createInitialBoard = () => {
+    const board = {};
+
+    Object.keys(INITIAL_BOARD_POSITIONS).forEach((piece) => {
+        board[INITIAL_BOARD_POSITIONS[piece]] = piece;
+    });
 
     return board;
 }
